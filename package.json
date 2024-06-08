@@ -1,0 +1,22 @@
+{
+  "name": "shingle",
+  "version": "1.0.0",
+  "description": "Project for tracking some basic market data",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ycby/shingle.git"
+  },
+  "author": "ycby",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ycby/shingle/issues"
+  },
+  "homepage": "https://github.com/ycby/shingle#readme",
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
