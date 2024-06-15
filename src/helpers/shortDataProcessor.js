@@ -6,32 +6,32 @@ import ShortData from '#root/src/objectModels/ShortData.js'
 
 const parser = csv.parse({ columns: true })
 
-export default async function processAndInsertShortData(filepath) {
+export default async function processAndInsertShortData(filepath, mappings) {
 
-	const rows = await processCSV(filepath)
+	const rows = await processCSV(filepath, mappings)
 
 	const insertQuery = "INSERT INTO Short_Reporting (stock_code, reporting_date, shorted_shares, shorted_amount, created_datetime, last_modified_datetime) VALUE (?, ?, ?, ?, ?, ?)"
 
 	let conn
 
-	try {
-		conn = await db.pool.getConnection()
+	// try {
+	// 	conn = await db.pool.getConnection()
 		
-		await conn.beginTransaction()
+	// 	await conn.beginTransaction()
 
-		console.log(rows)
-		const result = await conn.batch(insertQuery, rows)
+	// 	console.log(rows)
+	// 	const result = await conn.batch(insertQuery, rows)
 
-		await conn.commit()
+	// 	await conn.commit()
 
-		console.log(result)
-	} catch (err) {
-		console.log(err)
-		await conn.rollback()
-	}
+	// 	console.log(result)
+	// } catch (err) {
+	// 	console.log(err)
+	// 	await conn.rollback()
+	// }
 }
 
-async function processCSV(filepath) {
+async function processCSV(filepath, mappings) {
 
 	const rows = []
 	const readStream = fs.createReadStream(filepath)
@@ -39,14 +39,11 @@ async function processCSV(filepath) {
 	readStream
 	.pipe(parser)
 	.on('data', data => {
-		console.log(data)
 
 		const row = []
 		const shortData = new ShortData('INSERT')
-		shortData.stock_code = data['Stock Code']
-		shortData.reporting_date = data['Date']
-		shortData.shorted_shares = data['Aggregated Reportable Short Positions (Shares)']
-		shortData.shorted_amount = data['Aggregated Reportable Short Positions (HK$)']
+
+		mappings.forEach(mapping => shortData[mapping.value] = data[mapping.column])
 
 		row.push(...shortData.getFields())
 

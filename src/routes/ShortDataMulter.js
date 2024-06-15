@@ -21,9 +21,10 @@ const upload = multer({
 
 export default (req, res) => {
 	upload(req, res, (err) => {
-		console.log(req.file, req.body)
+		console.log(req.file)
+		console.log(req.body.mapping)
 
-		processAndInsertShortData(req.file.path)
+		processAndInsertShortData(req.file.path, JSON.parse(req.body.mapping))
 		res.send('Successful!')
 	})
 }

@@ -72,4 +72,14 @@ export default class ShortData extends DatabaseObject {
 		yield this._created_datetime
 		yield this._last_modified_datetime
 	}
+
+	toString() {
+
+		return `Stock Code: ${this._stock_code},
+		Reporting Date: ${this._reporting_date},
+		Shorted Shares: ${this._shorted_shares},
+		Shorted Amount: ${this._shorted_amount},
+		Created Date: ${this._created_datetime},
+		Last Modified Date: ${this._last_modified_datetime}`
+	}
 }
