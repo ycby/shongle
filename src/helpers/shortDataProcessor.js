@@ -14,21 +14,21 @@ export default async function processAndInsertShortData(filepath, mappings) {
 
 	let conn
 
-	// try {
-	// 	conn = await db.pool.getConnection()
+	try {
+		conn = await db.pool.getConnection()
 		
-	// 	await conn.beginTransaction()
+		await conn.beginTransaction()
 
-	// 	console.log(rows)
-	// 	const result = await conn.batch(insertQuery, rows)
+		console.log(rows)
+		const result = await conn.batch(insertQuery, rows)
 
-	// 	await conn.commit()
+		await conn.commit()
 
-	// 	console.log(result)
-	// } catch (err) {
-	// 	console.log(err)
-	// 	await conn.rollback()
-	// }
+		console.log(result)
+	} catch (err) {
+		console.log(err)
+		await conn.rollback()
+	}
 }
 
 async function processCSV(filepath, mappings) {

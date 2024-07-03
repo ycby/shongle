@@ -131,3 +131,5 @@ dist
 
 # local
 storage/
+shingle.sublime-project
+shingle.sublime-workspace
