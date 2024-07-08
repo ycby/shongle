@@ -19,7 +19,12 @@ export default async (req, res) => {
 	} catch (err) {
 
 		console.log(err)
-		await conn.rollback()
+		if (conn) await conn.rollback()
 		res.status(500).send('My body is broken')
+	} finally {
+
+		console.log('Closing Connection')
+		if (conn) conn.end()
+		// db.pool.end()
 	}
 }

@@ -24,7 +24,11 @@ export default (req, res) => {
 		console.log(req.file)
 		console.log(req.body.mapping)
 
+		if (req.file === undefined) res.status(500).send('Missing File')
+		if (req.body.mapping === undefined) res.status(500).send('Missing Mapping')
+
+		console.log('Before processing short data...')
 		processAndInsertShortData(req.file.path, JSON.parse(req.body.mapping))
-		res.send('Successful!')
+		res.status(200).send('Successful!')
 	})
 }
