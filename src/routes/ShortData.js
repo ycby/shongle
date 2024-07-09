@@ -2,7 +2,8 @@ import db from '#root/src/db/db.js'
 
 export default async (req, res) => {
 
-	const selectQuery = "SELECT id, stock_code, reporting_date, shorted_shares, shorted_amount, created_datetime, last_modified_datetime FROM Short_Reporting"
+	//TODO: change this to not get all at start
+	const selectQuery = `SELECT * FROM Short_Reporting WHERE stock_code = ? ORDER BY reporting_date DESC`
 
 	let conn
 
@@ -11,7 +12,7 @@ export default async (req, res) => {
 		
 		await conn.beginTransaction()
 
-		const result = await conn.query(selectQuery)
+		const result = await conn.query(selectQuery, [['00001']])
 
 		console.log(result)
 
@@ -25,6 +26,5 @@ export default async (req, res) => {
 
 		console.log('Closing Connection')
 		if (conn) conn.end()
-		// db.pool.end()
 	}
 }
