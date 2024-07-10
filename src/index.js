@@ -3,6 +3,7 @@ import processAndInsertShortData from '#root/src/helpers/shortDataProcessor.js'
 import ShortDataMulter from '#root/src/routes/ShortDataMulter.js'
 import ShortData from '#root/src/routes/ShortData.js'
 import Mapping from '#root/src/routes/Mapping.js'
+import StockData from '#root/src/routes/StockData.js'
 
 const app = express()
 const port = process.env.SERVER_PORT
@@ -21,6 +22,8 @@ app.get("/", async (req, res) => {
 })
 
 app.get("/mapping", Mapping)
+
+app.get("/stock", StockData)
 
 //TODO: Handle various params
 app.get("/shortdata/", ShortData)

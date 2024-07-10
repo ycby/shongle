@@ -2,8 +2,13 @@ import db from '#root/src/db/db.js'
 
 export default async (req, res) => {
 
+	const stockCode = req.query.stockcode
+
+	if (!stockCode) return res.setHeader('content-type', 'application/json').send({});
+
 	//TODO: change this to not get all at start
-	const selectQuery = `SELECT * FROM Short_Reporting WHERE stock_code = ? ORDER BY reporting_date DESC`
+	const stockQuery = `SELECT * FROM Stock WHERE code = ? LIMIT 1`
+	const shortReportingQuery = `SELECT * FROM Short_Reporting WHERE stock_code = ? ORDER BY reporting_date DESC`
 
 	let conn
 
@@ -12,7 +17,7 @@ export default async (req, res) => {
 		
 		await conn.beginTransaction()
 
-		const result = await conn.query(selectQuery, [['00001']])
+		const result = await conn.query(shortReportingQuery, [['00001']])
 
 		console.log(result)
 
