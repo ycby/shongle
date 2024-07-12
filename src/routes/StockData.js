@@ -10,7 +10,7 @@ export default async (req, res) => {
 
 		conn = await db.pool.getConnection()
 
-		await conn.beginTransaction
+		await conn.beginTransaction()
 
 		const result = await conn.query(stockQuery)
 

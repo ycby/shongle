@@ -4,7 +4,7 @@ export default async (req, res) => {
 
 	const stockCode = req.query.stockcode
 
-	if (!stockCode) return res.setHeader('content-type', 'application/json').send({});
+	if (!stockCode) return res.setHeader('content-type', 'application/json').send([]);
 
 	//TODO: change this to not get all at start
 	const stockQuery = `SELECT * FROM Stock WHERE code = ? LIMIT 1`
@@ -17,7 +17,7 @@ export default async (req, res) => {
 		
 		await conn.beginTransaction()
 
-		const result = await conn.query(shortReportingQuery, [['00001']])
+		const result = await conn.query(shortReportingQuery, [[stockCode]])
 
 		console.log(result)
 
