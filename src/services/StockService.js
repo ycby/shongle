@@ -15,10 +15,19 @@ const columnInsertionOrder = [
 	'currency'
 ]
 
-const getStockData = async (args) => {
+const getStocksData = async (args) => {
 
 	let conn;
 	let result = [];
+	//TODO: Determine if can make function of it
+	//Maybe need to have column mapping to avoid exposure?
+	let whereString = '';
+	let whereArray = [];
+	for (const key in Object.keys(args)) {
+
+		whereArray.push(`(${Object.keys(args)[key]} LIKE :${Object.keys(args)[key]})`);
+	}
+	whereString = whereArray.length !== 0 ? `WHERE ${whereArray.join(' AND ')}` : '';
 
 	try {
 
@@ -28,8 +37,13 @@ const getStockData = async (args) => {
 
 		result = await conn.query({
 			namedPlaceholders: true,
-			sql: `SELECT * FROM Stock`
+			sql: `SELECT * FROM Stock ${whereString}`,
+		}, {
+			code: `%${args.code}%`,
+			name: `%${args.name}%`,
+			ISIN: `%${args.ISIN}%`
 		});
+
 	} catch (err) {
 
 		if (conn) await conn.rollback();
@@ -85,6 +99,35 @@ const postStockData = async (data) => {
 	return result;
 }
 
+const getStockData = async (code) => {
+
+	let conn;
+	let result = [];
+
+	try {
+
+		conn = await db.pool.getConnection();
+
+		await conn.beginTransaction();
+
+		result = await conn.query({
+			namedPlaceholders: true,
+			sql: `SELECT * FROM Stock WHERE code = :code`
+		}, {
+			code: code
+		});
+	} catch (err) {
+
+		if (conn) await conn.rollback();
+
+	} finally {
+
+		if (conn) await conn.end();
+	}
+
+	return result;
+}
+
 const processStockData = (data, columnOrder) => {
 
 	let result = [];
@@ -98,32 +141,7 @@ const processStockData = (data, columnOrder) => {
 }
 
 export {
-	getStockData,
-	postStockData
+	getStocksData,
+	postStockData,
+	getStockData
 }
-
-// export default async (req, res) => {
-//
-// 	const stockQuery = `SELECT * FROM Stock`
-//
-// 	let conn
-//
-// 	try {
-//
-// 		conn = await db.pool.getConnection()
-//
-// 		await conn.beginTransaction()
-//
-// 		const result = await conn.query(stockQuery)
-//
-// 		res.setHeader('content-type', 'application/json').send(result)
-// 	} catch (err) {
-//
-// 		if (conn) await conn.rollback();
-//
-// 		res.status(500).send('The spaghetti has been spilled')
-// 	} finally {
-//
-// 		if (conn) conn.end()
-// 	}
-// }

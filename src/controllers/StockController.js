@@ -22,10 +22,14 @@ const getStocks = async (req, res, next) => {
     //TODO: add validation?
     try {
 
-        const stocks = await StockService.getStockData(req.query);
+        const stocks = await StockService.getStocksData(req.query);
 
         return res.status(Constants.HTTP_STATUS_CODES.SUCCESS).json(
-            ResponseStandardiser.generateStandardResponse(stocks, Constants.APP_STATUS_CODES.SUCCESS, Constants.APP_STATUS_DESCRIPTORS.RESULT_FOUND)
+            ResponseStandardiser.generateStandardResponse(
+                stocks,
+                Constants.APP_STATUS_CODES.SUCCESS,
+                Constants.APP_STATUS_DESCRIPTORS.RESULT_FOUND
+            )
         );
     } catch (err) {
 
@@ -42,7 +46,11 @@ const createStocks = async (req, res, next) => {
         const stocks = await StockService.postStockData(req.body);
 
         return res.status(Constants.HTTP_STATUS_CODES.SUCCESS).json(
-            ResponseStandardiser.generateStandardResponse(stocks, Constants.APP_STATUS_CODES.SUCCESS, Constants.APP_STATUS_DESCRIPTORS.RESULT_FOUND)
+            ResponseStandardiser.generateStandardResponse(
+                stocks,
+                Constants.APP_STATUS_CODES.SUCCESS,
+                Constants.APP_STATUS_DESCRIPTORS.RESULT_FOUND
+            )
         );
     } catch (err) {
 
@@ -52,7 +60,21 @@ const createStocks = async (req, res, next) => {
 
 const getStock = async (req, res, next) => {
 
-    //TODO: implement
+    try {
+
+        const stock = await StockService.getStockData(req.params.code);
+
+        return res.status(Constants.HTTP_STATUS_CODES.SUCCESS).json(
+            ResponseStandardiser.generateStandardResponse(
+                stock,
+                Constants.APP_STATUS_CODES.SUCCESS,
+                Constants.APP_STATUS_DESCRIPTORS.RESULT_FOUND
+            )
+        );
+    } catch (err) {
+
+        next(err);
+    }
 }
 
 const upsertStock = async (req, res, next) => {
