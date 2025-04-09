@@ -9,6 +9,7 @@ export default Object.freeze({
 		database: process.env.DB_NAME,
 		connectionLimit: 5,
 		supportBigNumbers: true,
-		bigNumberStrings: true
+		bigNumberStrings: true,
+		trace: true
 	})
 })

@@ -78,6 +78,7 @@ web_modules/
 .env.test.local
 .env.production.local
 .env.local
+.env.dev
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache
@@ -131,5 +132,6 @@ dist
 
 # local
 storage/
-shingle.sublime-project
-shingle.sublime-workspace
+.idea/workspace.xml
+.idea/usage.statistics.xml
+.idea/shelf/

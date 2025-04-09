@@ -1,6 +1,7 @@
 import db from '#root/src/db/db.js';
-import Stock from '#root/src/objectModels/Stock.js';
+import Stock from '#root/src/models/Stock.js';
 import {SqlError} from "mariadb";
+import {DuplicateFoundError} from "#root/src/errors/Errors.js";
 
 const columnInsertionOrder = [
 	'code',
@@ -46,11 +47,22 @@ const postStockData = async (data) => {
 	let result = [];
 	let conn;
 	//TODO: put complete the insert and handle response
+
+	const dataIds = data.map(d => d.code);
 	try {
 
 		conn = await db.pool.getConnection();
 
 		await conn.beginTransaction();
+
+		const existingRecords = await conn.query("SELECT code, name FROM Stock WHERE code IN (?)", [dataIds]);
+
+		if (existingRecords.length > 0) {
+
+			const existingCodes = existingRecords.map(d => d.code);
+
+			throw new DuplicateFoundError(`Stocks with ids ( ${existingCodes.join(', ')} ) already exist!`);
+		}
 
 		result = await conn.batch(
 			'INSERT INTO Stock ' +
@@ -58,12 +70,13 @@ const postStockData = async (data) => {
 			'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
 			data.map(item => processStockData(item, columnInsertionOrder))
 		)
+
+		await conn.commit();
 	} catch (err) {
 
-		if (err instanceof SqlError) console.log('I am a sql error')
-		console.error(`Error: ${err}`)
-
 		if (conn) await conn.rollback();
+
+		throw err;
 	} finally {
 
 		if (conn) await conn.end();

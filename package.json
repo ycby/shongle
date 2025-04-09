@@ -9,7 +9,8 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon --env-file=.env src/index.js"
+    "start:prod": "node --env-file=.env src/index.js",
+    "start:dev": "nodemon --env-file=.env.dev src/index.js"
   },
   "repository": {
     "type": "git",
