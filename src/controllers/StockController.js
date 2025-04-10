@@ -79,12 +79,40 @@ const getStock = async (req, res, next) => {
 
 const upsertStock = async (req, res, next) => {
 
-    //TODO: implement
+    try {
+        // console.log(req.body);
+        const stocks = await StockService.putStockData(req.params.code, req.body);
+
+        return res.status(Constants.HTTP_STATUS_CODES.SUCCESS).json(
+            ResponseStandardiser.generateStandardResponse(
+                stocks,
+                Constants.APP_STATUS_CODES.SUCCESS,
+                Constants.APP_STATUS_DESCRIPTORS.RESULT_FOUND
+            )
+        );
+    } catch (err) {
+
+        next(err);
+    }
 }
 
 const deleteStock = async (req, res, next) => {
 
-    //TODO: implement
+    try {
+
+        const stock = await StockService.deleteStockData(req.params.code);
+
+        return res.status(Constants.HTTP_STATUS_CODES.SUCCESS).json(
+            ResponseStandardiser.generateStandardResponse(
+                stock,
+                Constants.APP_STATUS_CODES.SUCCESS,
+                Constants.APP_STATUS_DESCRIPTORS.RESULT_FOUND
+            )
+        );
+    } catch (err) {
+
+        next(err);
+    }
 }
 
 export {

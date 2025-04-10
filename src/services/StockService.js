@@ -128,6 +128,81 @@ const getStockData = async (code) => {
 	return result;
 }
 
+const putStockData = async (code, data) => {
+
+	let result = [];
+	let conn;
+
+	try {
+
+		conn = await db.pool.getConnection();
+
+		await conn.beginTransaction();
+
+		result = await conn.batch(
+			'INSERT INTO Stock ' +
+			'(code, name, full_name, description, category, subcategory, board_lot, ISIN, currency, created_datetime, last_modified_datetime) ' +
+			'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ' +
+			'ON DUPLICATE KEY UPDATE ' +
+			'name=VALUES(name), ' +
+			'full_name=VALUES(full_name), ' +
+			'description=VALUES(description), ' +
+			'category=VALUES(category), ' +
+			'subcategory=VALUES(subcategory), ' +
+			'board_lot=VALUES(board_lot), ' +
+			'ISIN=VALUES(ISIN), ' +
+			'currency=VALUES(currency), ' +
+			'last_modified_datetime=VALUES(last_modified_datetime)',
+			data.map(item => processStockData(item, columnInsertionOrder))
+		)
+
+		await conn.commit();
+	} catch (err) {
+
+		if (conn) await conn.rollback();
+
+		throw err;
+	} finally {
+
+		if (conn) await conn.end();
+	}
+
+	return result;
+}
+
+const deleteStockData = async (code) => {
+
+	let conn;
+	let result = [];
+
+	try {
+
+		conn = await db.pool.getConnection();
+
+		await conn.beginTransaction();
+
+		result = await conn.query({
+			namedPlaceholders: true,
+			sql: `DELETE FROM Stock WHERE code = :code`
+		}, {
+			code: code
+		});
+
+		await conn.commit();
+
+		console.log(result);
+	} catch (err) {
+		console.error(err)
+		if (conn) await conn.rollback();
+
+	} finally {
+		console.log('finally')
+		if (conn) await conn.end();
+	}
+
+	return result;
+}
+
 const processStockData = (data, columnOrder) => {
 
 	let result = [];
@@ -143,5 +218,7 @@ const processStockData = (data, columnOrder) => {
 export {
 	getStocksData,
 	postStockData,
-	getStockData
+	getStockData,
+	putStockData,
+	deleteStockData
 }

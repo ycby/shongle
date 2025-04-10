@@ -135,3 +135,5 @@ storage/
 .idea/workspace.xml
 .idea/usage.statistics.xml
 .idea/shelf/
+.idea/dataSources.xml
+.idea/sqldialects.xml
