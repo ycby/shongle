@@ -2,6 +2,7 @@ import DatabaseObject from './DatabaseObject.js'
 
 export default class ShortData extends DatabaseObject {
 
+	#id
 	#stock_code
 	#reporting_date
 	#shorted_shares
@@ -10,6 +11,16 @@ export default class ShortData extends DatabaseObject {
 	constructor(operationType) {
 
 		super(operationType)
+	}
+
+	get id() {
+
+		return this._stock_code;
+	}
+
+	set id(id) {
+
+		this._id = id;
 	}
 
 	get stock_code() {
@@ -38,9 +49,7 @@ export default class ShortData extends DatabaseObject {
 
 	set reporting_date(reportingDate) {
 
-		const splitDate = reportingDate.split('/')
-		splitDate[1] = (parseInt(splitDate[1]) - 1).toString()
-		this._reporting_date = new Date(...splitDate.reverse())
+		this._reporting_date = new Date(reportingDate);
 	}
 
 	get shorted_shares() {
@@ -63,8 +72,22 @@ export default class ShortData extends DatabaseObject {
 		this._shorted_amount = shortedAmount
 	}
 
+	getPlainObject() {
+
+		return {
+			id: this._id,
+			stock_code: this._stock_code,
+			reporting_date: this._reporting_date,
+			shorted_shares: this._shorted_shares,
+			shorted_amount: this._shorted_amount,
+			created_datetime: this._created_datetime,
+			last_modified_datetime: this._last_modified_datetime
+		}
+	}
+
 	*getFields() {
 
+		yield this._id
 		yield this._stock_code
 		yield this._reporting_date
 		yield this._shorted_shares
@@ -75,7 +98,9 @@ export default class ShortData extends DatabaseObject {
 
 	toString() {
 
-		return `Stock Code: ${this._stock_code},
+		return `
+		Id: ${this._id},
+		Stock Code: ${this._stock_code},
 		Reporting Date: ${this._reporting_date},
 		Shorted Shares: ${this._shorted_shares},
 		Shorted Amount: ${this._shorted_amount},

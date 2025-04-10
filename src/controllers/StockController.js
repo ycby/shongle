@@ -81,7 +81,7 @@ const upsertStock = async (req, res, next) => {
 
     try {
         // console.log(req.body);
-        const stocks = await StockService.putStockData(req.params.code, req.body);
+        const stocks = await StockService.putStockData(req.body);
 
         return res.status(Constants.HTTP_STATUS_CODES.SUCCESS).json(
             ResponseStandardiser.generateStandardResponse(

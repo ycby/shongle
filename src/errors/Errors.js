@@ -6,6 +6,15 @@ class DuplicateFoundError extends Error {
     }
 }
 
+class RecordNotFoundError extends Error {
+
+    constructor(message) {
+        super(message);
+        this.code = 422;
+    }
+}
+
 export {
-    DuplicateFoundError
+    DuplicateFoundError,
+    RecordNotFoundError,
 }

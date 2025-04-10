@@ -1,6 +1,7 @@
 import express from 'express'
 
 import {getStockRouter} from "#root/src/controllers/StockController.js";
+import {getShortDataRouter} from "#root/src/controllers/ShortDataController.js";
 import {DuplicateFoundError} from "#root/src/errors/Errors.js";
 import * as ResponseStandardiser from "#root/src/utilities/ResponseStandardiser.js";
 
@@ -18,7 +19,7 @@ app.use((req, res, next) => {
 //use parser
 app.use(express.json());
 
-app.use("/", getStockRouter())
+app.use("/", [getStockRouter(), getShortDataRouter()]);
 
 app.use((err, req, res, next) => {
 
@@ -38,8 +39,6 @@ app.use((err, req, res, next) => {
 	res.status(500).json(response);
 })
 
-// app.get("/short/", ShortData)
-//
 // app.post("/shortdata/upload", ShortDataMulter)
 
 app.listen(port, () => {

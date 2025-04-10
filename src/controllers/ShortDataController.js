@@ -1,49 +1,117 @@
 import express from 'express'
+import * as Constants from "#root/src/constants/constants.js";
+import * as ResponseStandardiser from "#root/src/utilities/ResponseStandardiser.js";
+import * as ShortDataService from "#root/src/services/ShortDataService.js";
 
-export class ShortDataController {
+const getShortDataRouter = () => {
 
-    path = "/short";
-    router = express.Router();
+    const path = "/short";
+    const router = express.Router();
 
-    constructor() {
+    router.get(path, getShortData);
+    router.post(path, createShortData);
+    router.get(path + "/:id", getShortDatum);
+    router.put(path + "/:id", upsertShortDatum);
+    router.delete(path + "/:id", deleteShortDatum);
 
-        this.router.get(this.path, this.getShortData);
-        this.router.post(this.path, this.createShortData);
-        this.router.get(this.path + "/:id", this.getShortDatum);
-        this.router.put(this.path + "/:id", this.upsertShortDatum);
-        this.router.delete(this.path + "/:id", this.deleteShortDatum);
+    return router;
+}
+
+const getShortData = async (req, res, next) =>{
+
+    try {
+
+        const shortData = await ShortDataService.getShortData(req.query);
+
+        return res.status(Constants.HTTP_STATUS_CODES.SUCCESS).json(
+            ResponseStandardiser.generateStandardResponse(
+                shortData,
+                Constants.APP_STATUS_CODES.SUCCESS,
+                Constants.APP_STATUS_DESCRIPTORS.RESULT_FOUND
+            )
+        );
+    } catch (err) {
+
+        next(err);
     }
+}
 
-    async getShortData(req, res, next) {
+const createShortData = async (req, res, next) => {
 
-        //TODO: implement
-        try {
+    try {
 
-            throw new Error('Testing');
-            res.send("Hi Short")
-        } catch (err) {
+        const shortData = await ShortDataService.postShortData(req.body);
 
-            next(err);
-        }
+        return res.status(Constants.HTTP_STATUS_CODES.SUCCESS).json(
+            ResponseStandardiser.generateStandardResponse(
+                shortData,
+                Constants.APP_STATUS_CODES.SUCCESS,
+                Constants.APP_STATUS_DESCRIPTORS.RESULT_FOUND
+            )
+        );
+    } catch (err) {
+
+        next(err);
     }
+}
 
-    async createShortData(req, res, next) {
+const getShortDatum = async (req, res, next) => {
 
-        //TODO: implement
+    try {
+
+        const shortData = await ShortDataService.getShortDatum(req.params.id);
+
+        return res.status(Constants.HTTP_STATUS_CODES.SUCCESS).json(
+            ResponseStandardiser.generateStandardResponse(
+                shortData,
+                Constants.APP_STATUS_CODES.SUCCESS,
+                Constants.APP_STATUS_DESCRIPTORS.RESULT_FOUND
+            )
+        );
+    } catch (err) {
+
+        next(err);
     }
+}
 
-    async getShortDatum(req, res, next) {
+const upsertShortDatum = async (req, res, next) => {
 
-        //TODO: implement
+    try {
+
+        const shortData = await ShortDataService.putShortDatum(req.body);
+
+        return res.status(Constants.HTTP_STATUS_CODES.SUCCESS).json(
+            ResponseStandardiser.generateStandardResponse(
+                shortData,
+                Constants.APP_STATUS_CODES.SUCCESS,
+                Constants.APP_STATUS_DESCRIPTORS.RESULT_FOUND
+            )
+        );
+    } catch (err) {
+
+        next(err);
     }
+}
 
-    async upsertShortDatum(req, res, next) {
+const deleteShortDatum = async (req, res, next) => {
 
-        //TODO: implement
+    try {
+
+        const shortData = await ShortDataService.deleteShortDatum(req.params.id);
+
+        return res.status(Constants.HTTP_STATUS_CODES.SUCCESS).json(
+            ResponseStandardiser.generateStandardResponse(
+                shortData,
+                Constants.APP_STATUS_CODES.SUCCESS,
+                Constants.APP_STATUS_DESCRIPTORS.RESULT_FOUND
+            )
+        );
+    } catch (err) {
+
+        next(err);
     }
+}
 
-    async deleteShortDatum(req, res, next) {
-
-        //TODO: implement
-    }
+export {
+    getShortDataRouter
 }

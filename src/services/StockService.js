@@ -1,7 +1,7 @@
 import db from '#root/src/db/db.js';
 import Stock from '#root/src/models/Stock.js';
-import {SqlError} from "mariadb";
 import {DuplicateFoundError} from "#root/src/errors/Errors.js";
+import {filterClauseGenerator} from "#root/src/helpers/DBHelpers.js";
 
 const columnInsertionOrder = [
 	'code',
@@ -15,19 +15,31 @@ const columnInsertionOrder = [
 	'currency'
 ]
 
+const fieldMapping = [
+	{
+		param: 'code',
+		field: 'code',
+		operator: 'LIKE'
+	},
+	{
+		param: 'name',
+		field: 'name',
+		operator: 'LIKE'
+	},
+	{
+		param: 'ISIN',
+		field: 'ISIN',
+		operator: 'LIKE'
+	}
+]
+
 const getStocksData = async (args) => {
 
 	let conn;
 	let result = [];
 	//TODO: Determine if can make function of it
 	//Maybe need to have column mapping to avoid exposure?
-	let whereString = '';
-	let whereArray = [];
-	for (const key in Object.keys(args)) {
-
-		whereArray.push(`(${Object.keys(args)[key]} LIKE :${Object.keys(args)[key]})`);
-	}
-	whereString = whereArray.length !== 0 ? `WHERE ${whereArray.join(' AND ')}` : '';
+	let whereString = `WHERE ${filterClauseGenerator(fieldMapping, args)}`;
 
 	try {
 
@@ -47,6 +59,8 @@ const getStocksData = async (args) => {
 	} catch (err) {
 
 		if (conn) await conn.rollback();
+
+		throw err;
 
 	} finally {
 
@@ -120,6 +134,8 @@ const getStockData = async (code) => {
 
 		if (conn) await conn.rollback();
 
+		throw err;
+
 	} finally {
 
 		if (conn) await conn.end();
@@ -128,7 +144,7 @@ const getStockData = async (code) => {
 	return result;
 }
 
-const putStockData = async (code, data) => {
+const putStockData = async (data) => {
 
 	let result = [];
 	let conn;
@@ -190,19 +206,21 @@ const deleteStockData = async (code) => {
 
 		await conn.commit();
 
-		console.log(result);
 	} catch (err) {
-		console.error(err)
+
 		if (conn) await conn.rollback();
 
+		throw err;
+
 	} finally {
-		console.log('finally')
+
 		if (conn) await conn.end();
 	}
 
 	return result;
 }
 
+//TODO: convert to using named placeholders like Short Data
 const processStockData = (data, columnOrder) => {
 
 	let result = [];
