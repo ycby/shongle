@@ -2,15 +2,15 @@ import DatabaseObject from './DatabaseObject.js'
 
 export default class ShortData extends DatabaseObject {
 
-    #code
-    #name
-    #full_name
-    #description
-    #category
-    #subcategory
-    #board_lot
-    #ISIN
-    #currency
+    code
+    name
+    full_name
+    description
+    category
+    subcategory
+    board_lot
+    ISIN
+    currency
 
     constructor(operationType) {
 
@@ -19,17 +19,17 @@ export default class ShortData extends DatabaseObject {
 
     get code() {
 
-        return this._code;
+        return this.code;
     }
 
     set code(code) {
 
         switch (typeof code) {
             case 'number' :
-                this._code = code.toString().padStart(5, '0');
+                this.code = code.toString().padStart(5, '0');
                 break;
             case 'string' :
-                this._code = code.padStart(5, '0');
+                this.code = code.padStart(5, '0');
                 break;
             default:
                 throw new Error('Unexpected Stock Code type');
@@ -38,111 +38,111 @@ export default class ShortData extends DatabaseObject {
 
     get name() {
 
-        return this._name;
+        return this.name;
     }
 
     set name(name) {
 
-        this._name = name;
+        this.name = name;
     }
 
     get full_name() {
 
-        return this._full_name;
+        return this.full_name;
     }
 
     set full_name(full_name) {
 
-        this._full_name = full_name;
+        this.full_name = full_name;
     }
 
     get description() {
 
-        return this._description;
+        return this.description;
     }
 
     set description(description) {
 
-        this._description = description;
+        this.description = description;
     }
 
     get category() {
 
-        return this._category;
+        return this.category;
     }
 
     set category(category) {
 
-        this._category = category;
+        this.category = category;
     }
 
     get subcategory() {
 
-        return this._subcategory;
+        return this.subcategory;
     }
 
     set subcategory(subcategory) {
 
-        this._subcategory = subcategory;
+        this.subcategory = subcategory;
     }
 
     get board_lot() {
 
-        return this._board_lot;
+        return this.board_lot;
     }
 
     set board_lot(board_lot) {
 
-        this._board_lot = board_lot;
+        this.board_lot = board_lot;
     }
 
     get ISIN() {
 
-        return this._ISIN;
+        return this.ISIN;
     }
 
     set ISIN(ISIN) {
 
-        this._ISIN = ISIN;
+        this.ISIN = ISIN;
     }
 
     get currency() {
 
-        return this._currency
+        return this.currency
     }
 
     set currency(currency) {
 
-        this._currency = currency;
+        this.currency = currency;
     }
 
     *getFields() {
 
-        yield this._code;
-        yield this._name;
-        yield this._full_name;
-        yield this._description;
-        yield this._category;
-        yield this._subcategory;
-        yield this._board_lot;
-        yield this._ISIN;
-        yield this._currency;
-        yield this._created_datetime;
-        yield this._last_modified_datetime;
+        yield this.code;
+        yield this.name;
+        yield this.full_name;
+        yield this.description;
+        yield this.category;
+        yield this.subcategory;
+        yield this.board_lot;
+        yield this.ISIN;
+        yield this.currency;
+        yield this.created_datetime;
+        yield this.last_modified_datetime;
     }
 
     toString() {
 
-        return `Code: ${this._code},
-Name: ${this._name},
-Full Name: ${this._full_name},
-Description: ${this._description},
-Category: ${this._category},
-Subcategory: ${this._subcategory},
-Board Lot: ${this._board_lot},
-ISIN: ${this._ISIN},
-Currency: ${this._currency},
-Created Date: ${this._created_datetime},
-Last Modified Date: ${this._last_modified_datetime}`
+        return `Code: ${this.code},
+Name: ${this.name},
+Full Name: ${this.full_name},
+Description: ${this.description},
+Category: ${this.category},
+Subcategory: ${this.subcategory},
+Board Lot: ${this.board_lot},
+ISIN: ${this.ISIN},
+Currency: ${this.currency},
+Created Date: ${this.created_datetime},
+Last Modified Date: ${this.last_modified_datetime}`
     }
 }

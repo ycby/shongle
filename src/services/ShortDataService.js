@@ -169,15 +169,16 @@ const putShortDatum = async (data) => {
 		result = await conn.query({
 			namedPlaceholders: true,
 			sql: 'INSERT INTO Short_Reporting ' +
-				'(id, stock_code, reporting_date, shorted_shares, shorted_amount, last_modified_datetime) ' +
-				'VALUES (:id, :stock_code, :reporting_date, :shorted_shares, :shorted_amount, :last_modified_datetime) ' +
+				'(id, stock_code, reporting_date, shorted_shares, shorted_amount, created_datetime, last_modified_datetime) ' +
+				'VALUES (:id, :stock_code, :reporting_date, :shorted_shares, :shorted_amount, :created_datetime, :last_modified_datetime) ' +
 				'ON DUPLICATE KEY UPDATE ' +
 				'stock_code=VALUES(stock_code), ' +
 				'reporting_date=VALUES(reporting_date), ' +
 				'shorted_shares=VALUES(shorted_shares), ' +
 				'shorted_amount=VALUES(shorted_amount), ' +
 				'last_modified_datetime=VALUES(last_modified_datetime)'
-			}, processShortData(data, columnInsertionOrder)
+			},
+			processShortData(data, columnInsertionOrder)
 		)
 
 		await conn.commit();
@@ -234,9 +235,7 @@ const processShortData = (data, columnOrder) => {
 	let shortData = new ShortData('INSERT');
 	columnOrder.forEach(column => shortData[column] = data[column]);
 
-	console.log(shortData.getPlainObject())
-
-	return shortData.getPlainObject();
+	return shortData;
 }
 
 export {

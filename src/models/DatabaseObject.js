@@ -1,17 +1,17 @@
 export default class DatabaseObject {
 	
-	#operation
-	#created_datetime
-	#last_modified_datetime
+	operation
+	created_datetime
+	last_modified_datetime
 
 	constructor(operationType) {
 
-		this._operation = operationType
-		this._last_modified_datetime = new Date()
+		this.operation = operationType
+		this.last_modified_datetime = new Date()
 
-		switch (this._operation) {
+		switch (this.operation) {
 		case 'INSERT':
-			this._created_datetime = new Date()
+			this.created_datetime = new Date()
 			break
 		default:
 			break
@@ -20,22 +20,22 @@ export default class DatabaseObject {
 
 	get operation() {
 
-		return this._operation
+		return this.operation
 	}
 
 	get created_datetime() {
 
-		return this._created_datetime
+		return this.created_datetime
 	}
 
 	get last_modified_datetime() {
 
-		return this._last_modified_datetime
+		return this.last_modified_datetime
 	}
 
 	*getFields() {
 
-		yield created_datetime
-		yield last_modified_datetime
+		yield this.created_datetime
+		yield this.last_modified_datetime
 	}
 }

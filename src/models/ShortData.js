@@ -2,11 +2,11 @@ import DatabaseObject from './DatabaseObject.js'
 
 export default class ShortData extends DatabaseObject {
 
-	#id
-	#stock_code
-	#reporting_date
-	#shorted_shares
-	#shorted_amount
+	id
+	stock_code
+	reporting_date
+	shorted_shares
+	shorted_amount
 
 	constructor(operationType) {
 
@@ -15,27 +15,27 @@ export default class ShortData extends DatabaseObject {
 
 	get id() {
 
-		return this._stock_code;
+		return this.stock_code;
 	}
 
 	set id(id) {
 
-		this._id = id;
+		this.id = id;
 	}
 
 	get stock_code() {
 
-		return this._stock_code
+		return this.stock_code
 	}
 
 	set stock_code(stockCode) {
 
 		switch (typeof stockCode) {
 		case 'number' :
-			this._stock_code = stockCode.toString().padStart(5, '0')
+			this.stock_code = stockCode.toString().padStart(5, '0')
 			break
 		case 'string' :
-			this._stock_code = stockCode.padStart(5, '0')
+			this.stock_code = stockCode.padStart(5, '0')
 			break
 		default:
 			throw new Error('Unexpected Stock Code type')
@@ -44,67 +44,54 @@ export default class ShortData extends DatabaseObject {
 
 	get reporting_date() {
 
-		return this._reporting_date
+		return this.reporting_date
 	}
 
 	set reporting_date(reportingDate) {
 
-		this._reporting_date = new Date(reportingDate);
+		this.reporting_date = new Date(reportingDate);
 	}
 
 	get shorted_shares() {
 
-		return this._shorted_shares
+		return this.shorted_shares
 	}
 
 	set shorted_shares(shortedShares) {
 
-		this._shorted_shares = shortedShares
+		this.shorted_shares = shortedShares
 	}
 
 	get shorted_amount() {
 
-		return this._shorted_amount
+		return this.shorted_amount
 	}
 
 	set shorted_amount(shortedAmount) {
 
-		this._shorted_amount = shortedAmount
-	}
-
-	getPlainObject() {
-
-		return {
-			id: this._id,
-			stock_code: this._stock_code,
-			reporting_date: this._reporting_date,
-			shorted_shares: this._shorted_shares,
-			shorted_amount: this._shorted_amount,
-			created_datetime: this._created_datetime,
-			last_modified_datetime: this._last_modified_datetime
-		}
+		this.shorted_amount = shortedAmount
 	}
 
 	*getFields() {
 
-		yield this._id
-		yield this._stock_code
-		yield this._reporting_date
-		yield this._shorted_shares
-		yield this._shorted_amount
-		yield this._created_datetime
-		yield this._last_modified_datetime
+		yield this.id
+		yield this.stock_code
+		yield this.reporting_date
+		yield this.shorted_shares
+		yield this.shorted_amount
+		yield this.created_datetime
+		yield this.last_modified_datetime
 	}
 
 	toString() {
 
 		return `
-		Id: ${this._id},
-		Stock Code: ${this._stock_code},
-		Reporting Date: ${this._reporting_date},
-		Shorted Shares: ${this._shorted_shares},
-		Shorted Amount: ${this._shorted_amount},
-		Created Date: ${this._created_datetime},
-		Last Modified Date: ${this._last_modified_datetime}`
+		Id: ${this.id},
+		Stock Code: ${this.stock_code},
+		Reporting Date: ${this.reporting_date},
+		Shorted Shares: ${this.shorted_shares},
+		Shorted Amount: ${this.shorted_amount},
+		Created Date: ${this.created_datetime},
+		Last Modified Date: ${this.last_modified_datetime}`
 	}
 }

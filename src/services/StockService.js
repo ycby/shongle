@@ -75,7 +75,7 @@ const postStockData = async (data) => {
 	let result = [];
 	let conn;
 	//TODO: put complete the insert and handle response
-
+	console.log(data.map(item => processStockData(item, columnInsertionOrder)))
 	const dataIds = data.map(d => d.code);
 	try {
 
@@ -92,10 +92,12 @@ const postStockData = async (data) => {
 			throw new DuplicateFoundError(`Stocks with ids ( ${existingCodes.join(', ')} ) already exist!`);
 		}
 
-		result = await conn.batch(
-			'INSERT INTO Stock ' +
-			'(code, name, full_name, description, category, subcategory, board_lot, ISIN, currency, created_datetime, last_modified_datetime) ' +
-			'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+		result = await conn.batch({
+			namedPlaceholders: true,
+			sql: 'INSERT INTO Stock ' +
+					'(code, name, full_name, description, category, subcategory, board_lot, ISIN, currency, created_datetime, last_modified_datetime) ' +
+				'VALUES (:code, :name, :full_name, :description, :category, :subcategory, :board_lot, :ISIN, :currency, :created_datetime, :last_modified_datetime)'
+			},
 			data.map(item => processStockData(item, columnInsertionOrder))
 		)
 
@@ -155,24 +157,26 @@ const putStockData = async (data) => {
 
 		await conn.beginTransaction();
 
-		result = await conn.batch(
-			'INSERT INTO Stock ' +
-			'(code, name, full_name, description, category, subcategory, board_lot, ISIN, currency, created_datetime, last_modified_datetime) ' +
-			'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ' +
-			'ON DUPLICATE KEY UPDATE ' +
-			'name=VALUES(name), ' +
-			'full_name=VALUES(full_name), ' +
-			'description=VALUES(description), ' +
-			'category=VALUES(category), ' +
-			'subcategory=VALUES(subcategory), ' +
-			'board_lot=VALUES(board_lot), ' +
-			'ISIN=VALUES(ISIN), ' +
-			'currency=VALUES(currency), ' +
-			'last_modified_datetime=VALUES(last_modified_datetime)',
-			data.map(item => processStockData(item, columnInsertionOrder))
+		result = await conn.query({
+			namedPlaceholders: true,
+			sql: 'INSERT INTO Stock ' +
+					'(code, name, full_name, description, category, subcategory, board_lot, ISIN, currency, created_datetime, last_modified_datetime) ' +
+				'VALUES (:code, :name, :full_name, :description, :category, :subcategory, :board_lot, :ISIN, :currency, :created_datetime, :last_modified_datetime) ' +
+				'ON DUPLICATE KEY UPDATE ' +
+				'name=VALUES(name), ' +
+				'full_name=VALUES(full_name), ' +
+				'description=VALUES(description), ' +
+				'category=VALUES(category), ' +
+				'subcategory=VALUES(subcategory), ' +
+				'board_lot=VALUES(board_lot), ' +
+				'ISIN=VALUES(ISIN), ' +
+				'currency=VALUES(currency), ' +
+				'last_modified_datetime=VALUES(last_modified_datetime)'
+			},
+			processStockData(data, columnInsertionOrder)
 		)
 
-		await conn.commit();
+		//await conn.commit();
 	} catch (err) {
 
 		if (conn) await conn.rollback();
@@ -223,14 +227,11 @@ const deleteStockData = async (code) => {
 //TODO: convert to using named placeholders like Short Data
 const processStockData = (data, columnOrder) => {
 
-	let result = [];
-
 	let stock = new Stock('INSERT');
 	columnOrder.forEach(column => stock[column] = data[column]);
 
-	result.push(...stock.getFields());
-	console.log(result);
-	return result;
+	// console.log(stock);
+	return stock;
 }
 
 export {
