@@ -39,7 +39,8 @@ const getStocksData = async (args) => {
 	let result = [];
 	//TODO: Determine if can make function of it
 	//Maybe need to have column mapping to avoid exposure?
-	let whereString = `WHERE ${filterClauseGenerator(fieldMapping, args)}`;
+	const filterClause = filterClauseGenerator(fieldMapping, args);
+	let whereString = filterClause !== '' ? 'WHERE ' + filterClause : '';
 
 	try {
 
@@ -230,7 +231,6 @@ const processStockData = (data, columnOrder) => {
 	let stock = new Stock('INSERT');
 	columnOrder.forEach(column => stock[column] = data[column]);
 
-	// console.log(stock);
 	return stock;
 }
 
