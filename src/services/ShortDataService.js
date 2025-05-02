@@ -72,8 +72,11 @@ const postShortData = async (data) => {
 
 	let conn;
 	let result = [];
+	console.log(data);
 
 	const dataIds = data.map(d => d.stock_code);
+
+	data.forEach(d => {d.reporting_date = new Date(d.reporting_date);})
 
 	try {
 		conn = await db.pool.getConnection();

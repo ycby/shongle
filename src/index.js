@@ -12,12 +12,13 @@ console.log(`db name: ${process.env.DB_NAME}`)
 app.use((req, res, next) => {
 
 	res.setHeader('Access-Control-Allow-Origin', 'http://localhost:5173')
+	res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
 
 	next()
 });
 
 //use parser
-app.use(express.json());
+app.use(express.json({limit: '500kb'}));
 
 app.use("/", [getStockRouter(), getShortDataRouter()]);
 
