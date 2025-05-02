@@ -4,11 +4,31 @@ import {DuplicateFoundError, RecordNotFoundError} from "#root/src/errors/Errors.
 import ShortData from "#root/src/models/ShortData.js";
 
 const columnInsertionOrder = [
-	'id',
-	'stock_code',
-	'reporting_date',
-	'shorted_shares',
-	'shorted_amount'
+	{
+		field: 'id'
+	},
+	{
+		field: 'stock_code',
+		transform: (stockCode) => {
+			switch (typeof stockCode) {
+				case 'number' :
+					return stockCode.toString().padStart(5, '0');
+				case 'string' :
+					return stockCode.padStart(5, '0');
+				default:
+					throw new Error('Unexpected Stock Code type')
+			}
+		}
+	},
+	{
+		field: 'reporting_date'
+	},
+	{
+		field: 'shorted_shares'
+	},
+	{
+		field: 'shorted_amount'
+	}
 ]
 
 const fieldMapping = [
@@ -235,7 +255,9 @@ const deleteShortDatum = async (id) => {
 const processShortData = (data, columnOrder) => {
 
 	let shortData = new ShortData('INSERT');
-	columnOrder.forEach(column => shortData[column] = data[column]);
+	columnOrder.forEach(column => {
+		shortData[column.field] = column.transform ? column.transform(data[column.field]) : data[column.field];
+	});
 
 	return shortData;
 }
