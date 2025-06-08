@@ -255,6 +255,9 @@ const deleteShortDatum = async (id) => {
 
 const retrieveShortDataFromSource = async () => {
 
+	//Step 1: get the last date which was imported
+	//Step 2: loop over each date from the last date to today and insert records as appropriate
+	//Step 2.1: use settimeout to wait for 1 minute before doing the next call = https://stackoverflow.com/questions/23316525/nodejs-wait-in-a-loop
 	await retrieveShortData(new Date());
 }
 

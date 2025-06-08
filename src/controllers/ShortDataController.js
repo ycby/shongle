@@ -116,13 +116,15 @@ const retrieveShortDataFromSource = async (req, res, next) => {
 
     try {
 
-        const shortData = await ShortDataService.retrieveShortDataFromSource();
+        ShortDataService.retrieveShortDataFromSource();
+
+        const response = 'Job has been started.';
 
         return res.status(Constants.HTTP_STATUS_CODES.SUCCESS).json(
             ResponseStandardiser.generateStandardResponse(
-                shortData,
+                response,
                 Constants.APP_STATUS_CODES.SUCCESS,
-                Constants.APP_STATUS_DESCRIPTORS.RESULT_FOUND
+                Constants.APP_STATUS_DESCRIPTORS.JOB_STARTED
             )
         );
     } catch (err) {
