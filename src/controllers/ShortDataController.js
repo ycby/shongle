@@ -112,6 +112,25 @@ const deleteShortDatum = async (req, res, next) => {
     }
 }
 
+const retrieveShortDataFromSource = async (req, res, next) => {
+
+    try {
+
+        const shortData = await ShortDataService.retrieveShortDataFromSource();
+
+        return res.status(Constants.HTTP_STATUS_CODES.SUCCESS).json(
+            ResponseStandardiser.generateStandardResponse(
+                shortData,
+                Constants.APP_STATUS_CODES.SUCCESS,
+                Constants.APP_STATUS_DESCRIPTORS.RESULT_FOUND
+            )
+        );
+    } catch (err) {
+
+        next(err);
+    }
+}
+
 export {
     getShortDataRouter
 }

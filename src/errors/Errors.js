@@ -14,6 +14,14 @@ class RecordNotFoundError extends Error {
     }
 }
 
+class UnexpectdedFileError extends Error {
+
+    constructor(message) {
+        super(message);
+        this.code = 500;
+    }
+}
+
 export {
     DuplicateFoundError,
     RecordNotFoundError,

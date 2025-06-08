@@ -2,6 +2,7 @@ import db from '#root/src/db/db.js'
 import {filterClauseGenerator} from "#root/src/helpers/DBHelpers.js";
 import {DuplicateFoundError, RecordNotFoundError} from "#root/src/errors/Errors.js";
 import ShortData from "#root/src/models/ShortData.js";
+import {retrieveShortData} from "#root/src/helpers/ShortDataRetriever.ts";
 
 const columnInsertionOrder = [
 	{
@@ -252,6 +253,11 @@ const deleteShortDatum = async (id) => {
 	return result;
 }
 
+const retrieveShortDataFromSource = async () => {
+
+	await retrieveShortData(new Date());
+}
+
 const processShortData = (data, columnOrder) => {
 
 	let shortData = new ShortData('INSERT');
@@ -267,5 +273,6 @@ export {
 	postShortData,
 	getShortDatum,
 	putShortDatum,
-	deleteShortDatum
+	deleteShortDatum,
+	retrieveShortDataFromSource
 }
