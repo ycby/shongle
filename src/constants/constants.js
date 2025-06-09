@@ -16,7 +16,8 @@ const APP_STATUS_DESCRIPTORS = {
     RESULT_FOUND: "Result(s) found",
     RESULT_NOT_FOUND: "Results not found",
     SUCCESS: "Success",
-    UNKNOWN_FAILURE: "Unknown failure"
+    UNKNOWN_FAILURE: "Unknown failure",
+    JOB_STARTED: "Job started",
 }
 
 export {

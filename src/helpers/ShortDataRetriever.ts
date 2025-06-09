@@ -35,7 +35,7 @@ const mapping: UploadDataMapping = {
 
 const root = 'https://www.sfc.hk/-/media/EN/pdf/spr';
 
-const retrieveShortData = async (targetDate: Date) => {
+const retrieveShortData = async (targetDate: Date, callbackHandler: (data:Array<ShortData>) => void) => {
 
     let fileName = `Short_Position_Reporting_Aggregated_Data_${targetDate.getFullYear()}${(targetDate.getMonth() + 1).toString().padStart(2, '0')}${targetDate.getDate().toString().padStart(2, '0')}.csv`;
 
@@ -61,7 +61,7 @@ const retrieveShortData = async (targetDate: Date) => {
         Papa.parse(await response.text(), {
             complete: (results: Papa.ParseResult<ShortData>): void => {
 
-                console.log(results);
+                callbackHandler(results.data);
             },
             header: true,
             transformHeader: (header: any) => {
