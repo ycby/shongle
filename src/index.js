@@ -4,7 +4,6 @@ import {getStockRouter} from "#root/src/controllers/StockController.js";
 import {getShortDataRouter} from "#root/src/controllers/ShortDataController.js";
 import {DuplicateFoundError} from "#root/src/errors/Errors.js";
 import * as ResponseStandardiser from "#root/src/utilities/ResponseStandardiser.js";
-import {retrieveShortData} from "#root/src/helpers/ShortDataRetriever.ts";
 
 const app = express()
 const port = process.env.SERVER_PORT
@@ -21,6 +20,7 @@ app.use((req, res, next) => {
 //use parser
 app.use(express.json({limit: '500kb'}));
 
+console.log('Initialising...');
 app.use("/", [getStockRouter(), getShortDataRouter()]);
 
 app.use((err, req, res, next) => {

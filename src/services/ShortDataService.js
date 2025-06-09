@@ -253,12 +253,47 @@ const deleteShortDatum = async (id) => {
 	return result;
 }
 
-const retrieveShortDataFromSource = async () => {
+const retrieveShortDataFromSource = async (endDate) => {
+	console.log('Inside Retrieve Short Data From Source')
 
 	//Step 1: get the last date which was imported
 	//Step 2: loop over each date from the last date to today and insert records as appropriate
 	//Step 2.1: use settimeout to wait for 1 minute before doing the next call = https://stackoverflow.com/questions/23316525/nodejs-wait-in-a-loop
-	await retrieveShortData(new Date());
+	let conn;
+	let result;
+
+	try {
+
+		conn = await db.pool.getConnection();
+
+		await conn.beginTransaction();
+
+		result = await conn.query({
+			sql: `SELECT id, reporting_date FROM Short_Reporting ORDER BY reporting_date DESC LIMIT 1`
+		});
+
+		// console.log(result[0].reporting_date);
+	} catch (err) {
+
+		if (conn) await conn.rollback();
+
+		throw err;
+	} finally {
+
+		if (conn) await conn.end();
+	}
+
+	const finalDate = endDate === null ? new Date() : endDate;
+	let latestDate = result[0].reporting_date;
+
+	while(latestDate < finalDate) {
+
+		latestDate.setDate(latestDate.getDate() + 1);
+
+		retrieveShortData(latestDate, postShortData);
+
+		await wait(10000);
+	}
 }
 
 const processShortData = (data, columnOrder) => {
@@ -269,6 +304,11 @@ const processShortData = (data, columnOrder) => {
 	});
 
 	return shortData;
+}
+
+const wait = (milliseconds) => {
+
+	return new Promise(resolve => setTimeout(resolve, milliseconds));
 }
 
 export {
