@@ -10,7 +10,7 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start:prod": "node --env-file=.env src/index.js",
+    "start:prod": "node --env-file=.env --import=tsx src/index.js",
     "start:dev": "nodemon --env-file=.env.dev --import=tsx --ext 'ts,json,js,mjs,cjs' src/index.js"
   },
   "repository": {
