@@ -3,7 +3,7 @@ import DatabaseObject from './DatabaseObject.js'
 export default class ShortData extends DatabaseObject {
 
 	id
-	stock_code
+	stock_id
 	reporting_date
 	shorted_shares
 	shorted_amount
@@ -17,7 +17,7 @@ export default class ShortData extends DatabaseObject {
 
 		return `
 		Id: ${this.id},
-		Stock Code: ${this.stock_code},
+		Stock Code: ${this.stock_id},
 		Reporting Date: ${this.reporting_date},
 		Shorted Shares: ${this.shorted_shares},
 		Shorted Amount: ${this.shorted_amount},

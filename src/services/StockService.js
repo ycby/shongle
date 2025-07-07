@@ -4,7 +4,7 @@ import {DuplicateFoundError} from "#root/src/errors/Errors.js";
 import {filterClauseGenerator} from "#root/src/helpers/DBHelpers.js";
 
 const columnInsertionOrder = [
-	'code',
+	'ticker_no',
 	'name',
 	'full_name',
 	'description',
@@ -17,8 +17,8 @@ const columnInsertionOrder = [
 
 const fieldMapping = [
 	{
-		param: 'code',
-		field: 'code',
+		param: 'ticker_no',
+		field: 'ticker_no',
 		operator: 'LIKE'
 	},
 	{
@@ -50,9 +50,9 @@ const getStocksData = async (args) => {
 
 		result = await conn.query({
 			namedPlaceholders: true,
-			sql: `SELECT * FROM Stock ${whereString}`,
+			sql: `SELECT * FROM Stocks ${whereString}`,
 		}, {
-			code: `%${args.code}%`,
+			ticker_no: `%${args.ticker_no}%`,
 			name: `%${args.name}%`,
 			ISIN: `%${args.ISIN}%`
 		});
@@ -77,27 +77,27 @@ const postStockData = async (data) => {
 	let conn;
 	//TODO: put complete the insert and handle response
 	console.log(data.map(item => processStockData(item, columnInsertionOrder)))
-	const dataIds = data.map(d => d.code);
+	const dataIds = data.map(d => d.ticker_no);
 	try {
 
 		conn = await db.pool.getConnection();
 
 		await conn.beginTransaction();
 
-		const existingRecords = await conn.query("SELECT code, name FROM Stock WHERE code IN (?)", [dataIds]);
+		const existingRecords = await conn.query("SELECT id, ticker_no, name FROM Stock WHERE ticker_no IN (?)", [dataIds]);
 
 		if (existingRecords.length > 0) {
 
-			const existingCodes = existingRecords.map(d => d.code);
+			const existingCodes = existingRecords.map(d => d.ticker_no);
 
 			throw new DuplicateFoundError(`Stocks with ids ( ${existingCodes.join(', ')} ) already exist!`);
 		}
 
 		result = await conn.batch({
 			namedPlaceholders: true,
-			sql: 'INSERT INTO Stock ' +
-					'(code, name, full_name, description, category, subcategory, board_lot, ISIN, currency, created_datetime, last_modified_datetime) ' +
-				'VALUES (:code, :name, :full_name, :description, :category, :subcategory, :board_lot, :ISIN, :currency, :created_datetime, :last_modified_datetime)'
+			sql: 'INSERT INTO Stocks ' +
+					'(ticker_no, name, full_name, description, category, subcategory, board_lot, ISIN, currency, created_datetime, last_modified_datetime) ' +
+				'VALUES (:ticker_no, :name, :full_name, :description, :category, :subcategory, :board_lot, :ISIN, :currency, :created_datetime, :last_modified_datetime)'
 			},
 			data.map(item => processStockData(item, columnInsertionOrder))
 		)
@@ -116,7 +116,7 @@ const postStockData = async (data) => {
 	return result;
 }
 
-const getStockData = async (code) => {
+const getStockData = async (ticker_no) => {
 
 	let conn;
 	let result = [];
@@ -129,9 +129,9 @@ const getStockData = async (code) => {
 
 		result = await conn.query({
 			namedPlaceholders: true,
-			sql: `SELECT * FROM Stock WHERE code = :code`
+			sql: `SELECT * FROM Stocks WHERE ticker_no = :ticker_no`
 		}, {
-			code: code
+			ticker_no: ticker_no
 		});
 	} catch (err) {
 
@@ -160,9 +160,9 @@ const putStockData = async (data) => {
 
 		result = await conn.query({
 			namedPlaceholders: true,
-			sql: 'INSERT INTO Stock ' +
-					'(code, name, full_name, description, category, subcategory, board_lot, ISIN, currency, created_datetime, last_modified_datetime) ' +
-				'VALUES (:code, :name, :full_name, :description, :category, :subcategory, :board_lot, :ISIN, :currency, :created_datetime, :last_modified_datetime) ' +
+			sql: 'INSERT INTO Stocks ' +
+					'(ticker_no, name, full_name, description, category, subcategory, board_lot, ISIN, currency, created_datetime, last_modified_datetime) ' +
+				'VALUES (:ticker_no, :name, :full_name, :description, :category, :subcategory, :board_lot, :ISIN, :currency, :created_datetime, :last_modified_datetime) ' +
 				'ON DUPLICATE KEY UPDATE ' +
 				'name=VALUES(name), ' +
 				'full_name=VALUES(full_name), ' +
@@ -191,7 +191,7 @@ const putStockData = async (data) => {
 	return result;
 }
 
-const deleteStockData = async (code) => {
+const deleteStockData = async (ticker_no) => {
 
 	let conn;
 	let result = [];
@@ -204,9 +204,9 @@ const deleteStockData = async (code) => {
 
 		result = await conn.query({
 			namedPlaceholders: true,
-			sql: `DELETE FROM Stock WHERE code = :code`
+			sql: `DELETE FROM Stocks WHERE ticker_no = :ticker_no`
 		}, {
-			code: code
+			ticker_no: ticker_no
 		});
 
 		await conn.commit();

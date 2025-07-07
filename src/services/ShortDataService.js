@@ -9,7 +9,7 @@ const columnInsertionOrder = [
 		field: 'id'
 	},
 	{
-		field: 'stock_code',
+		field: 'stock_id',
 		transform: (stockCode) => {
 			switch (typeof stockCode) {
 				case 'number' :
@@ -34,8 +34,8 @@ const columnInsertionOrder = [
 
 const fieldMapping = [
 	{
-		param: 'stock_code',
-		field: 'stock_code',
+		param: 'stock_id',
+		field: 'stock_id',
 		operator: '='
 	},
 	{
@@ -64,11 +64,12 @@ const getShortData = async (args) => {
 		
 		await conn.beginTransaction();
 
+		//TODO: change to view
 		result = await conn.query({
 			namedPlaceholders: true,
 			sql: `SELECT * FROM Short_Reporting WHERE ${whereString !== '' ? whereString : ''} ORDER BY reporting_date DESC`
 		}, {
-			stock_code: args.stock_code,
+			stock_id: args.stock_id,
 			start_date: args.start_date,
 			end_date: args.end_date,
 		});
@@ -95,7 +96,7 @@ const postShortData = async (data) => {
 	let result = [];
 	console.log(data);
 
-	const dataIds = data.map(d => d.stock_code);
+	const dataIds = data.map(d => d.ticker_no);
 
 	data.forEach(d => {d.reporting_date = new Date(d.reporting_date);})
 
@@ -106,7 +107,7 @@ const postShortData = async (data) => {
 
 		const existingRecords = await conn.query({
 			namedPlaceholders: true,
-			sql: "SELECT code, name FROM Stock WHERE code IN (:codes)"
+			sql: "SELECT id, ticker_no, name FROM Stocks WHERE ticker_no IN (:codes)"
 		}, {
 			codes: [dataIds]
 		});
@@ -118,11 +119,12 @@ const postShortData = async (data) => {
 			throw new RecordNotFoundError(`Stocks with ids ( ${existingCodes.join(', ')} ) do not exist!`);
 		}
 
+		//use existing records to set stock_id
 		result = await conn.batch({
 			namedPlaceholders: true,
 			sql: 'INSERT INTO Short_Reporting ' +
-				'(stock_code, reporting_date, shorted_shares, shorted_amount, created_datetime, last_modified_datetime) ' +
-				'VALUES (:stock_code, :reporting_date, :shorted_shares, :shorted_amount, :created_datetime, :last_modified_datetime)'
+				'(stock_id, reporting_date, shorted_shares, shorted_amount, created_datetime, last_modified_datetime) ' +
+				'VALUES (:stock_id, :reporting_date, :shorted_shares, :shorted_amount, :created_datetime, :last_modified_datetime)'
 		},
 			data.map(item => processShortData(item, columnInsertionOrder))
 		)
@@ -192,10 +194,10 @@ const putShortDatum = async (data) => {
 		result = await conn.query({
 			namedPlaceholders: true,
 			sql: 'INSERT INTO Short_Reporting ' +
-				'(id, stock_code, reporting_date, shorted_shares, shorted_amount, created_datetime, last_modified_datetime) ' +
-				'VALUES (:id, :stock_code, :reporting_date, :shorted_shares, :shorted_amount, :created_datetime, :last_modified_datetime) ' +
+				'(id, stock_id, reporting_date, shorted_shares, shorted_amount, created_datetime, last_modified_datetime) ' +
+				'VALUES (:id, :stock_id, :reporting_date, :shorted_shares, :shorted_amount, :created_datetime, :last_modified_datetime) ' +
 				'ON DUPLICATE KEY UPDATE ' +
-				'stock_code=VALUES(stock_code), ' +
+				'stock_id=VALUES(stock_id), ' +
 				'reporting_date=VALUES(reporting_date), ' +
 				'shorted_shares=VALUES(shorted_shares), ' +
 				'shorted_amount=VALUES(shorted_amount), ' +

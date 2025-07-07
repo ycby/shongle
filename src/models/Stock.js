@@ -2,7 +2,8 @@ import DatabaseObject from './DatabaseObject.js'
 
 export default class ShortData extends DatabaseObject {
 
-    code
+    id
+    ticker_no
     name
     full_name
     description
@@ -17,22 +18,22 @@ export default class ShortData extends DatabaseObject {
         super(operationType);
     }
 
-    get code() {
+    get ticker_no() {
 
-        return this.code;
+        return this.ticker_no;
     }
 
-    set code(code) {
+    set ticker_no(ticker_no) {
 
-        switch (typeof code) {
+        switch (typeof ticker_no) {
             case 'number' :
-                this.code = code.toString().padStart(5, '0');
+                this.ticker_no = ticker_no.toString().padStart(5, '0');
                 break;
             case 'string' :
-                this.code = code.padStart(5, '0');
+                this.ticker_no = ticker_no.padStart(5, '0');
                 break;
             default:
-                throw new Error('Unexpected Stock Code type');
+                throw new Error('Unexpected Stock Ticker No type');
         }
     }
 
@@ -118,7 +119,8 @@ export default class ShortData extends DatabaseObject {
 
     *getFields() {
 
-        yield this.code;
+        yield this.id;
+        yield this.ticker_no;
         yield this.name;
         yield this.full_name;
         yield this.description;
@@ -133,7 +135,7 @@ export default class ShortData extends DatabaseObject {
 
     toString() {
 
-        return `Code: ${this.code},
+        return `Ticker Number: ${this.ticker_no},
 Name: ${this.name},
 Full Name: ${this.full_name},
 Description: ${this.description},
