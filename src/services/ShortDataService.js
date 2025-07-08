@@ -10,16 +10,16 @@ const columnInsertionOrder = [
 	},
 	{
 		field: 'stock_id',
-		transform: (stockCode) => {
-			switch (typeof stockCode) {
-				case 'number' :
-					return stockCode.toString().padStart(5, '0');
-				case 'string' :
-					return stockCode.padStart(5, '0');
-				default:
-					throw new Error('Unexpected Stock Code type')
-			}
-		}
+		// transform: (stockCode) => {
+		// 	switch (typeof stockCode) {
+		// 		case 'number' :
+		// 			return stockCode.toString().padStart(5, '0');
+		// 		case 'string' :
+		// 			return stockCode.padStart(5, '0');
+		// 		default:
+		// 			throw new Error('Unexpected Stock Code type')
+		// 	}
+		// }
 	},
 	{
 		field: 'reporting_date'
@@ -34,8 +34,8 @@ const columnInsertionOrder = [
 
 const fieldMapping = [
 	{
-		param: 'stock_id',
-		field: 'stock_id',
+		param: 'ticker_no',
+		field: 'ticker_no',
 		operator: '='
 	},
 	{
@@ -67,9 +67,9 @@ const getShortData = async (args) => {
 		//TODO: change to view
 		result = await conn.query({
 			namedPlaceholders: true,
-			sql: `SELECT * FROM Short_Reporting WHERE ${whereString !== '' ? whereString : ''} ORDER BY reporting_date DESC`
+			sql: `SELECT * FROM Short_Reporting_w_Stocks WHERE ${whereString !== '' ? whereString : ''} ORDER BY reporting_date DESC`
 		}, {
-			stock_id: args.stock_id,
+			ticker_no: args.ticker_no,
 			start_date: args.start_date,
 			end_date: args.end_date,
 		});
@@ -96,7 +96,7 @@ const postShortData = async (data) => {
 	let result = [];
 	console.log(data);
 
-	const dataIds = data.map(d => d.ticker_no);
+	const dataIds = data.map(d => d.stock_id);
 
 	data.forEach(d => {d.reporting_date = new Date(d.reporting_date);})
 
@@ -107,14 +107,14 @@ const postShortData = async (data) => {
 
 		const existingRecords = await conn.query({
 			namedPlaceholders: true,
-			sql: "SELECT id, ticker_no, name FROM Stocks WHERE ticker_no IN (:codes)"
+			sql: "SELECT id, ticker_no, name FROM Stocks WHERE id IN (:stock_ids)"
 		}, {
-			codes: [dataIds]
+			stock_ids: [dataIds]
 		});
 
 		if (existingRecords.length === 0) {
 
-			const existingCodes = existingRecords.map(d => d.code);
+			const existingCodes = existingRecords.map(d => d.stock_id);
 
 			throw new RecordNotFoundError(`Stocks with ids ( ${existingCodes.join(', ')} ) do not exist!`);
 		}
@@ -159,7 +159,7 @@ const getShortDatum = async (id) => {
 
 		result = await conn.query({
 			namedPlaceholders: true,
-			sql: `SELECT * FROM Short_Reporting WHERE id = :id`
+			sql: `SELECT * FROM Short_Reporting_w_Stocks WHERE id = :id`
 		}, {
 			id: id
 		});
