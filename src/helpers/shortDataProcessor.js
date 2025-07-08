@@ -1,6 +1,6 @@
 import fs from 'fs'
 import * as csv from 'csv'
-import db from '#root/src/db/db.js'
+import db from '#root/src/db/db.ts'
 import ShortData from '#root/src/models.js/ShortData.js'
 
 export default async function processAndInsertShortData(filepath, mappings) {

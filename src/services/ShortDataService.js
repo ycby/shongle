@@ -1,4 +1,4 @@
-import db from '#root/src/db/db.js'
+import db from '#root/src/db/db.ts'
 import {filterClauseGenerator} from "#root/src/helpers/DBHelpers.js";
 import {DuplicateFoundError, RecordNotFoundError} from "#root/src/errors/Errors.js";
 import ShortData from "#root/src/models/ShortData.js";

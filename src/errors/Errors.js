@@ -14,7 +14,7 @@ class RecordNotFoundError extends Error {
     }
 }
 
-class UnexpectdedFileError extends Error {
+class UnexpectedFileError extends Error {
 
     constructor(message) {
         super(message);
