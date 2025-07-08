@@ -1,14 +1,8 @@
 import db from '#root/src/db/db.ts';
 import Stock from '#root/src/models/Stock.js';
 import {DuplicateFoundError} from "#root/src/errors/Errors.js";
-import {filterClauseGenerator} from "#root/src/helpers/DBHelpers.js";
+import {FieldMapping, filterClauseGenerator, processData, ProcessDataMapping} from "#root/src/helpers/DBHelpers.ts";
 import {UpsertResult} from "mariadb";
-
-type FieldMapping = {
-	param: string;
-	field: string;
-	operator: string;
-}
 
 type StocksDataGetParam = {
 	ticker_no: string;
@@ -32,16 +26,34 @@ type StocksDataGetSingleParam = {
 	ticker_no: string;
 }
 
-const columnInsertionOrder: string[] = [
-	'ticker_no',
-	'name',
-	'full_name',
-	'description',
-	'category',
-	'subcategory',
-	'board_lot',
-	'ISIN',
-	'currency'
+const columnInsertionOrder: ProcessDataMapping[] = [
+	{
+		field: 'ticker_no'
+	},
+	{
+		field: 'name'
+	},
+	{
+		field: 'full_name'
+	},
+	{
+		field: 'description'
+	},
+	{
+		field: 'category'
+	},
+	{
+		field: 'subcategory'
+	},
+	{
+		field: 'board_lot'
+	},
+	{
+		field: 'ISIN'
+	},
+	{
+		field: 'currency'
+	}
 ]
 
 const fieldMapping: FieldMapping[] = [
@@ -65,7 +77,7 @@ const fieldMapping: FieldMapping[] = [
 const getStocksData = async (args: StocksDataGetParam) => {
 
 	let conn;
-	let result = [];
+	let result: Stock[] = [];
 	//TODO: Determine if can make function of it
 	//Maybe need to have column mapping to avoid exposure?
 
@@ -107,7 +119,7 @@ const postStockData = async (data: StocksDataBody[]) => {
 	let result: UpsertResult[] = [];
 	let conn;
 	//TODO: put complete the insert and handle response
-	console.log(data.map((item: StocksDataBody) => processStockData(item, columnInsertionOrder)))
+
 	const dataIds: string[] = data.map((d: StocksDataBody): string => d.ticker_no);
 	try {
 
@@ -130,7 +142,7 @@ const postStockData = async (data: StocksDataBody[]) => {
 					'(ticker_no, name, full_name, description, category, subcategory, board_lot, ISIN, currency, created_datetime, last_modified_datetime) ' +
 				'VALUES (:ticker_no, :name, :full_name, :description, :category, :subcategory, :board_lot, :ISIN, :currency, :created_datetime, :last_modified_datetime)'
 			},
-			data.map(item => processStockData(item, columnInsertionOrder))
+			data.map((item: StocksDataBody): Stock => processStockData(item, columnInsertionOrder))
 		)
 
 		await conn.commit();
@@ -260,15 +272,11 @@ const deleteStockData = async (args: StocksDataGetSingleParam) => {
 	return result;
 }
 
-//TODO: convert to using named placeholders like Short Data
-const processStockData = (data: StocksDataBody, columnOrder: string[]): Stock => {
+const processStockData: (data: StocksDataBody, columns: ProcessDataMapping[]) => Stock = (data: StocksDataBody, columns: ProcessDataMapping[]): Stock => {
 
 	let stock: Stock = new Stock('INSERT');
-	columnOrder.forEach((column: string): void => {
-		stock[column as keyof Stock] = data[column as keyof StocksDataBody];
-	});
 
-	return stock;
+	return processData(data, columns, stock);
 }
 
 export {

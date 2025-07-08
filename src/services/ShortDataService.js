@@ -1,5 +1,5 @@
 import db from '#root/src/db/db.ts'
-import {filterClauseGenerator} from "#root/src/helpers/DBHelpers.js";
+import {filterClauseGenerator, processData} from "#root/src/helpers/DBHelpers.ts";
 import {DuplicateFoundError, RecordNotFoundError} from "#root/src/errors/Errors.js";
 import ShortData from "#root/src/models/ShortData.js";
 import {retrieveShortData} from "#root/src/helpers/ShortDataRetriever.ts";
@@ -298,14 +298,11 @@ const retrieveShortDataFromSource = async (endDate) => {
 	}
 }
 
-const processShortData = (data, columnOrder) => {
+const processShortData = (data, columns) => {
 
 	let shortData = new ShortData('INSERT');
-	columnOrder.forEach(column => {
-		shortData[column.field] = column.transform ? column.transform(data[column.field]) : data[column.field];
-	});
 
-	return shortData;
+	return processData(data, columns, shortData);
 }
 
 const wait = (milliseconds) => {
