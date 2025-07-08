@@ -1,7 +1,7 @@
 import db from '#root/src/db/db.ts'
 import {filterClauseGenerator, processData} from "#root/src/helpers/DBHelpers.ts";
-import {DuplicateFoundError, RecordNotFoundError} from "#root/src/errors/Errors.js";
-import ShortData from "#root/src/models/ShortData.js";
+import {RecordNotFoundError} from "#root/src/errors/Errors.js";
+import ShortData from "#root/src/models/ShortData.ts.js";
 import {retrieveShortData} from "#root/src/helpers/ShortDataRetriever.ts";
 
 const columnInsertionOrder = [
@@ -10,16 +10,6 @@ const columnInsertionOrder = [
 	},
 	{
 		field: 'stock_id',
-		// transform: (stockCode) => {
-		// 	switch (typeof stockCode) {
-		// 		case 'number' :
-		// 			return stockCode.toString().padStart(5, '0');
-		// 		case 'string' :
-		// 			return stockCode.padStart(5, '0');
-		// 		default:
-		// 			throw new Error('Unexpected Stock Code type')
-		// 	}
-		// }
 	},
 	{
 		field: 'reporting_date'

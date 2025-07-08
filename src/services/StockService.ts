@@ -1,5 +1,5 @@
 import db from '#root/src/db/db.ts';
-import Stock from '#root/src/models/Stock.js';
+import Stock from '#root/src/models/Stock.ts';
 import {DuplicateFoundError} from "#root/src/errors/Errors.js";
 import {FieldMapping, filterClauseGenerator, processData, ProcessDataMapping} from "#root/src/helpers/DBHelpers.ts";
 import {UpsertResult} from "mariadb";
@@ -78,8 +78,6 @@ const getStocksData = async (args: StocksDataGetParam) => {
 
 	let conn;
 	let result: Stock[] = [];
-	//TODO: Determine if can make function of it
-	//Maybe need to have column mapping to avoid exposure?
 
 	const filterClause: string = filterClauseGenerator(fieldMapping, args);
 
@@ -118,7 +116,6 @@ const postStockData = async (data: StocksDataBody[]) => {
 
 	let result: UpsertResult[] = [];
 	let conn;
-	//TODO: put complete the insert and handle response
 
 	const dataIds: string[] = data.map((d: StocksDataBody): string => d.ticker_no);
 	try {
