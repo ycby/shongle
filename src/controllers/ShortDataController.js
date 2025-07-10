@@ -1,7 +1,7 @@
 import express from 'express'
 import * as Constants from "#root/src/constants/constants.js";
-import * as ResponseStandardiser from "#root/src/utilities/ResponseStandardiser.ts.js";
-import * as ShortDataService from "#root/src/services/ShortDataService.ts.js";
+import * as ResponseStandardiser from "#root/src/utilities/ResponseStandardiser.ts";
+import * as ShortDataService from "#root/src/services/ShortDataService.ts";
 import {stringToDateConverter} from "#root/src/helpers/DateHelper.ts";
 
 const getShortDataRouter = () => {
