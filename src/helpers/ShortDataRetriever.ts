@@ -1,14 +1,9 @@
 import Papa from 'papaparse';
-import * as fs from "node:fs";
+import {UpsertResult} from "mariadb";
+import {ShortDataBody} from "#root/src/services/ShortDataService.ts";
 
 type UploadDataMapping = { [p: string]: UploadDataMappingElement };
 type UploadDataMappingElement = { label: string; value: string };
-type ShortData = {
-    'Stock Code': string;
-    'Date': Date;
-    'Aggregated Reportable Short Positions (Shares)': number;
-    'Aggregated Reportable Short Positions (HK$)': number;
-}
 
 const mapping: UploadDataMapping = {
     'id': {
@@ -35,7 +30,7 @@ const mapping: UploadDataMapping = {
 
 const root = 'https://www.sfc.hk/-/media/EN/pdf/spr';
 
-const retrieveShortData = async (targetDate: Date, callbackHandler: (data:Array<ShortData>) => void) => {
+const retrieveShortData = async (targetDate: Date, callbackHandler: (data:Array<ShortDataBody>) => Promise<UpsertResult[]>) => {
 
     let fileName = `Short_Position_Reporting_Aggregated_Data_${targetDate.getFullYear()}${(targetDate.getMonth() + 1).toString().padStart(2, '0')}${targetDate.getDate().toString().padStart(2, '0')}.csv`;
 
@@ -59,7 +54,7 @@ const retrieveShortData = async (targetDate: Date, callbackHandler: (data:Array<
         if (responseHeaders !== null && !responseHeaders.includes('text/plain')) throw new Error('Unexpected error occurred when retrieving file.');
 
         Papa.parse(await response.text(), {
-            complete: (results: Papa.ParseResult<ShortData>): void => {
+            complete: (results: Papa.ParseResult<ShortDataBody>): void => {
 
                 callbackHandler(results.data);
             },

@@ -1,10 +1,26 @@
 import db from '#root/src/db/db.ts'
-import {filterClauseGenerator, processData} from "#root/src/helpers/DBHelpers.ts";
-import {RecordNotFoundError} from "#root/src/errors/Errors.js";
-import ShortData from "#root/src/models/ShortData.ts.js";
+import {FieldMapping, filterClauseGenerator, processData, ProcessDataMapping} from "#root/src/helpers/DBHelpers.ts";
+import {RecordNotFoundError} from "#root/src/errors/Errors.ts";
+import ShortData from "#root/src/models/ShortData.ts";
+import Stock from "#root/src/models/Stock.ts";
 import {retrieveShortData} from "#root/src/helpers/ShortDataRetriever.ts";
+import {UpsertResult} from "mariadb";
 
-const columnInsertionOrder = [
+type ShortDataGetParam = {
+	ticker_no: string;
+	start_date: Date;
+	end_date: Date;
+}
+
+export type ShortDataBody = {
+	id?: number;
+	stock_id: number;
+	reporting_date: Date;
+	shorted_shares: number;
+	shorted_amount: number;
+}
+
+const columnInsertionOrder: ProcessDataMapping[] = [
 	{
 		field: 'id'
 	},
@@ -22,7 +38,7 @@ const columnInsertionOrder = [
 	}
 ]
 
-const fieldMapping = [
+const fieldMapping: FieldMapping[] = [
 	{
 		param: 'ticker_no',
 		field: 'ticker_no',
@@ -40,7 +56,7 @@ const fieldMapping = [
 	}
 ]
 
-const getShortData = async (args) => {
+const getShortData = async (args: ShortDataGetParam) => {
 
 	//TODO: if stockCode is invalid/does not exist, return error
 
@@ -78,12 +94,12 @@ const getShortData = async (args) => {
 	return result;
 }
 
-const postShortData = async (data) => {
+const postShortData = async (data: ShortDataBody[]) => {
 
 	//TODO: if stockCode is invalid/does not exist, return error
 
 	let conn;
-	let result = [];
+	let result: UpsertResult[] = [];
 	console.log(data);
 
 	const dataIds = data.map(d => d.stock_id);
@@ -104,7 +120,7 @@ const postShortData = async (data) => {
 
 		if (existingRecords.length === 0) {
 
-			const existingCodes = existingRecords.map(d => d.stock_id);
+			const existingCodes = existingRecords.map((d: Stock) => d.ticker_no);
 
 			throw new RecordNotFoundError(`Stocks with ids ( ${existingCodes.join(', ')} ) do not exist!`);
 		}
@@ -135,7 +151,7 @@ const postShortData = async (data) => {
 	return result;
 }
 
-const getShortDatum = async (id) => {
+const getShortDatum = async (id: number) => {
 
 	//TODO: if stockCode is invalid/does not exist, return error
 
@@ -169,7 +185,7 @@ const getShortDatum = async (id) => {
 	return result;
 }
 
-const putShortDatum = async (data) => {
+const putShortDatum = async (data: ShortDataBody) => {
 
 	//TODO: if stockCode is invalid/does not exist, return error
 
@@ -212,7 +228,7 @@ const putShortDatum = async (data) => {
 	return result;
 }
 
-const deleteShortDatum = async (id) => {
+const deleteShortDatum = async (id: number) => {
 
 	let conn;
 	let result = [];
@@ -245,7 +261,7 @@ const deleteShortDatum = async (id) => {
 	return result;
 }
 
-const retrieveShortDataFromSource = async (endDate) => {
+const retrieveShortDataFromSource = async (endDate: Date) => {
 	console.log('Inside Retrieve Short Data From Source')
 
 	//Step 1: get the last date which was imported
@@ -288,14 +304,14 @@ const retrieveShortDataFromSource = async (endDate) => {
 	}
 }
 
-const processShortData = (data, columns) => {
+const processShortData = (data: ShortDataBody, columns: ProcessDataMapping[]) => {
 
 	let shortData = new ShortData('INSERT');
 
 	return processData(data, columns, shortData);
 }
 
-const wait = (milliseconds) => {
+const wait = (milliseconds: number) => {
 
 	return new Promise(resolve => setTimeout(resolve, milliseconds));
 }

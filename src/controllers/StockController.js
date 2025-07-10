@@ -1,7 +1,7 @@
 import express from 'express';
 import * as Constants from '#root/src/constants/constants.js';
 import * as StockService from '#root/src/services/StockService.ts';
-import * as ResponseStandardiser from "#root/src/utilities/ResponseStandardiser.js";
+import * as ResponseStandardiser from "#root/src/utilities/ResponseStandardiser.ts.js";
 
 const getStockRouter = () => {
 

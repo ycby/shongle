@@ -2,8 +2,8 @@ import express from 'express'
 
 import {getStockRouter} from "#root/src/controllers/StockController.js";
 import {getShortDataRouter} from "#root/src/controllers/ShortDataController.js";
-import {DuplicateFoundError} from "#root/src/errors/Errors.js";
-import * as ResponseStandardiser from "#root/src/utilities/ResponseStandardiser.js";
+import {DuplicateFoundError} from "#root/src/errors/Errors.ts";
+import * as ResponseStandardiser from "#root/src/utilities/ResponseStandardiser.ts.js";
 
 const app = express()
 const port = process.env.SERVER_PORT

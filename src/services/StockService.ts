@@ -1,6 +1,6 @@
 import db from '#root/src/db/db.ts';
 import Stock from '#root/src/models/Stock.ts';
-import {DuplicateFoundError} from "#root/src/errors/Errors.js";
+import {DuplicateFoundError} from "#root/src/errors/Errors.ts";
 import {FieldMapping, filterClauseGenerator, processData, ProcessDataMapping} from "#root/src/helpers/DBHelpers.ts";
 import {UpsertResult} from "mariadb";
 
