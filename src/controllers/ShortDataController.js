@@ -60,7 +60,7 @@ const getShortDatum = async (req, res, next) => {
 
     try {
 
-        const shortData = await ShortDataService.getShortDatum(req.params.id);
+        const shortData = await ShortDataService.getShortDatum(req.params);
 
         return res.status(Constants.HTTP_STATUS_CODES.SUCCESS).json(
             ResponseStandardiser.generateStandardResponse(
@@ -98,7 +98,7 @@ const deleteShortDatum = async (req, res, next) => {
 
     try {
 
-        const shortData = await ShortDataService.deleteShortDatum(req.params.id);
+        const shortData = await ShortDataService.deleteShortDatum(req.params);
 
         return res.status(Constants.HTTP_STATUS_CODES.SUCCESS).json(
             ResponseStandardiser.generateStandardResponse(

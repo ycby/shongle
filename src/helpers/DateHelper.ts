@@ -5,7 +5,8 @@ const stringToDateConverter = (value: String | null) => {
 
     const dateArray = value.split('-');
 
-    return new Date(Date.UTC(parseInt(dateArray[0]), parseInt(dateArray[1]) - 1, parseInt(dateArray[2])));
+    const resultDate = Date.UTC(Number(dateArray[0]), Number(dateArray[1]) - 1, Number(dateArray[2]));
+    return resultDate ? new Date(resultDate) : null;
 }
 
 export {
