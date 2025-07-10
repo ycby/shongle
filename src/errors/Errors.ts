@@ -30,8 +30,17 @@ class UnexpectedFileError extends ShongleError {
     }
 }
 
+class InvalidRequestError extends ShongleError {
+
+    constructor(message: string) {
+        super(-1, message);
+    }
+}
+
 export {
+    ShongleError,
     DuplicateFoundError,
     RecordNotFoundError,
-    UnexpectedFileError
+    UnexpectedFileError,
+    InvalidRequestError
 }

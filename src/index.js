@@ -2,7 +2,7 @@ import express from 'express'
 
 import {getStockRouter} from "#root/src/controllers/StockController.js";
 import {getShortDataRouter} from "#root/src/controllers/ShortDataController.js";
-import {DuplicateFoundError} from "#root/src/errors/Errors.ts";
+import {ShongleError} from "#root/src/errors/Errors.ts";
 import * as ResponseStandardiser from "#root/src/utilities/ResponseStandardiser.ts";
 
 const app = express()
@@ -30,7 +30,7 @@ app.use((err, req, res, next) => {
 	console.error(err.stack);
 
 	let response;
-	if (err instanceof DuplicateFoundError) {
+	if (err instanceof ShongleError) {
 
 		response = ResponseStandardiser.generateErrorResponse(-100, err.message);
 	} else {

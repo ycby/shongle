@@ -1,8 +1,9 @@
 import db from '#root/src/db/db.ts';
 import Stock from '#root/src/models/Stock.ts';
-import {DuplicateFoundError} from "#root/src/errors/Errors.ts";
+import {DuplicateFoundError, InvalidRequestError} from "#root/src/errors/Errors.ts";
 import {FieldMapping, filterClauseGenerator, processData, ProcessDataMapping} from "#root/src/helpers/DBHelpers.ts";
 import {UpsertResult} from "mariadb";
+import {validator} from "#root/src/utilities/Validator.ts";
 
 type StocksDataGetParam = {
 	ticker_no: string;
@@ -75,6 +76,29 @@ const fieldMapping: FieldMapping[] = [
 ]
 
 const getStocksData = async (args: StocksDataGetParam) => {
+
+	let validationResult: string[] = validator(args, [
+		{
+			name: 'ticker_no',
+			isRequired: false,
+			rule: (ticker_no: any): boolean => typeof ticker_no === 'string' && ticker_no.length === 5,
+			errorMessage: 'Ticker No. is formatted incorrectly, it should be 5 characters long. E.g "00001"'
+		},
+		{
+			name: 'name',
+			isRequired: false,
+			rule: (name: any): boolean => typeof name === 'string',
+			errorMessage: 'Name must be a string'
+		},
+		{
+			name: 'ISIN',
+			isRequired: false,
+			rule: (ISIN: any): boolean => typeof ISIN === 'string',
+			errorMessage: 'ISIN must be a string'
+		},
+	]);
+
+	if (validationResult.length > 0) throw new InvalidRequestError(validationResult.join(',\n'));
 
 	let conn;
 	let result: Stock[] = [];
