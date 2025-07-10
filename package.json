@@ -10,6 +10,7 @@
   },
   "scripts": {
     "test": "jest",
+    "coverage": "jest --coverage",
     "start:prod": "node --env-file=.env --import=tsx src/index.js",
     "start:dev": "nodemon --env-file=.env.dev --import=tsx --ext 'ts,json,js,mjs,cjs' src/index.js"
   },
