@@ -1,7 +1,7 @@
 import express from 'express';
 import * as Constants from '#root/src/constants/constants.js';
-import * as StockService from '#root/src/services/StockService.js';
-import * as ResponseStandardiser from "#root/src/utilities/ResponseStandardiser.js";
+import * as StockService from '#root/src/services/StockService.ts';
+import * as ResponseStandardiser from "#root/src/utilities/ResponseStandardiser.ts";
 
 const getStockRouter = () => {
 
@@ -62,7 +62,7 @@ const getStock = async (req, res, next) => {
 
     try {
 
-        const stock = await StockService.getStockData(req.params.code);
+        const stock = await StockService.getStockData(req.params);
 
         return res.status(Constants.HTTP_STATUS_CODES.SUCCESS).json(
             ResponseStandardiser.generateStandardResponse(
@@ -100,7 +100,7 @@ const deleteStock = async (req, res, next) => {
 
     try {
 
-        const stock = await StockService.deleteStockData(req.params.code);
+        const stock = await StockService.deleteStockData(req.params);
 
         return res.status(Constants.HTTP_STATUS_CODES.SUCCESS).json(
             ResponseStandardiser.generateStandardResponse(

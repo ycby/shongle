@@ -1,7 +1,7 @@
 import express from 'express'
 import * as Constants from "#root/src/constants/constants.js";
-import * as ResponseStandardiser from "#root/src/utilities/ResponseStandardiser.js";
-import * as ShortDataService from "#root/src/services/ShortDataService.js";
+import * as ResponseStandardiser from "#root/src/utilities/ResponseStandardiser.ts";
+import * as ShortDataService from "#root/src/services/ShortDataService.ts";
 import {stringToDateConverter} from "#root/src/helpers/DateHelper.ts";
 
 const getShortDataRouter = () => {
@@ -60,7 +60,7 @@ const getShortDatum = async (req, res, next) => {
 
     try {
 
-        const shortData = await ShortDataService.getShortDatum(req.params.id);
+        const shortData = await ShortDataService.getShortDatum(req.params);
 
         return res.status(Constants.HTTP_STATUS_CODES.SUCCESS).json(
             ResponseStandardiser.generateStandardResponse(
@@ -98,7 +98,7 @@ const deleteShortDatum = async (req, res, next) => {
 
     try {
 
-        const shortData = await ShortDataService.deleteShortDatum(req.params.id);
+        const shortData = await ShortDataService.deleteShortDatum(req.params);
 
         return res.status(Constants.HTTP_STATUS_CODES.SUCCESS).json(
             ResponseStandardiser.generateStandardResponse(

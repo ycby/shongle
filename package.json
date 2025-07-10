@@ -2,14 +2,15 @@
   "name": "shingle",
   "version": "1.0.0",
   "description": "Project for tracking some basic market data",
-  "main": "src/index.js",
+  "main": "src/index",
   "type": "module",
   "imports": {
     "#root/*.js": "./*.js",
     "#root/*.ts": "./*.ts"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest",
+    "coverage": "jest --coverage",
     "start:prod": "node --env-file=.env --import=tsx src/index.js",
     "start:dev": "nodemon --env-file=.env.dev --import=tsx --ext 'ts,json,js,mjs,cjs' src/index.js"
   },
@@ -24,6 +25,7 @@
   },
   "homepage": "https://github.com/ycby/shingle#readme",
   "dependencies": {
+    "@types/express": "^5.0.3",
     "csv": "^6.3.9",
     "eslint": "^9.4.0",
     "express": "^4.19.2",
@@ -32,11 +34,18 @@
     "papaparse": "^5.5.3"
   },
   "devDependencies": {
+    "@babel/core": "^7.28.0",
+    "@babel/preset-env": "^7.28.0",
+    "@babel/preset-typescript": "^7.27.1",
     "@eslint/compat": "^1.0.3",
     "@eslint/js": "^9.4.0",
+    "@jest/globals": "^30.0.4",
     "@types/papaparse": "^5.3.16",
+    "babel-jest": "^30.0.4",
     "globals": "^15.4.0",
+    "jest": "^30.0.4",
     "nodemon": "^3.1.3",
+    "ts-node": "^10.9.2",
     "tsx": "^4.19.4"
   }
 }

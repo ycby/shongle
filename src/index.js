@@ -2,8 +2,8 @@ import express from 'express'
 
 import {getStockRouter} from "#root/src/controllers/StockController.js";
 import {getShortDataRouter} from "#root/src/controllers/ShortDataController.js";
-import {DuplicateFoundError} from "#root/src/errors/Errors.js";
-import * as ResponseStandardiser from "#root/src/utilities/ResponseStandardiser.js";
+import {ShongleError} from "#root/src/errors/Errors.ts";
+import * as ResponseStandardiser from "#root/src/utilities/ResponseStandardiser.ts";
 
 const app = express()
 const port = process.env.SERVER_PORT
@@ -30,9 +30,9 @@ app.use((err, req, res, next) => {
 	console.error(err.stack);
 
 	let response;
-	if (err instanceof DuplicateFoundError) {
+	if (err instanceof ShongleError) {
 
-		response = ResponseStandardiser.generateErrorResponse(-100, err.message);
+		response = ResponseStandardiser.generateErrorResponse(-100, err.message, err.supportingData);
 	} else {
 
 		response = ResponseStandardiser.generateErrorResponse(-1, "Unknown Error");

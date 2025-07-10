@@ -1,25 +1,88 @@
-import db from '#root/src/db/db.js'
-import {filterClauseGenerator} from "#root/src/helpers/DBHelpers.js";
-import {DuplicateFoundError, RecordNotFoundError} from "#root/src/errors/Errors.js";
-import ShortData from "#root/src/models/ShortData.js";
+import db from '#root/src/db/db.ts'
+import {FieldMapping, filterClauseGenerator, processData, ProcessDataMapping} from "#root/src/helpers/DBHelpers.ts";
+import {InvalidRequestError, RecordNotFoundError} from "#root/src/errors/Errors.ts";
+import ShortData from "#root/src/models/ShortData.ts";
+import Stock from "#root/src/models/Stock.ts";
 import {retrieveShortData} from "#root/src/helpers/ShortDataRetriever.ts";
+import {UpsertResult} from "mariadb";
+import {ValidationRule, validator, ValidatorResult} from "#root/src/utilities/Validator.ts";
+import {stringToDateConverter} from "#root/src/helpers/DateHelper.ts";
 
-const columnInsertionOrder = [
+type ShortDataGetParam = {
+	id?: number,
+	ticker_no: string;
+	start_date: Date;
+	end_date: Date;
+}
+
+export type ShortDataBody = {
+	id?: number;
+	stock_id: number;
+	reporting_date: Date;
+	shorted_shares: number;
+	shorted_amount: number;
+}
+
+const SHORT_PARAM_VALIDATION: ValidationRule[] = [
+	{
+		name: 'ticker_no',
+		isRequired: true,
+		rule: (ticker_no: any): boolean => typeof ticker_no === 'string' && ticker_no.length === 5,
+		errorMessage: 'Ticker No. is formatted incorrectly, it should be 5 characters long. E.g "00001"'
+	},
+	{
+		name: 'start_date',
+		isRequired: false,
+		rule: (start_date: any): boolean => stringToDateConverter(start_date) !== null,
+		errorMessage: 'Start Date must be a date'
+	},
+	{
+		name: 'end_date',
+		isRequired: false,
+		rule: (end_date: any): boolean => stringToDateConverter(end_date) !== null,
+		errorMessage: 'End Date must be a date'
+	},
+];
+
+const SHORT_BODY_VALIDATION: ValidationRule[] = [
+	{
+		name: 'id',
+		isRequired: false,
+		rule: (id: any): boolean => typeof id === 'number',
+		errorMessage: 'Id is must be a number and is required"'
+	},
+	{
+		name: 'stock_id',
+		isRequired: true,
+		rule: (stock_id: any): boolean => typeof stock_id === 'number',
+		errorMessage: 'Stock Id is must be a number and is required"'
+	},
+	{
+		name: 'reporting_date',
+		isRequired: false,
+		rule: (reporting_date: any): boolean => stringToDateConverter(reporting_date) !== null,
+		errorMessage: 'Reporting Date must be a date'
+	},
+	{
+		name: 'shorted_shares',
+		isRequired: false,
+		rule: (shorted_shares: any): boolean => typeof shorted_shares === 'number',
+		errorMessage: 'Shorted Shares must be a number'
+	},
+	{
+		name: 'shorted_amount',
+		isRequired: false,
+		rule: (shorted_amount: any): boolean => typeof shorted_amount === 'number',
+		errorMessage: 'Shorted Amount must be a number'
+	},
+];
+
+const columnInsertionOrder: ProcessDataMapping[] = [
 	{
 		field: 'id'
 	},
 	{
 		field: 'stock_id',
-		// transform: (stockCode) => {
-		// 	switch (typeof stockCode) {
-		// 		case 'number' :
-		// 			return stockCode.toString().padStart(5, '0');
-		// 		case 'string' :
-		// 			return stockCode.padStart(5, '0');
-		// 		default:
-		// 			throw new Error('Unexpected Stock Code type')
-		// 	}
-		// }
 	},
 	{
 		field: 'reporting_date'
@@ -32,7 +95,7 @@ const columnInsertionOrder = [
 	}
 ]
 
-const fieldMapping = [
+const fieldMapping: FieldMapping[] = [
 	{
 		param: 'ticker_no',
 		field: 'ticker_no',
@@ -50,9 +113,12 @@ const fieldMapping = [
 	}
 ]
 
-const getShortData = async (args) => {
+const getShortData = async (args: ShortDataGetParam) => {
 
 	//TODO: if stockCode is invalid/does not exist, return error
+	let validationResult: ValidatorResult[] = validator(args, SHORT_PARAM_VALIDATION);
+
+	if (validationResult.length > 0) throw new InvalidRequestError(validationResult);
 
 	let conn;
 	let result = [];
@@ -64,7 +130,6 @@ const getShortData = async (args) => {
 		
 		await conn.beginTransaction();
 
-		//TODO: change to view
 		result = await conn.query({
 			namedPlaceholders: true,
 			sql: `SELECT * FROM Short_Reporting_w_Stocks WHERE ${whereString !== '' ? whereString : ''} ORDER BY reporting_date DESC`
@@ -88,12 +153,15 @@ const getShortData = async (args) => {
 	return result;
 }
 
-const postShortData = async (data) => {
+const postShortData = async (data: ShortDataBody[]) => {
 
 	//TODO: if stockCode is invalid/does not exist, return error
+	let validationResult: ValidatorResult[] = validator(data, SHORT_BODY_VALIDATION);
+
+	if (validationResult.length > 0) throw new InvalidRequestError(validationResult);
 
 	let conn;
-	let result = [];
+	let result: UpsertResult[] = [];
 	console.log(data);
 
 	const dataIds = data.map(d => d.stock_id);
@@ -114,7 +182,7 @@ const postShortData = async (data) => {
 
 		if (existingRecords.length === 0) {
 
-			const existingCodes = existingRecords.map(d => d.stock_id);
+			const existingCodes = existingRecords.map((d: Stock) => d.ticker_no);
 
 			throw new RecordNotFoundError(`Stocks with ids ( ${existingCodes.join(', ')} ) do not exist!`);
 		}
@@ -145,8 +213,11 @@ const postShortData = async (data) => {
 	return result;
 }
 
-const getShortDatum = async (id) => {
+const getShortDatum = async (args: ShortDataGetParam) => {
 
+	let validationResults: ValidatorResult[] = validator(args, SHORT_PARAM_VALIDATION);
+
+	if (validationResults.length > 0) throw new InvalidRequestError(validationResults);
 	//TODO: if stockCode is invalid/does not exist, return error
 
 	let conn;
@@ -161,9 +232,8 @@ const getShortDatum = async (id) => {
 			namedPlaceholders: true,
 			sql: `SELECT * FROM Short_Reporting_w_Stocks WHERE id = :id`
 		}, {
-			id: id
+			id: args.id
 		});
-		console.log(result)
 
 	} catch (err) {
 
@@ -179,7 +249,11 @@ const getShortDatum = async (id) => {
 	return result;
 }
 
-const putShortDatum = async (data) => {
+const putShortDatum = async (data: ShortDataBody) => {
+
+	let validationResults: ValidatorResult[] = validator(data, SHORT_BODY_VALIDATION);
+
+	if (validationResults.length > 0) throw new InvalidRequestError(validationResults);
 
 	//TODO: if stockCode is invalid/does not exist, return error
 
@@ -222,7 +296,11 @@ const putShortDatum = async (data) => {
 	return result;
 }
 
-const deleteShortDatum = async (id) => {
+const deleteShortDatum = async (args: ShortDataGetParam) => {
+
+	let validationResults: ValidatorResult[] = validator(args, SHORT_PARAM_VALIDATION);
+
+	if (validationResults.length > 0) throw new InvalidRequestError(validationResults);
 
 	let conn;
 	let result = [];
@@ -236,7 +314,7 @@ const deleteShortDatum = async (id) => {
 			namedPlaceholders: true,
 			sql: `DELETE FROM Short_Reporting WHERE id = :id`,
 		}, {
-			id: id
+			id: args.id
 		});
 
 		await conn.commit();
@@ -255,7 +333,7 @@ const deleteShortDatum = async (id) => {
 	return result;
 }
 
-const retrieveShortDataFromSource = async (endDate) => {
+const retrieveShortDataFromSource = async (endDate: Date) => {
 	console.log('Inside Retrieve Short Data From Source')
 
 	//Step 1: get the last date which was imported
@@ -298,17 +376,14 @@ const retrieveShortDataFromSource = async (endDate) => {
 	}
 }
 
-const processShortData = (data, columnOrder) => {
+const processShortData = (data: ShortDataBody, columns: ProcessDataMapping[]) => {
 
 	let shortData = new ShortData('INSERT');
-	columnOrder.forEach(column => {
-		shortData[column.field] = column.transform ? column.transform(data[column.field]) : data[column.field];
-	});
 
-	return shortData;
+	return processData(data, columns, shortData);
 }
 
-const wait = (milliseconds) => {
+const wait = (milliseconds: number) => {
 
 	return new Promise(resolve => setTimeout(resolve, milliseconds));
 }
