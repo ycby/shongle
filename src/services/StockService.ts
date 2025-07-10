@@ -3,7 +3,7 @@ import Stock from '#root/src/models/Stock.ts';
 import {DuplicateFoundError, InvalidRequestError} from "#root/src/errors/Errors.ts";
 import {FieldMapping, filterClauseGenerator, processData, ProcessDataMapping} from "#root/src/helpers/DBHelpers.ts";
 import {UpsertResult} from "mariadb";
-import {validator} from "#root/src/utilities/Validator.ts";
+import {ValidationRule, validator, ValidatorResult} from "#root/src/utilities/Validator.ts";
 
 type StocksDataGetParam = {
 	ticker_no: string;
@@ -23,9 +23,115 @@ type StocksDataBody = {
 	currency: string;
 }
 
-type StocksDataGetSingleParam = {
-	ticker_no: string;
+enum Category {
+	EQUITY = 'equity',
+	ETP = 'exchange_traded_products',
+	REIT = 'reit'
 }
+
+enum Subcategory {
+	DR = 'depository_receipts',
+	EQUITY_GEM = 'equity_securities_gem',
+	EQUITY_MAIN = 'equity_securities_main',
+	ETF = 'etf',
+	INVESTMENT_COMPANIES = 'investment_companies',
+	LEVERAGED_AND_INVERSE = 'leveraged_and_inverse',
+	TRADING_ONLY = 'trading_only_securities',
+	OTHERS = 'others'
+}
+
+enum Currency {
+	HKD = 'HKD',
+	RMB = 'RMB',
+	USD = 'USD',
+}
+
+const STOCK_PARAM_VALIDATION: ValidationRule[] = [
+	{
+		name: 'ticker_no',
+		isRequired: false,
+		rule: (ticker_no: any): boolean => typeof ticker_no === 'string' && ticker_no.length === 5,
+		errorMessage: 'Ticker No. is formatted incorrectly, it should be 5 characters long. E.g "00001"'
+	},
+	{
+		name: 'name',
+		isRequired: false,
+		rule: (name: any): boolean => typeof name === 'string',
+		errorMessage: 'Name must be a string'
+	},
+	{
+		name: 'ISIN',
+		isRequired: false,
+		rule: (ISIN: any): boolean => typeof ISIN === 'string',
+		errorMessage: 'ISIN must be a string'
+	},
+];
+
+const STOCK_PARAM_SINGLE_VALIDATION: ValidationRule[] = [
+	{
+		name: 'ticker_no',
+		isRequired: false,
+		rule: (ticker_no: any): boolean => typeof ticker_no === 'string' && ticker_no.length === 5,
+		errorMessage: 'Ticker No. is formatted incorrectly, it should be 5 characters long. E.g "00001"'
+	}
+]
+
+const STOCK_DATA_VALIDATION: ValidationRule[] = [
+	{
+		name: 'ticker_no',
+		isRequired: false,
+		rule: (ticker_no: any): boolean => typeof ticker_no === 'string' && ticker_no.length === 5,
+		errorMessage: 'Ticker No. is formatted incorrectly, it should be 5 characters long. E.g "00001"'
+	},
+	{
+		name: 'name',
+		isRequired: false,
+		rule: (name: any): boolean => typeof name === 'string',
+		errorMessage: 'Name must be a string'
+	},
+	{
+		name: 'full_name',
+		isRequired: false,
+		rule: (full_name: any): boolean => typeof full_name === 'string',
+		errorMessage: 'Full Name must be a string'
+	},
+	{
+		name: 'description',
+		isRequired: false,
+		rule: (description: any): boolean => typeof description === 'string',
+		errorMessage: 'Description must be a string'
+	},
+	{
+		name: 'category',
+		isRequired: false,
+		rule: (category: any): boolean => typeof category === 'string' && Object.values(Category).includes(category as Category),
+		errorMessage: 'Category must be one of the following: ' + Object.values(Category).join(', '),
+	},
+	{
+		name: 'subcategory',
+		isRequired: false,
+		rule: (subcategory: any): boolean => typeof subcategory === 'string' && Object.values(Subcategory).includes(subcategory as Subcategory),
+		errorMessage: 'Subcategory must be one of the following: ' + Object.values(Subcategory).join(', ')
+	},
+	{
+		name: 'board_lot',
+		isRequired: false,
+		rule: (board_lot: any): boolean => typeof board_lot === 'number',
+		errorMessage: 'Board Lot must be a number'
+	},
+	{
+		name: 'ISIN',
+		isRequired: false,
+		rule: (ISIN: any): boolean => typeof ISIN === 'string',
+		errorMessage: 'ISIN must be a string'
+	},
+	{
+		name: 'currency',
+		isRequired: false,
+		rule: (currency: any): boolean => typeof currency === 'string' && Object.values(Currency).includes(currency as Currency),
+		errorMessage: 'Currency must be one of the following: ' + Object.values(Currency).join(', ')
+	},
+];
 
 const columnInsertionOrder: ProcessDataMapping[] = [
 	{
@@ -77,28 +183,9 @@ const fieldMapping: FieldMapping[] = [
 
 const getStocksData = async (args: StocksDataGetParam) => {
 
-	let validationResult: string[] = validator(args, [
-		{
-			name: 'ticker_no',
-			isRequired: false,
-			rule: (ticker_no: any): boolean => typeof ticker_no === 'string' && ticker_no.length === 5,
-			errorMessage: 'Ticker No. is formatted incorrectly, it should be 5 characters long. E.g "00001"'
-		},
-		{
-			name: 'name',
-			isRequired: false,
-			rule: (name: any): boolean => typeof name === 'string',
-			errorMessage: 'Name must be a string'
-		},
-		{
-			name: 'ISIN',
-			isRequired: false,
-			rule: (ISIN: any): boolean => typeof ISIN === 'string',
-			errorMessage: 'ISIN must be a string'
-		},
-	]);
+	let validationResult: ValidatorResult[] = validator(args, STOCK_PARAM_VALIDATION);
 
-	if (validationResult.length > 0) throw new InvalidRequestError(validationResult.join(',\n'));
+	if (validationResult.length > 0) throw new InvalidRequestError(validationResult);
 
 	let conn;
 	let result: Stock[] = [];
@@ -138,6 +225,10 @@ const getStocksData = async (args: StocksDataGetParam) => {
 
 const postStockData = async (data: StocksDataBody[]) => {
 
+	let validationResult: ValidatorResult[] = validator(data, STOCK_DATA_VALIDATION);
+
+	if (validationResult.length > 0) throw new InvalidRequestError(validationResult);
+
 	let result: UpsertResult[] = [];
 	let conn;
 
@@ -148,7 +239,7 @@ const postStockData = async (data: StocksDataBody[]) => {
 
 		await conn.beginTransaction();
 
-		const existingRecords: Stock[] = await conn.query("SELECT id, ticker_no, name FROM Stock WHERE ticker_no IN (?)", [dataIds]);
+		const existingRecords: Stock[] = await conn.query("SELECT id, ticker_no, name FROM Stocks WHERE ticker_no IN (?)", [dataIds]);
 
 		if (existingRecords.length > 0) {
 
@@ -166,7 +257,7 @@ const postStockData = async (data: StocksDataBody[]) => {
 			data.map((item: StocksDataBody): Stock => processStockData(item, columnInsertionOrder))
 		)
 
-		await conn.commit();
+		// await conn.commit();
 	} catch (err) {
 
 		if (conn) await conn.rollback();
@@ -180,7 +271,11 @@ const postStockData = async (data: StocksDataBody[]) => {
 	return result;
 }
 
-const getStockData = async (args: StocksDataGetSingleParam) => {
+const getStockData = async (args: StocksDataGetParam) => {
+
+	let validationResult: ValidatorResult[] = validator(args, STOCK_PARAM_SINGLE_VALIDATION);
+
+	if (validationResult.length > 0) throw new InvalidRequestError(validationResult);
 
 	const ticker_no = args.ticker_no;
 
@@ -214,6 +309,10 @@ const getStockData = async (args: StocksDataGetSingleParam) => {
 }
 
 const putStockData = async (data: StocksDataBody) => {
+
+	let validationResult: ValidatorResult[] = validator(data, STOCK_DATA_VALIDATION);
+
+	if (validationResult.length > 0) throw new InvalidRequestError(validationResult);
 
 	let result: UpsertResult[] = [];
 	let conn;
@@ -257,7 +356,11 @@ const putStockData = async (data: StocksDataBody) => {
 	return result;
 }
 
-const deleteStockData = async (args: StocksDataGetSingleParam) => {
+const deleteStockData = async (args: StocksDataGetParam) => {
+
+	let validationResult: ValidatorResult[] = validator(args, STOCK_PARAM_SINGLE_VALIDATION);
+
+	if (validationResult.length > 0) throw new InvalidRequestError(validationResult);
 
 	const ticker_no = args.ticker_no;
 

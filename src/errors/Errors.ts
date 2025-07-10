@@ -1,10 +1,12 @@
 class ShongleError extends Error {
 
     public code: number;
+    public supportingData?: Object;
 
-    constructor(code: number, message: string) {
+    constructor(code: number, message: string, supportingData?: Object) {
         super(message);
         this.code = code;
+        this.supportingData = supportingData;
     }
 }
 
@@ -32,8 +34,8 @@ class UnexpectedFileError extends ShongleError {
 
 class InvalidRequestError extends ShongleError {
 
-    constructor(message: string) {
-        super(-1, message);
+    constructor(supportingData?: any) {
+        super(-1, 'Request failed because one or more parameters were formatted incorrectly', supportingData);
     }
 }
 

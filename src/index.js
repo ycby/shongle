@@ -32,7 +32,7 @@ app.use((err, req, res, next) => {
 	let response;
 	if (err instanceof ShongleError) {
 
-		response = ResponseStandardiser.generateErrorResponse(-100, err.message);
+		response = ResponseStandardiser.generateErrorResponse(-100, err.message, err.supportingData);
 	} else {
 
 		response = ResponseStandardiser.generateErrorResponse(-1, "Unknown Error");

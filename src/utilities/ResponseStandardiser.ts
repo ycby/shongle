@@ -7,11 +7,12 @@ const generateStandardResponse = (responseObject: any, statusCode: number, statu
     }
 }
 
-const generateErrorResponse = (statusCode: number, statusDescription: string) => {
+const generateErrorResponse = (statusCode: number, statusDescription: string, supportingObject?: any) => {
 
     return {
         "status": statusCode,
-        "message": statusDescription
+        "message": statusDescription,
+        "data": supportingObject
     }
 }
 
