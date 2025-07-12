@@ -4,6 +4,7 @@ import {DuplicateFoundError, InvalidRequestError} from "#root/src/errors/Errors.
 import {FieldMapping, filterClauseGenerator, processData, ProcessDataMapping} from "#root/src/helpers/DBHelpers.ts";
 import {UpsertResult} from "mariadb";
 import {ValidationRule, validator, ValidatorResult} from "#root/src/utilities/Validator.ts";
+import {Category, Subcategory, Currency, CategoryKeys, SubcategoryKeys, CurrencyKeys} from "#root/src/types.ts";
 
 type StocksDataGetParam = {
 	ticker_no: string;
@@ -21,29 +22,6 @@ type StocksDataBody = {
 	board_lot: number;
 	ISIN: string;
 	currency: string;
-}
-
-enum Category {
-	EQUITY = 'equity',
-	ETP = 'exchange_traded_products',
-	REIT = 'reit'
-}
-
-enum Subcategory {
-	DR = 'depository_receipts',
-	EQUITY_GEM = 'equity_securities_gem',
-	EQUITY_MAIN = 'equity_securities_main',
-	ETF = 'etf',
-	INVESTMENT_COMPANIES = 'investment_companies',
-	LEVERAGED_AND_INVERSE = 'leveraged_and_inverse',
-	TRADING_ONLY = 'trading_only_securities',
-	OTHERS = 'others'
-}
-
-enum Currency {
-	HKD = 'HKD',
-	RMB = 'RMB',
-	USD = 'USD',
 }
 
 const STOCK_PARAM_VALIDATION: ValidationRule[] = [
@@ -78,6 +56,12 @@ const STOCK_PARAM_SINGLE_VALIDATION: ValidationRule[] = [
 
 const STOCK_DATA_VALIDATION: ValidationRule[] = [
 	{
+		name: 'id',
+		isRequired: false,
+		rule: (id: any): boolean => typeof id === 'number',
+		errorMessage: 'Id must be a number'
+	},
+	{
 		name: 'ticker_no',
 		isRequired: false,
 		rule: (ticker_no: any): boolean => typeof ticker_no === 'string' && ticker_no.length === 5,
@@ -104,13 +88,13 @@ const STOCK_DATA_VALIDATION: ValidationRule[] = [
 	{
 		name: 'category',
 		isRequired: false,
-		rule: (category: any): boolean => typeof category === 'string' && Object.values(Category).includes(category as Category),
+		rule: (category: any): boolean => typeof category === 'string' && Object.values(Category).includes(category as CategoryKeys),
 		errorMessage: 'Category must be one of the following: ' + Object.values(Category).join(', '),
 	},
 	{
 		name: 'subcategory',
 		isRequired: false,
-		rule: (subcategory: any): boolean => typeof subcategory === 'string' && Object.values(Subcategory).includes(subcategory as Subcategory),
+		rule: (subcategory: any): boolean => typeof subcategory === 'string' && Object.values(Subcategory).includes(subcategory as SubcategoryKeys),
 		errorMessage: 'Subcategory must be one of the following: ' + Object.values(Subcategory).join(', ')
 	},
 	{
@@ -128,8 +112,14 @@ const STOCK_DATA_VALIDATION: ValidationRule[] = [
 	{
 		name: 'currency',
 		isRequired: false,
-		rule: (currency: any): boolean => typeof currency === 'string' && Object.values(Currency).includes(currency as Currency),
+		rule: (currency: any): boolean => typeof currency === 'string' && Object.values(Currency).includes(currency as CurrencyKeys),
 		errorMessage: 'Currency must be one of the following: ' + Object.values(Currency).join(', ')
+	},
+	{
+		name: 'is_active',
+		isRequired: false,
+		rule: (isActive: any): boolean => typeof isActive === 'boolean',
+		errorMessage: 'Currency must be a boolean'
 	},
 ];
 
@@ -160,6 +150,9 @@ const columnInsertionOrder: ProcessDataMapping[] = [
 	},
 	{
 		field: 'currency'
+	},
+	{
+		field: 'is_active'
 	}
 ]
 
@@ -326,9 +319,10 @@ const putStockData = async (data: StocksDataBody) => {
 		result = await conn.query({
 			namedPlaceholders: true,
 			sql: 'INSERT INTO Stocks ' +
-					'(ticker_no, name, full_name, description, category, subcategory, board_lot, ISIN, currency, created_datetime, last_modified_datetime) ' +
-				'VALUES (:ticker_no, :name, :full_name, :description, :category, :subcategory, :board_lot, :ISIN, :currency, :created_datetime, :last_modified_datetime) ' +
+					'(id, ticker_no, name, full_name, description, category, subcategory, board_lot, ISIN, currency, is_active, created_datetime, last_modified_datetime) ' +
+				'VALUES (:id, :ticker_no, :name, :full_name, :description, :category, :subcategory, :board_lot, :ISIN, :currency, :is_active, :created_datetime, :last_modified_datetime) ' +
 				'ON DUPLICATE KEY UPDATE ' +
+				'ticker_no=VALUES(ticker_no)' +
 				'name=VALUES(name), ' +
 				'full_name=VALUES(full_name), ' +
 				'description=VALUES(description), ' +
@@ -337,6 +331,7 @@ const putStockData = async (data: StocksDataBody) => {
 				'board_lot=VALUES(board_lot), ' +
 				'ISIN=VALUES(ISIN), ' +
 				'currency=VALUES(currency), ' +
+				'is_active=VALUES(is_active), ' +
 				'last_modified_datetime=VALUES(last_modified_datetime)'
 			},
 			processStockData(data, columnInsertionOrder)

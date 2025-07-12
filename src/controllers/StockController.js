@@ -1,5 +1,5 @@
 import express from 'express';
-import * as Constants from '#root/src/constants/constants.js';
+import * as Constants from '#root/src/constants/constants.ts';
 import * as StockService from '#root/src/services/StockService.ts';
 import * as ResponseStandardiser from "#root/src/utilities/ResponseStandardiser.ts";
 
@@ -19,7 +19,6 @@ const getStockRouter = () => {
 
 const getStocks = async (req, res, next) => {
 
-    //TODO: add validation?
     try {
 
         const stocks = await StockService.getStocksData(req.query);
@@ -38,8 +37,6 @@ const getStocks = async (req, res, next) => {
 }
 
 const createStocks = async (req, res, next) => {
-
-    //TODO: implement - consider how to avoid duplicates
 
     try {
         // console.log(req.body);

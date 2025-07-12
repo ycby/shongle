@@ -25,12 +25,10 @@
   },
   "homepage": "https://github.com/ycby/shingle#readme",
   "dependencies": {
-    "@types/express": "^5.0.3",
     "csv": "^6.3.9",
     "eslint": "^9.4.0",
-    "express": "^4.19.2",
+    "express": "^5.1.0",
     "mariadb": "^3.3.1",
-    "multer": "^1.4.5-lts.1",
     "papaparse": "^5.5.3"
   },
   "devDependencies": {
@@ -40,6 +38,7 @@
     "@eslint/compat": "^1.0.3",
     "@eslint/js": "^9.4.0",
     "@jest/globals": "^30.0.4",
+    "@types/express": "^5.0.3",
     "@types/papaparse": "^5.3.16",
     "babel-jest": "^30.0.4",
     "globals": "^15.4.0",

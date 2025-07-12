@@ -1,5 +1,5 @@
 import express from 'express'
-import * as Constants from "#root/src/constants/constants.js";
+import * as Constants from "#root/src/constants/constants.ts";
 import * as ResponseStandardiser from "#root/src/utilities/ResponseStandardiser.ts";
 import * as ShortDataService from "#root/src/services/ShortDataService.ts";
 import {stringToDateConverter} from "#root/src/helpers/DateHelper.ts";
