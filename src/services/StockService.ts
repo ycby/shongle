@@ -1,4 +1,4 @@
-import db from '#root/src/db/db.ts';
+import db, {executeQuery} from '#root/src/db/db.ts';
 import Stock from '#root/src/models/Stock.ts';
 import {DuplicateFoundError, InvalidRequestError} from "#root/src/errors/Errors.ts";
 import {FieldMapping, filterClauseGenerator, processData, ProcessDataMapping} from "#root/src/helpers/DBHelpers.ts";
@@ -6,13 +6,13 @@ import {UpsertResult} from "mariadb";
 import {ValidationRule, validator, ValidatorResult} from "#root/src/utilities/Validator.ts";
 import {Category, Subcategory, Currency, CategoryKeys, SubcategoryKeys, CurrencyKeys} from "#root/src/types.ts";
 
-type StocksDataGetParam = {
-	ticker_no: string;
-	name: string;
-	ISIN: string;
+export type StocksDataGetParam = {
+	ticker_no?: string;
+	name?: string;
+	ISIN?: string;
 }
 
-type StocksDataBody = {
+export type StocksDataBody = {
 	ticker_no: string;
 	name: string;
 	full_name: string;
@@ -174,13 +174,13 @@ const fieldMapping: FieldMapping[] = [
 	}
 ]
 
+//TODO: Convert all db calls to use the new executeQuery and executeBatch functions
 const getStocksData = async (args: StocksDataGetParam) => {
 
 	let validationResult: ValidatorResult[] = validator(args, STOCK_PARAM_VALIDATION);
 
 	if (validationResult.length > 0) throw new InvalidRequestError(validationResult);
 
-	let conn;
 	let result: Stock[] = [];
 
 	const filterClause: string = filterClauseGenerator(fieldMapping, args);
@@ -189,11 +189,7 @@ const getStocksData = async (args: StocksDataGetParam) => {
 
 	try {
 
-		conn = await db.pool.getConnection();
-
-		await conn.beginTransaction();
-
-		result = await conn.query({
+		result = await executeQuery<Stock[]>({
 			namedPlaceholders: true,
 			sql: `SELECT * FROM Stocks ${whereString}`,
 		}, {
@@ -204,13 +200,7 @@ const getStocksData = async (args: StocksDataGetParam) => {
 
 	} catch (err) {
 
-		if (conn) await conn.rollback();
-
 		throw err;
-
-	} finally {
-
-		if (conn) await conn.end();
 	}
 
 	return result;

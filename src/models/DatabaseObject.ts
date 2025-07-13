@@ -1,6 +1,6 @@
 export default class DatabaseObject {
 	
-	private readonly _operation: string;
+	private readonly _operation?: string;
 	private readonly _created_datetime: Date | undefined;
 	private readonly _last_modified_datetime: Date;
 
@@ -20,7 +20,7 @@ export default class DatabaseObject {
 
 	get operation(): string {
 
-		return this._operation;
+		return this._operation ?? '';
 	}
 
 	get created_datetime(): Date | undefined{
@@ -31,11 +31,5 @@ export default class DatabaseObject {
 	get last_modified_datetime(): Date {
 
 		return this._last_modified_datetime;
-	}
-
-	*getFields() {
-
-		yield this.created_datetime
-		yield this.last_modified_datetime
 	}
 }

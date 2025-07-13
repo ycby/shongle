@@ -2,6 +2,8 @@ import express from 'express';
 import * as Constants from '#root/src/constants/constants.ts';
 import * as StockService from '#root/src/services/StockService.ts';
 import * as ResponseStandardiser from "#root/src/utilities/ResponseStandardiser.ts";
+import {Request, Response, NextFunction} from "express";
+import {StocksDataGetParam} from "#root/src/services/StockService.ts";
 
 const getStockRouter = () => {
 
@@ -17,10 +19,9 @@ const getStockRouter = () => {
     return router;
 }
 
-const getStocks = async (req, res, next) => {
+const getStocks = async (req: Request<{}, {}, {}, StocksDataGetParam>, res: Response, next: NextFunction) => {
 
     try {
-
         const stocks = await StockService.getStocksData(req.query);
 
         return res.status(Constants.HTTP_STATUS_CODES.SUCCESS).json(
@@ -36,7 +37,7 @@ const getStocks = async (req, res, next) => {
     }
 }
 
-const createStocks = async (req, res, next) => {
+const createStocks = async (req: Request, res: Response, next: NextFunction) => {
 
     try {
         // console.log(req.body);
@@ -55,7 +56,7 @@ const createStocks = async (req, res, next) => {
     }
 }
 
-const getStock = async (req, res, next) => {
+const getStock = async (req: Request<StocksDataGetParam, {},{}, {}>, res: Response, next:NextFunction) => {
 
     try {
 
@@ -74,7 +75,7 @@ const getStock = async (req, res, next) => {
     }
 }
 
-const upsertStock = async (req, res, next) => {
+const upsertStock = async (req: Request, res: Response, next: NextFunction) => {
 
     try {
         // console.log(req.body);
@@ -93,7 +94,7 @@ const upsertStock = async (req, res, next) => {
     }
 }
 
-const deleteStock = async (req, res, next) => {
+const deleteStock = async (req: Request<StocksDataGetParam>, res: Response, next: NextFunction) => {
 
     try {
 

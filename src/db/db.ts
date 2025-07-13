@@ -1,6 +1,6 @@
-import mariadb from 'mariadb'
+import mariadb, {QueryOptions} from 'mariadb'
 
-export default Object.freeze({
+const dbPool = Object.freeze({
 	pool: mariadb.createPool({
 		host: process.env.DB_HOST,
 		port: Number(process.env.DB_PORT),
@@ -11,4 +11,34 @@ export default Object.freeze({
 		bigIntAsNumber: true,
 		trace: true
 	})
-})
+});
+
+const executeQuery = async <T>(queryObject: QueryOptions, placeholders: {}): Promise<T> => {
+
+	let conn;
+
+	try {
+
+		conn = await dbPool.pool.getConnection();
+
+		await conn.beginTransaction();
+
+		if (placeholders === undefined) return await conn.query(queryObject);
+
+		//if has placeholders
+		return await conn.query(queryObject, placeholders);
+	} catch (err) {
+
+		if (conn) await conn.rollback();
+
+		throw err;
+	} finally {
+
+		if (conn) await conn.end();
+	}
+}
+
+export default dbPool;
+export {
+	executeQuery
+};
