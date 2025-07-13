@@ -13,7 +13,7 @@ console.log(`db name: ${process.env.DB_NAME}`)
 
 app.use((req, res, next) => {
 
-	res.setHeader('Access-Control-Allow-Origin', 'http://localhost:5173')
+	res.setHeader('Access-Control-Allow-Origin', process.env.WHITELISTED_ORIGIN);
 	res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
 
 	next()
