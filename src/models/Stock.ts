@@ -1,4 +1,5 @@
 import DatabaseObject from './DatabaseObject.ts'
+import {CurrencyKeys} from "#root/src/types.ts";
 
 export default class ShortData extends DatabaseObject {
 
@@ -11,7 +12,7 @@ export default class ShortData extends DatabaseObject {
     private _subcategory?: string;
     private _board_lot?: number;
     private _ISIN?: string;
-    private _currency?: string;
+    private _currency?: CurrencyKeys;
 
     constructor(operationType: string) {
 
@@ -108,12 +109,12 @@ export default class ShortData extends DatabaseObject {
         this._ISIN = ISIN;
     }
 
-    get currency(): string {
+    get currency(): CurrencyKeys | undefined {
 
-        return this._currency ?? '';
+        return this._currency;
     }
 
-    set currency(currency: string) {
+    set currency(currency: CurrencyKeys) {
 
         this._currency = currency;
     }
