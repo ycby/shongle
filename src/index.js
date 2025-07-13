@@ -4,8 +4,8 @@ import {getStockRouter} from "#root/src/controllers/StockController.js";
 import {getShortDataRouter} from "#root/src/controllers/ShortDataController.js";
 import {ShongleError} from "#root/src/errors/Errors.ts";
 import * as ResponseStandardiser from "#root/src/utilities/ResponseStandardiser.ts";
-import {getStockTransactionRouter} from "#root/src/controllers/StockTransactionController.ts.js";
-import {getDiaryEntryRouter} from "#root/src/controllers/DiaryEntryController.ts.js";
+import {getStockTransactionRouter} from "#root/src/controllers/StockTransactionController.ts";
+import {getDiaryEntryRouter} from "#root/src/controllers/DiaryEntryController.ts";
 
 const app = express()
 const port = process.env.SERVER_PORT
