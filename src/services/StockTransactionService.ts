@@ -247,7 +247,12 @@ const createStockTransactionsData = async (data: TransactionDataBody[]) => {
                     '(stock_id, type, amount, quantity, fee, transaction_date, currency, created_datetime, last_modified_datetime) ' +
                     'VALUES (:stock_id, :type, :amount, :quantity, :fee, :transaction_date, :currency, :created_datetime, :last_modified_datetime)'
             },
-            data.map((item: TransactionDataBody): StockTransaction => processTransactionData(item, insertColumnMapping))
+            data.map((item: TransactionDataBody): StockTransaction => {
+
+                let transaction: StockTransaction = new StockTransaction('INSERT');
+
+                return processData(item, insertColumnMapping, transaction);
+            })
         )
 
         // await conn.commit();
@@ -294,7 +299,12 @@ const upsertStockTransactionData = async (data: TransactionDataBody) => {
                     'currency=VALUES(currency), ' +
                     'last_modified_datetime=VALUES(last_modified_datetime)'
             },
-            processTransactionData(data, insertColumnMapping)
+            () => {
+
+                let transaction: StockTransaction = new StockTransaction('INSERT');
+
+                return processData(data, insertColumnMapping, transaction);
+            }
         );
 
         await conn.commit();
@@ -349,13 +359,6 @@ const deleteStockTransactionData = async (args: TransactionDataGetParams) => {
     }
 
     return result;
-}
-
-const processTransactionData = (data: TransactionDataBody, columns: ProcessDataMapping[]) => {
-
-    let transaction: StockTransaction = new StockTransaction('INSERT');
-
-    return processData(data, columns, transaction);
 }
 
 export {

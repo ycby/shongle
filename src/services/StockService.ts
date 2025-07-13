@@ -247,7 +247,12 @@ const postStockData = async (data: StocksDataBody[]) => {
 					'(ticker_no, name, full_name, description, category, subcategory, board_lot, ISIN, currency, created_datetime, last_modified_datetime) ' +
 				'VALUES (:ticker_no, :name, :full_name, :description, :category, :subcategory, :board_lot, :ISIN, :currency, :created_datetime, :last_modified_datetime)'
 			},
-			data.map((item: StocksDataBody): Stock => processStockData(item, columnInsertionOrder))
+			data.map((item: StocksDataBody): Stock => {
+
+				let stock: Stock = new Stock('INSERT');
+
+				return processData(item, columnInsertionOrder, stock);
+			})
 		)
 
 		// await conn.commit();
@@ -334,7 +339,12 @@ const putStockData = async (data: StocksDataBody) => {
 				'is_active=VALUES(is_active), ' +
 				'last_modified_datetime=VALUES(last_modified_datetime)'
 			},
-			processStockData(data, columnInsertionOrder)
+			() => {
+
+				let stock: Stock = new Stock('UPDATE');
+
+				return processData(data, columnInsertionOrder, stock);
+			}
 		)
 
 		await conn.commit();
@@ -389,13 +399,6 @@ const deleteStockData = async (args: StocksDataGetParam) => {
 	}
 
 	return result;
-}
-
-const processStockData: (data: StocksDataBody, columns: ProcessDataMapping[]) => Stock = (data: StocksDataBody, columns: ProcessDataMapping[]): Stock => {
-
-	let stock: Stock = new Stock('INSERT');
-
-	return processData(data, columns, stock);
 }
 
 export {

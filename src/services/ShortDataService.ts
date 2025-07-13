@@ -194,7 +194,12 @@ const postShortData = async (data: ShortDataBody[]) => {
 				'(stock_id, reporting_date, shorted_shares, shorted_amount, created_datetime, last_modified_datetime) ' +
 				'VALUES (:stock_id, :reporting_date, :shorted_shares, :shorted_amount, :created_datetime, :last_modified_datetime)'
 		},
-			data.map(item => processShortData(item, columnInsertionOrder))
+			data.map(item => {
+
+				let shortData = new ShortData('INSERT');
+
+				return processData(item, columnInsertionOrder, shortData);
+			})
 		)
 
 		await conn.commit();
@@ -277,7 +282,12 @@ const putShortDatum = async (data: ShortDataBody) => {
 				'shorted_amount=VALUES(shorted_amount), ' +
 				'last_modified_datetime=VALUES(last_modified_datetime)'
 			},
-			processShortData(data, columnInsertionOrder)
+			() => {
+
+				let shortData = new ShortData('UPDATE');
+
+				return processData(data, columnInsertionOrder, shortData);
+			}
 		)
 
 		await conn.commit();
@@ -374,13 +384,6 @@ const retrieveShortDataFromSource = async (endDate: Date) => {
 
 		await wait(10000);
 	}
-}
-
-const processShortData = (data: ShortDataBody, columns: ProcessDataMapping[]) => {
-
-	let shortData = new ShortData('INSERT');
-
-	return processData(data, columns, shortData);
 }
 
 const wait = (milliseconds: number) => {
