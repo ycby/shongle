@@ -5,6 +5,7 @@ import {getShortDataRouter} from "#root/src/controllers/ShortDataController.js";
 import {ShongleError} from "#root/src/errors/Errors.ts";
 import * as ResponseStandardiser from "#root/src/utilities/ResponseStandardiser.ts";
 import {getStockTransactionRouter} from "#root/src/controllers/StockTransactionController.ts.js";
+import {getDiaryEntryRouter} from "#root/src/controllers/DiaryEntryController.ts.js";
 
 const app = express()
 const port = process.env.SERVER_PORT
@@ -22,7 +23,7 @@ app.use((req, res, next) => {
 app.use(express.json({limit: '500kb'}));
 
 console.log('Initialising...');
-app.use("/", [getStockRouter(), getShortDataRouter(), getStockTransactionRouter()]);
+app.use("/", [getStockRouter(), getShortDataRouter(), getStockTransactionRouter(), getDiaryEntryRouter()]);
 
 app.use((err, req, res, next) => {
 

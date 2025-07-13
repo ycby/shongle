@@ -6,6 +6,7 @@ export default class DiaryEntry extends DatabaseObject{
     private _stock_id?: number;
     private _title?: string;
     private _content?: string;
+    private _posted_date?: Date;
 
     constructor (operationType: string) {
 
@@ -50,5 +51,15 @@ export default class DiaryEntry extends DatabaseObject{
     set content(content: string) {
 
         this._content = content;
+    }
+
+    get posted_date(): Date | undefined {
+
+        return this._posted_date;
+    }
+
+    set posted_date(date: Date) {
+
+        this._posted_date = date;
     }
 }

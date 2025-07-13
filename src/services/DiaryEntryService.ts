@@ -4,30 +4,26 @@ import {FieldMapping, filterClauseGenerator, processData, ProcessDataMapping} fr
 import db from "#root/src/db/db.ts";
 import {stringToDateConverter} from "#root/src/helpers/DateHelper.ts";
 import {UpsertResult} from "mariadb";
-import {Currency, CurrencyKeys} from "#root/src/types.ts";
 import Stock from "#root/src/models/Stock.ts";
-import StockTransaction from "#root/src/models/StockTransaction.ts";
+import DiaryEntry from "#root/src/models/DiaryEntry.ts";
 
-export type TransactionDataGetParams = {
+export type DiaryEntryDataGetParams = {
     id?: number,
     stock_id?: number,
-    type: string[],
+    title: string,
     start_date: string,
     end_date: string
 }
 
-export type TransactionDataBody = {
+export type DiaryEntryDataBody = {
     id?: number;
     stock_id: number;
-    type: string;
-    amount: number;
-    quantity: number;
-    fee: number;
-    transaction_date: string;
-    currency: string;
+    title: string;
+    content: string;
+    posted_date: string;
 }
 
-const TRANSACTION_PARAM_VALIDATION: ValidationRule[] = [
+const DIARY_ENTRY_PARAM_VALIDATION: ValidationRule[] = [
     {
         name: 'id',
         isRequired: false,
@@ -41,10 +37,16 @@ const TRANSACTION_PARAM_VALIDATION: ValidationRule[] = [
         errorMessage: 'Stock Id must be a number'
     },
     {
-        name: 'type',
-        isRequired: false,
-        rule: (transactionType: any): boolean => transactionType instanceof Array,
-        errorMessage: 'Type must be an array and must only have the following values if included: "buy", "sell", "dividend"'
+        name: 'title',
+        isRequired: true,
+        rule: (title: any): boolean => typeof title === 'string',
+        errorMessage: 'Title must be string'
+    },
+    {
+        name: 'content',
+        isRequired: true,
+        rule: (content: any): boolean => typeof content === 'string',
+        errorMessage: 'Content must be string'
     },
     {
         name: 'start_date',
@@ -60,7 +62,7 @@ const TRANSACTION_PARAM_VALIDATION: ValidationRule[] = [
     },
 ];
 
-const TRANSACTION_PARAM_SINGLE_VALIDATION: ValidationRule[] = [
+const DIARY_ENTRY_PARAM_SINGLE_VALIDATION: ValidationRule[] = [
     {
         name: 'id',
         isRequired: false,
@@ -69,7 +71,7 @@ const TRANSACTION_PARAM_SINGLE_VALIDATION: ValidationRule[] = [
     }
 ]
 
-const TRANSACTION_BODY_VALIDATION: ValidationRule[] = [
+const DIARY_ENTRY_BODY_VALIDATION: ValidationRule[] = [
     {
         name: 'id',
         isRequired: false,
@@ -83,41 +85,23 @@ const TRANSACTION_BODY_VALIDATION: ValidationRule[] = [
         errorMessage: 'Stock Id must be a number'
     },
     {
-        name: 'type',
+        name: 'title',
         isRequired: true,
-        rule: (transactionType: any): boolean => typeof transactionType === 'string',
-        errorMessage: 'Type must be an array and must only have the following values if included: "buy", "sell", "dividend"'
+        rule: (title: any): boolean => typeof title === 'string',
+        errorMessage: 'Title must be a string'
     },
     {
-        name: 'amount',
+        name: 'content',
         isRequired: true,
-        rule: (amount: any): boolean => typeof amount === 'number',
-        errorMessage: 'Amount must be a number'
+        rule: (content: any): boolean => typeof content === 'string',
+        errorMessage: 'String must be a string'
     },
     {
-        name: 'quantity',
+        name: 'posted_date',
         isRequired: true,
-        rule: (quantity: any): boolean => typeof quantity === 'number' && quantity >= 0,
-        errorMessage: 'Quantity must be a number and be a positive value'
-    },
-    {
-        name: 'fee',
-        isRequired: true,
-        rule: (fee: any): boolean => typeof fee === 'number',
-        errorMessage: 'Fee must be a number'
-    },
-    {
-        name: 'transaction_date',
-        isRequired: true,
-        rule: (transactionDate: any): boolean => typeof transactionDate === 'string' && stringToDateConverter(transactionDate) !== null,
-        errorMessage: 'Transaction Date must be formatted like so: yyyy-MM-dd'
-    },
-    {
-        name: 'currency',
-        isRequired: true,
-        rule: (currency: any): boolean => typeof currency === 'string' && Object.values(Currency).includes(currency as CurrencyKeys),
-        errorMessage: 'Currency must be one of the following: ' + Object.values(Currency).join(', ')
-    },
+        rule: (postedDate: any): boolean => typeof postedDate === 'string' && stringToDateConverter(postedDate) !== null,
+        errorMessage: 'Posted Date must be formatted like so: yyyy-MM-dd'
+    }
 ];
 
 const whereFieldMapping: FieldMapping[] = [
@@ -175,9 +159,9 @@ const insertColumnMapping: ProcessDataMapping[] = [
     }
 ];
 
-const getStockTransactionsData = async (args: TransactionDataGetParams) => {
+const getDiaryEntryData = async (args: DiaryEntryDataGetParams) => {
 
-    let validationResult: ValidatorResult[] = validator(args, TRANSACTION_PARAM_VALIDATION);
+    let validationResult: ValidatorResult[] = validator(args, DIARY_ENTRY_PARAM_VALIDATION);
 
     if (validationResult.length > 0) throw new InvalidRequestError(validationResult);
 
@@ -193,11 +177,11 @@ const getStockTransactionsData = async (args: TransactionDataGetParams) => {
 
         result = await conn.query({
             namedPlaceholders: true,
-            sql: `SELECT * FROM Stock_Transactions WHERE ${whereString !== '' ? whereString : ''} ORDER BY transaction_date DESC`
+            sql: `SELECT * FROM Diary_Entries WHERE ${whereString !== '' ? whereString : ''} ORDER BY posted_date DESC`
         }, {
             id: args.id,
             stock_id: args.stock_id,
-            type: args.type,
+            title: args.title,
             start_date: args.start_date,
             end_date: args.end_date,
         });
@@ -216,16 +200,16 @@ const getStockTransactionsData = async (args: TransactionDataGetParams) => {
     return result;
 }
 
-const createStockTransactionsData = async (data: TransactionDataBody[]) => {
+const createDiaryEntryData = async (data: DiaryEntryDataBody[]) => {
 
-    let validationResult: ValidatorResult[] = validator(data, TRANSACTION_BODY_VALIDATION);
+    let validationResult: ValidatorResult[] = validator(data, DIARY_ENTRY_BODY_VALIDATION);
 
     if (validationResult.length > 0) throw new InvalidRequestError(validationResult);
 
     let result: UpsertResult[] = [];
     let conn;
 
-    const stockIds: number[] = data.map((d: TransactionDataBody): number => d.stock_id);
+    const stockIds: number[] = data.map((d: DiaryEntryDataBody): number => d.stock_id);
     try {
 
         conn = await db.pool.getConnection();
@@ -243,13 +227,13 @@ const createStockTransactionsData = async (data: TransactionDataBody[]) => {
 
         result = await conn.batch({
                 namedPlaceholders: true,
-                sql: 'INSERT INTO Stock_Transactions ' +
-                    '(stock_id, type, amount, quantity, fee, transaction_date, currency, created_datetime, last_modified_datetime) ' +
-                    'VALUES (:stock_id, :type, :amount, :quantity, :fee, :transaction_date, :currency, :created_datetime, :last_modified_datetime)'
+                sql: 'INSERT INTO Diary_Entries ' +
+                    '(stock_id, title, content, posted_date, created_datetime, last_modified_datetime) ' +
+                    'VALUES (:stock_id, :title, :content, :posted_date, :created_datetime, :last_modified_datetime)'
             },
-            data.map((item: TransactionDataBody): StockTransaction => {
+            data.map((item: DiaryEntryDataBody): DiaryEntry => {
 
-                let transaction: StockTransaction = new StockTransaction('INSERT');
+                let transaction: DiaryEntry = new DiaryEntry('INSERT');
 
                 return processData(item, insertColumnMapping, transaction);
             })
@@ -269,9 +253,9 @@ const createStockTransactionsData = async (data: TransactionDataBody[]) => {
     return result;
 }
 
-const upsertStockTransactionData = async (data: TransactionDataBody) => {
+const upsertDiaryEntryData = async (data: DiaryEntryDataBody) => {
 
-    let validationResult: ValidatorResult[] = validator(data, TRANSACTION_BODY_VALIDATION);
+    let validationResult: ValidatorResult[] = validator(data, DIARY_ENTRY_BODY_VALIDATION);
 
     if (validationResult.length > 0) throw new InvalidRequestError(validationResult);
 
@@ -286,24 +270,21 @@ const upsertStockTransactionData = async (data: TransactionDataBody) => {
 
         result = await conn.query({
                 namedPlaceholders: true,
-                sql: 'INSERT INTO Stock_Transactions ' +
-                    '(id, stock_id, type, amount, quantity, fee, transaction_date, currency, created_datetime, last_modified_datetime) ' +
-                    'VALUES (:id, :stock_id, :type, :amount, :quantity, :fee, :transaction_date, :currency, :created_datetime, :last_modified_datetime) ' +
+                sql: 'INSERT INTO Diary_Entries ' +
+                    '(id, stock_id, title, content, posted_date, created_datetime, last_modified_datetime) ' +
+                    'VALUES (:id, :stock_id, :title, :content, :posted_date, :created_datetime, :last_modified_datetime) ' +
                     'ON DUPLICATE KEY UPDATE ' +
                     'stock_id=VALUES(stock_id), ' +
-                    'type=VALUES(type), ' +
-                    'amount=VALUES(amount), ' +
-                    'quantity=VALUES(quantity), ' +
-                    'fee=VALUES(fee), ' +
-                    'transaction_date=VALUES(transaction_date), ' +
-                    'currency=VALUES(currency), ' +
+                    'title=VALUES(title), ' +
+                    'content=VALUES(content), ' +
+                    'posted_date=VALUES(posted_date), ' +
                     'last_modified_datetime=VALUES(last_modified_datetime)'
             },
             () => {
 
-                let transaction: StockTransaction = new StockTransaction('UPDATE');
+                let diaryEntry: DiaryEntry = new DiaryEntry('UPDATE');
 
-                return processData(data, insertColumnMapping, transaction);
+                return processData(data, insertColumnMapping, diaryEntry);
             }
         );
 
@@ -321,9 +302,9 @@ const upsertStockTransactionData = async (data: TransactionDataBody) => {
     return result;
 }
 
-const deleteStockTransactionData = async (args: TransactionDataGetParams) => {
+const deleteDiaryEntryData = async (args: DiaryEntryDataGetParams) => {
 
-    let validationResult: ValidatorResult[] = validator(args, TRANSACTION_PARAM_SINGLE_VALIDATION);
+    let validationResult: ValidatorResult[] = validator(args, DIARY_ENTRY_PARAM_SINGLE_VALIDATION);
 
     if (validationResult.length > 0) throw new InvalidRequestError(validationResult);
 
@@ -340,7 +321,7 @@ const deleteStockTransactionData = async (args: TransactionDataGetParams) => {
 
         result = await conn.query({
             namedPlaceholders: true,
-            sql: `DELETE FROM Stock_Transactions WHERE id = :id`
+            sql: `DELETE FROM Diary_Entries WHERE id = :id`
         }, {
             id: id
         });
@@ -362,8 +343,8 @@ const deleteStockTransactionData = async (args: TransactionDataGetParams) => {
 }
 
 export {
-    getStockTransactionsData,
-    createStockTransactionsData,
-    upsertStockTransactionData,
-    deleteStockTransactionData
+    getDiaryEntryData,
+    createDiaryEntryData,
+    upsertDiaryEntryData,
+    deleteDiaryEntryData
 }
