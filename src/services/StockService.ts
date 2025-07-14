@@ -1,4 +1,4 @@
-import db, {executeQuery} from '#root/src/db/db.ts';
+import {executeBatch, executeQuery} from '#root/src/db/db.ts';
 import Stock from '#root/src/models/Stock.ts';
 import {DuplicateFoundError, InvalidRequestError} from "#root/src/errors/Errors.ts";
 import {FieldMapping, filterClauseGenerator, processData, ProcessDataMapping} from "#root/src/helpers/DBHelpers.ts";
@@ -48,7 +48,7 @@ const STOCK_PARAM_VALIDATION: ValidationRule[] = [
 const STOCK_PARAM_SINGLE_VALIDATION: ValidationRule[] = [
 	{
 		name: 'ticker_no',
-		isRequired: false,
+		isRequired: true,
 		rule: (ticker_no: any): boolean => typeof ticker_no === 'string' && ticker_no.length === 5,
 		errorMessage: 'Ticker No. is formatted incorrectly, it should be 5 characters long. E.g "00001"'
 	}
@@ -124,6 +124,9 @@ const STOCK_DATA_VALIDATION: ValidationRule[] = [
 ];
 
 const columnInsertionOrder: ProcessDataMapping[] = [
+	{
+		field: 'id'
+	},
 	{
 		field: 'ticker_no'
 	},
@@ -213,16 +216,13 @@ const postStockData = async (data: StocksDataBody[]) => {
 	if (validationResult.length > 0) throw new InvalidRequestError(validationResult);
 
 	let result: UpsertResult[] = [];
-	let conn;
 
 	const dataIds: string[] = data.map((d: StocksDataBody): string => d.ticker_no);
 	try {
 
-		conn = await db.pool.getConnection();
-
-		await conn.beginTransaction();
-
-		const existingRecords: Stock[] = await conn.query("SELECT id, ticker_no, name FROM Stocks WHERE ticker_no IN (?)", [dataIds]);
+		const existingRecords: Stock[] = await executeQuery({
+			sql: "SELECT id, ticker_no, name FROM Stocks WHERE ticker_no IN (?)"
+		}, [dataIds]);
 
 		if (existingRecords.length > 0) {
 
@@ -231,7 +231,7 @@ const postStockData = async (data: StocksDataBody[]) => {
 			throw new DuplicateFoundError(`Stocks with ids ( ${existingCodes.join(', ')} ) already exist!`);
 		}
 
-		result = await conn.batch({
+		result = await executeBatch({
 			namedPlaceholders: true,
 			sql: 'INSERT INTO Stocks ' +
 					'(ticker_no, name, full_name, description, category, subcategory, board_lot, ISIN, currency, created_datetime, last_modified_datetime) ' +
@@ -243,17 +243,12 @@ const postStockData = async (data: StocksDataBody[]) => {
 
 				return processData(item, columnInsertionOrder, stock);
 			})
-		)
+		);
+		console.log(result);
 
-		// await conn.commit();
 	} catch (err) {
 
-		if (conn) await conn.rollback();
-
 		throw err;
-	} finally {
-
-		if (conn) await conn.end();
 	}
 
 	return result;
@@ -267,16 +262,12 @@ const getStockData = async (args: StocksDataGetParam) => {
 
 	const ticker_no = args.ticker_no;
 
-	let conn;
 	let result: Stock[] = [];
 
 	try {
 
-		conn = await db.pool.getConnection();
 
-		await conn.beginTransaction();
-
-		result = await conn.query({
+		result = await executeQuery({
 			namedPlaceholders: true,
 			sql: `SELECT * FROM Stocks WHERE ticker_no = :ticker_no`
 		}, {
@@ -284,13 +275,8 @@ const getStockData = async (args: StocksDataGetParam) => {
 		});
 	} catch (err) {
 
-		if (conn) await conn.rollback();
-
 		throw err;
 
-	} finally {
-
-		if (conn) await conn.end();
 	}
 
 	return result;
@@ -303,21 +289,16 @@ const putStockData = async (data: StocksDataBody) => {
 	if (validationResult.length > 0) throw new InvalidRequestError(validationResult);
 
 	let result: UpsertResult[] = [];
-	let conn;
 
 	try {
 
-		conn = await db.pool.getConnection();
-
-		await conn.beginTransaction();
-
-		result = await conn.query({
+		result = await executeQuery({
 			namedPlaceholders: true,
 			sql: 'INSERT INTO Stocks ' +
 					'(id, ticker_no, name, full_name, description, category, subcategory, board_lot, ISIN, currency, is_active, created_datetime, last_modified_datetime) ' +
 				'VALUES (:id, :ticker_no, :name, :full_name, :description, :category, :subcategory, :board_lot, :ISIN, :currency, :is_active, :created_datetime, :last_modified_datetime) ' +
 				'ON DUPLICATE KEY UPDATE ' +
-				'ticker_no=VALUES(ticker_no)' +
+				'ticker_no=VALUES(ticker_no), ' +
 				'name=VALUES(name), ' +
 				'full_name=VALUES(full_name), ' +
 				'description=VALUES(description), ' +
@@ -332,20 +313,13 @@ const putStockData = async (data: StocksDataBody) => {
 			() => {
 
 				let stock: Stock = new Stock('UPDATE');
-
-				return processData(data, columnInsertionOrder, stock);
+				return processData(data, columnInsertionOrder, stock).getPlainObject();
 			}
 		)
 
-		await conn.commit();
 	} catch (err) {
 
-		if (conn) await conn.rollback();
-
 		throw err;
-	} finally {
-
-		if (conn) await conn.end();
 	}
 
 	return result;
@@ -359,36 +333,25 @@ const deleteStockData = async (args: StocksDataGetParam) => {
 
 	const ticker_no = args.ticker_no;
 
-	let conn;
-	let result: UpsertResult[] = [];
-
 	try {
 
-		conn = await db.pool.getConnection();
-
-		await conn.beginTransaction();
-
-		result = await conn.query({
+		await executeQuery({
 			namedPlaceholders: true,
 			sql: `DELETE FROM Stocks WHERE ticker_no = :ticker_no`
 		}, {
 			ticker_no: ticker_no
 		});
 
-		await conn.commit();
-
 	} catch (err) {
 
-		if (conn) await conn.rollback();
-
 		throw err;
-
-	} finally {
-
-		if (conn) await conn.end();
 	}
 
-	return result;
+	//assume no error or else will throw error
+	return {
+		ticker_no: ticker_no,
+		status: 'success'
+	};
 }
 
 export {

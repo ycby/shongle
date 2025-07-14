@@ -26,9 +26,9 @@ const getShortData = async (req, res, next) =>{
 
         return res.status(Constants.HTTP_STATUS_CODES.SUCCESS).json(
             ResponseStandardiser.generateStandardResponse(
-                shortData,
                 Constants.APP_STATUS_CODES.SUCCESS,
-                Constants.APP_STATUS_DESCRIPTORS.RESULT_FOUND
+                Constants.APP_STATUS_DESCRIPTORS.RESULT_FOUND,
+                shortData
             )
         );
     } catch (err) {
@@ -45,9 +45,9 @@ const createShortData = async (req, res, next) => {
 
         return res.status(Constants.HTTP_STATUS_CODES.SUCCESS).json(
             ResponseStandardiser.generateStandardResponse(
-                shortData,
                 Constants.APP_STATUS_CODES.SUCCESS,
-                Constants.APP_STATUS_DESCRIPTORS.RESULT_FOUND
+                Constants.APP_STATUS_DESCRIPTORS.RESULT_FOUND,
+                shortData
             )
         );
     } catch (err) {
@@ -64,9 +64,9 @@ const getShortDatum = async (req, res, next) => {
 
         return res.status(Constants.HTTP_STATUS_CODES.SUCCESS).json(
             ResponseStandardiser.generateStandardResponse(
-                shortData,
                 Constants.APP_STATUS_CODES.SUCCESS,
-                Constants.APP_STATUS_DESCRIPTORS.RESULT_FOUND
+                Constants.APP_STATUS_DESCRIPTORS.RESULT_FOUND,
+                shortData
             )
         );
     } catch (err) {
@@ -83,9 +83,9 @@ const upsertShortDatum = async (req, res, next) => {
 
         return res.status(Constants.HTTP_STATUS_CODES.SUCCESS).json(
             ResponseStandardiser.generateStandardResponse(
-                shortData,
                 Constants.APP_STATUS_CODES.SUCCESS,
-                Constants.APP_STATUS_DESCRIPTORS.RESULT_FOUND
+                Constants.APP_STATUS_DESCRIPTORS.RESULT_FOUND,
+                shortData
             )
         );
     } catch (err) {
@@ -102,9 +102,9 @@ const deleteShortDatum = async (req, res, next) => {
 
         return res.status(Constants.HTTP_STATUS_CODES.SUCCESS).json(
             ResponseStandardiser.generateStandardResponse(
-                shortData,
                 Constants.APP_STATUS_CODES.SUCCESS,
-                Constants.APP_STATUS_DESCRIPTORS.RESULT_FOUND
+                Constants.APP_STATUS_DESCRIPTORS.RESULT_FOUND,
+                shortData
             )
         );
     } catch (err) {
@@ -123,9 +123,9 @@ const retrieveShortDataFromSource = async (req, res, next) => {
 
         return res.status(Constants.HTTP_STATUS_CODES.SUCCESS).json(
             ResponseStandardiser.generateStandardResponse(
-                response,
                 Constants.APP_STATUS_CODES.SUCCESS,
-                Constants.APP_STATUS_DESCRIPTORS.JOB_STARTED
+                Constants.APP_STATUS_DESCRIPTORS.JOB_STARTED,
+                response
             )
         );
     } catch (err) {

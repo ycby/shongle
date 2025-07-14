@@ -12,9 +12,9 @@ const getStockRouter = () => {
 
     router.get(basePath, getStocks);
     router.post(basePath, createStocks);
-    router.get(basePath + "/:code", getStock);
-    router.put(basePath + "/:code", upsertStock);
-    router.delete(basePath + "/:code", deleteStock);
+    router.get(basePath + "/:ticker_no", getStock);
+    router.put(basePath + "/:ticker_no", upsertStock);
+    router.delete(basePath + "/:ticker_no", deleteStock);
 
     return router;
 }
@@ -26,9 +26,9 @@ const getStocks = async (req: Request<{}, {}, {}, StocksDataGetParam>, res: Resp
 
         return res.status(Constants.HTTP_STATUS_CODES.SUCCESS).json(
             ResponseStandardiser.generateStandardResponse(
-                stocks,
                 Constants.APP_STATUS_CODES.SUCCESS,
-                Constants.APP_STATUS_DESCRIPTORS.RESULT_FOUND
+                Constants.APP_STATUS_DESCRIPTORS.RESULT_FOUND,
+                stocks
             )
         );
     } catch (err) {
@@ -45,9 +45,9 @@ const createStocks = async (req: Request, res: Response, next: NextFunction) => 
 
         return res.status(Constants.HTTP_STATUS_CODES.SUCCESS).json(
             ResponseStandardiser.generateStandardResponse(
-                stocks,
                 Constants.APP_STATUS_CODES.SUCCESS,
-                Constants.APP_STATUS_DESCRIPTORS.RESULT_FOUND
+                Constants.APP_STATUS_DESCRIPTORS.RESULT_FOUND,
+                stocks
             )
         );
     } catch (err) {
@@ -64,9 +64,9 @@ const getStock = async (req: Request<StocksDataGetParam, {},{}, {}>, res: Respon
 
         return res.status(Constants.HTTP_STATUS_CODES.SUCCESS).json(
             ResponseStandardiser.generateStandardResponse(
-                stock,
                 Constants.APP_STATUS_CODES.SUCCESS,
-                Constants.APP_STATUS_DESCRIPTORS.RESULT_FOUND
+                Constants.APP_STATUS_DESCRIPTORS.RESULT_FOUND,
+                stock
             )
         );
     } catch (err) {
@@ -83,9 +83,9 @@ const upsertStock = async (req: Request, res: Response, next: NextFunction) => {
 
         return res.status(Constants.HTTP_STATUS_CODES.SUCCESS).json(
             ResponseStandardiser.generateStandardResponse(
-                stocks,
                 Constants.APP_STATUS_CODES.SUCCESS,
-                Constants.APP_STATUS_DESCRIPTORS.RESULT_FOUND
+                Constants.APP_STATUS_DESCRIPTORS.RESULT_FOUND,
+                stocks
             )
         );
     } catch (err) {
@@ -94,7 +94,7 @@ const upsertStock = async (req: Request, res: Response, next: NextFunction) => {
     }
 }
 
-const deleteStock = async (req: Request<StocksDataGetParam>, res: Response, next: NextFunction) => {
+const deleteStock = async (req: Request<StocksDataGetParam, {}, {}, {}>, res: Response, next: NextFunction) => {
 
     try {
 
@@ -102,9 +102,9 @@ const deleteStock = async (req: Request<StocksDataGetParam>, res: Response, next
 
         return res.status(Constants.HTTP_STATUS_CODES.SUCCESS).json(
             ResponseStandardiser.generateStandardResponse(
-                stock,
                 Constants.APP_STATUS_CODES.SUCCESS,
-                Constants.APP_STATUS_DESCRIPTORS.RESULT_FOUND
+                Constants.APP_STATUS_DESCRIPTORS.RESULT_FOUND,
+                stock
             )
         );
     } catch (err) {

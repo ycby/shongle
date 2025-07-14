@@ -25,9 +25,9 @@ const getDiaryEntries = async (req: Request<{}, {}, {}, DiaryEntryDataGetParams>
 
         return res.status(Constants.HTTP_STATUS_CODES.SUCCESS).json(
             ResponseStandardiser.generateStandardResponse(
-                diaryEntries,
                 Constants.APP_STATUS_CODES.SUCCESS,
-                Constants.APP_STATUS_DESCRIPTORS.RESULT_FOUND
+                Constants.APP_STATUS_DESCRIPTORS.RESULT_FOUND,
+                diaryEntries
             )
         );
     } catch (err) {
@@ -44,9 +44,9 @@ const createDiaryEntries = async (req: Request<{}, {}, DiaryEntryDataBody[], {}>
 
         return res.status(Constants.HTTP_STATUS_CODES.SUCCESS).json(
             ResponseStandardiser.generateStandardResponse(
-                diaryEntries,
                 Constants.APP_STATUS_CODES.SUCCESS,
-                Constants.APP_STATUS_DESCRIPTORS.RESULT_FOUND
+                Constants.APP_STATUS_DESCRIPTORS.RESULT_FOUND,
+                diaryEntries
             )
         );
     } catch (err) {
@@ -63,9 +63,9 @@ const upsertDiaryEntry = async (req: Request<{}, {}, DiaryEntryDataBody, {}>, re
 
         return res.status(Constants.HTTP_STATUS_CODES.SUCCESS).json(
             ResponseStandardiser.generateStandardResponse(
-                diaryEntry,
                 Constants.APP_STATUS_CODES.SUCCESS,
-                Constants.APP_STATUS_DESCRIPTORS.RESULT_FOUND
+                Constants.APP_STATUS_DESCRIPTORS.RESULT_FOUND,
+                diaryEntry
             )
         );
     } catch (err) {
@@ -82,9 +82,9 @@ const deleteDiaryEntry = async (req: Request<{}, {}, {}, DiaryEntryDataGetParams
 
         return res.status(Constants.HTTP_STATUS_CODES.SUCCESS).json(
             ResponseStandardiser.generateStandardResponse(
-                diaryEntry,
                 Constants.APP_STATUS_CODES.SUCCESS,
-                Constants.APP_STATUS_DESCRIPTORS.RESULT_FOUND
+                Constants.APP_STATUS_DESCRIPTORS.RESULT_FOUND,
+                diaryEntry
             )
         );
     } catch (err) {

@@ -31,7 +31,6 @@ const filterClauseGenerator: (fieldMapping: FieldMapping[], args: Object) => str
 const processData: <T>(bodyData: Object, columns: ProcessDataMapping[], editedObject: T) => T = <T>(bodyData: Object, columns: ProcessDataMapping[], editedObject: T): T => {
 
     columns.forEach(column => {
-
         //map but set default to null if not found
         let newValue: any = bodyData[column.field as keyof Object] ?? null;
 

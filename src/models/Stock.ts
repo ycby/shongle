@@ -13,6 +13,7 @@ export default class ShortData extends DatabaseObject {
     private _board_lot?: number;
     private _ISIN?: string;
     private _currency?: CurrencyKeys;
+    private _is_active?: boolean;
 
     constructor(operationType: string) {
 
@@ -117,6 +118,16 @@ export default class ShortData extends DatabaseObject {
     set currency(currency: CurrencyKeys) {
 
         this._currency = currency;
+    }
+
+    get is_active(): boolean | undefined {
+
+        return this._is_active;
+    }
+
+    set is_active(is_active: boolean) {
+
+        this._is_active = is_active;
     }
 
     toString() {

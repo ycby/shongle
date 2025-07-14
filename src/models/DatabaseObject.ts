@@ -1,7 +1,7 @@
 export default class DatabaseObject {
 	
 	private readonly _operation?: string;
-	private readonly _created_datetime: Date | undefined;
+	private readonly _created_datetime: Date;
 	private readonly _last_modified_datetime: Date;
 
 	constructor(operationType: string) {
@@ -14,6 +14,7 @@ export default class DatabaseObject {
 				this._created_datetime = new Date();
 				break;
 			default:
+				this._created_datetime = new Date(0, 0, 0);
 				break;
 		}
 	}
@@ -23,7 +24,7 @@ export default class DatabaseObject {
 		return this._operation ?? '';
 	}
 
-	get created_datetime(): Date | undefined{
+	get created_datetime(): Date{
 
 		return this._created_datetime;
 	}
@@ -31,5 +32,18 @@ export default class DatabaseObject {
 	get last_modified_datetime(): Date {
 
 		return this._last_modified_datetime;
+	}
+
+	getPlainObject(this: any) {
+
+		let result: any = {};
+		Object.getOwnPropertyNames(this).forEach((key:string) => {
+
+			const slicedKey = key.slice(1);
+
+			result[slicedKey] = this[key];
+		});
+
+		return result;
 	}
 }
