@@ -1,19 +1,19 @@
 import {ValidationRule, validator, ValidatorResult} from "#root/src/utilities/Validator.ts";
-import {DuplicateFoundError, InvalidRequestError} from "#root/src/errors/Errors.ts";
+import {InvalidRequestError, RecordNotFoundError} from "#root/src/errors/Errors.ts";
 import {FieldMapping, filterClauseGenerator, processData, ProcessDataMapping} from "#root/src/helpers/DBHelpers.ts";
-import db from "#root/src/db/db.ts";
+import {executeBatch, executeQuery} from "#root/src/db/db.ts";
 import {stringToDateConverter} from "#root/src/helpers/DateHelper.ts";
 import {UpsertResult} from "mariadb";
-import {Currency, CurrencyKeys} from "#root/src/types.ts";
+import {Currency, CurrencyKeys, TransactionType, TransactionTypeKeys} from "#root/src/types.ts";
 import Stock from "#root/src/models/Stock.ts";
 import StockTransaction from "#root/src/models/StockTransaction.ts";
 
 export type TransactionDataGetParams = {
     id?: number,
     stock_id?: number,
-    type: string[],
-    start_date: string,
-    end_date: string
+    type?: string[],
+    start_date?: string,
+    end_date?: string
 }
 
 export type TransactionDataBody = {
@@ -43,7 +43,10 @@ const TRANSACTION_PARAM_VALIDATION: ValidationRule[] = [
     {
         name: 'type',
         isRequired: false,
-        rule: (transactionType: any): boolean => transactionType instanceof Array,
+        rule: (transactionTypes: any): boolean => transactionTypes instanceof Array &&
+            transactionTypes.reduce(
+                (accumulator, currentValue) => accumulator && Object.values(TransactionType).includes(currentValue)
+            , true),
         errorMessage: 'Type must be an array and must only have the following values if included: "buy", "sell", "dividend"'
     },
     {
@@ -63,7 +66,7 @@ const TRANSACTION_PARAM_VALIDATION: ValidationRule[] = [
 const TRANSACTION_PARAM_SINGLE_VALIDATION: ValidationRule[] = [
     {
         name: 'id',
-        isRequired: false,
+        isRequired: true,
         rule: (id: any): boolean => typeof id === 'number',
         errorMessage: 'Id must be a number'
     }
@@ -85,7 +88,7 @@ const TRANSACTION_BODY_VALIDATION: ValidationRule[] = [
     {
         name: 'type',
         isRequired: true,
-        rule: (transactionType: any): boolean => typeof transactionType === 'string',
+        rule: (transactionType: any): boolean => typeof transactionType === 'string' && Object.values(TransactionType).includes(transactionType as TransactionTypeKeys),
         errorMessage: 'Type must be an array and must only have the following values if included: "buy", "sell", "dividend"'
     },
     {
@@ -181,17 +184,13 @@ const getStockTransactionsData = async (args: TransactionDataGetParams) => {
 
     if (validationResult.length > 0) throw new InvalidRequestError(validationResult);
 
-    let conn;
     let result = [];
 
     const whereString = filterClauseGenerator(whereFieldMapping, args);
 
     try {
-        conn = await db.pool.getConnection();
 
-        await conn.beginTransaction();
-
-        result = await conn.query({
+        result = await executeQuery<StockTransaction[]>({
             namedPlaceholders: true,
             sql: `SELECT * FROM Stock_Transactions WHERE ${whereString !== '' ? whereString : ''} ORDER BY transaction_date DESC`
         }, {
@@ -204,13 +203,7 @@ const getStockTransactionsData = async (args: TransactionDataGetParams) => {
 
     } catch (err) {
 
-        if (conn) await conn.rollback();
-
         throw err;
-
-    } finally {
-
-        if (conn) await conn.end();
     }
 
     return result;
@@ -223,25 +216,25 @@ const createStockTransactionsData = async (data: TransactionDataBody[]) => {
     if (validationResult.length > 0) throw new InvalidRequestError(validationResult);
 
     let result: UpsertResult[] = [];
-    let conn;
 
     const stockIds: number[] = data.map((d: TransactionDataBody): number => d.stock_id);
     try {
 
-        conn = await db.pool.getConnection();
+        const existingRecords: Stock[] = await executeQuery<Stock[]>({
+            namedPlaceholders: true,
+            sql: "SELECT id, ticker_no, name FROM Stocks WHERE id IN :ids"
+        }, {
+            ids: stockIds
+        });
 
-        await conn.beginTransaction();
+        if (existingRecords.length === 0) {
 
-        const existingRecords: Stock[] = await conn.query("SELECT id, ticker_no, name FROM Stocks WHERE id IN (?)", [stockIds]);
+            const nonExistantStockIds = data.map((d: TransactionDataBody) => d.stock_id);
 
-        if (existingRecords.length > 0) {
-
-            const existingCodes: string[] = existingRecords.map((d: Stock): string => d.ticker_no);
-
-            throw new DuplicateFoundError(`Stocks with ids ( ${existingCodes.join(', ')} ) already exist!`);
+            throw new RecordNotFoundError(`Stocks with ids ( ${nonExistantStockIds.join(', ')} ) already exist!`);
         }
 
-        result = await conn.batch({
+        result = await executeBatch({
                 namedPlaceholders: true,
                 sql: 'INSERT INTO Stock_Transactions ' +
                     '(stock_id, type, amount, quantity, fee, transaction_date, currency, created_datetime, last_modified_datetime) ' +
@@ -258,12 +251,7 @@ const createStockTransactionsData = async (data: TransactionDataBody[]) => {
         // await conn.commit();
     } catch (err) {
 
-        if (conn) await conn.rollback();
-
         throw err;
-    } finally {
-
-        if (conn) await conn.end();
     }
 
     return result;
@@ -276,15 +264,10 @@ const upsertStockTransactionData = async (data: TransactionDataBody) => {
     if (validationResult.length > 0) throw new InvalidRequestError(validationResult);
 
     let result: UpsertResult[] = [];
-    let conn;
 
     try {
 
-        conn = await db.pool.getConnection();
-
-        await conn.beginTransaction();
-
-        result = await conn.query({
+        result = await executeQuery({
                 namedPlaceholders: true,
                 sql: 'INSERT INTO Stock_Transactions ' +
                     '(id, stock_id, type, amount, quantity, fee, transaction_date, currency, created_datetime, last_modified_datetime) ' +
@@ -307,15 +290,9 @@ const upsertStockTransactionData = async (data: TransactionDataBody) => {
             }
         );
 
-        await conn.commit();
     } catch (err) {
 
-        if (conn) await conn.rollback();
-
         throw err;
-    } finally {
-
-        if (conn) await conn.end();
     }
 
     return result;
@@ -329,36 +306,24 @@ const deleteStockTransactionData = async (args: TransactionDataGetParams) => {
 
     const id = args.id;
 
-    let conn;
-    let result: UpsertResult[] = [];
-
     try {
 
-        conn = await db.pool.getConnection();
-
-        await conn.beginTransaction();
-
-        result = await conn.query({
+        await executeQuery({
             namedPlaceholders: true,
             sql: `DELETE FROM Stock_Transactions WHERE id = :id`
         }, {
             id: id
         });
 
-        await conn.commit();
-
     } catch (err) {
 
-        if (conn) await conn.rollback();
-
         throw err;
-
-    } finally {
-
-        if (conn) await conn.end();
     }
 
-    return result;
+    return {
+        id: id,
+        status: 'success',
+    };
 }
 
 export {
