@@ -1,7 +1,7 @@
 import {ValidationRule, validator, ValidatorResult} from "#root/src/utilities/Validator.ts";
 import {DuplicateFoundError, InvalidRequestError} from "#root/src/errors/Errors.ts";
 import {FieldMapping, filterClauseGenerator, processData, ProcessDataMapping} from "#root/src/helpers/DBHelpers.ts";
-import db from "#root/src/db/db.ts";
+import db, {executeBatch, executeQuery} from "#root/src/db/db.ts";
 import {stringToDateConverter} from "#root/src/helpers/DateHelper.ts";
 import {UpsertResult} from "mariadb";
 import {Currency, CurrencyKeys} from "#root/src/types.ts";
@@ -181,17 +181,13 @@ const getStockTransactionsData = async (args: TransactionDataGetParams) => {
 
     if (validationResult.length > 0) throw new InvalidRequestError(validationResult);
 
-    let conn;
     let result = [];
 
     const whereString = filterClauseGenerator(whereFieldMapping, args);
 
     try {
-        conn = await db.pool.getConnection();
 
-        await conn.beginTransaction();
-
-        result = await conn.query({
+        result = await executeQuery<StockTransaction[]>({
             namedPlaceholders: true,
             sql: `SELECT * FROM Stock_Transactions WHERE ${whereString !== '' ? whereString : ''} ORDER BY transaction_date DESC`
         }, {
@@ -204,13 +200,7 @@ const getStockTransactionsData = async (args: TransactionDataGetParams) => {
 
     } catch (err) {
 
-        if (conn) await conn.rollback();
-
         throw err;
-
-    } finally {
-
-        if (conn) await conn.end();
     }
 
     return result;
@@ -223,16 +213,16 @@ const createStockTransactionsData = async (data: TransactionDataBody[]) => {
     if (validationResult.length > 0) throw new InvalidRequestError(validationResult);
 
     let result: UpsertResult[] = [];
-    let conn;
 
     const stockIds: number[] = data.map((d: TransactionDataBody): number => d.stock_id);
     try {
 
-        conn = await db.pool.getConnection();
-
-        await conn.beginTransaction();
-
-        const existingRecords: Stock[] = await conn.query("SELECT id, ticker_no, name FROM Stocks WHERE id IN (?)", [stockIds]);
+        const existingRecords: Stock[] = await executeQuery<Stock[]>({
+            namedPlaceholders: true,
+            sql: "SELECT id, ticker_no, name FROM Stocks WHERE id IN :ids"
+        }, {
+            ids: stockIds
+        });
 
         if (existingRecords.length > 0) {
 
@@ -241,7 +231,7 @@ const createStockTransactionsData = async (data: TransactionDataBody[]) => {
             throw new DuplicateFoundError(`Stocks with ids ( ${existingCodes.join(', ')} ) already exist!`);
         }
 
-        result = await conn.batch({
+        result = await executeBatch({
                 namedPlaceholders: true,
                 sql: 'INSERT INTO Stock_Transactions ' +
                     '(stock_id, type, amount, quantity, fee, transaction_date, currency, created_datetime, last_modified_datetime) ' +
@@ -258,12 +248,7 @@ const createStockTransactionsData = async (data: TransactionDataBody[]) => {
         // await conn.commit();
     } catch (err) {
 
-        if (conn) await conn.rollback();
-
         throw err;
-    } finally {
-
-        if (conn) await conn.end();
     }
 
     return result;
@@ -276,15 +261,10 @@ const upsertStockTransactionData = async (data: TransactionDataBody) => {
     if (validationResult.length > 0) throw new InvalidRequestError(validationResult);
 
     let result: UpsertResult[] = [];
-    let conn;
 
     try {
 
-        conn = await db.pool.getConnection();
-
-        await conn.beginTransaction();
-
-        result = await conn.query({
+        result = await executeQuery({
                 namedPlaceholders: true,
                 sql: 'INSERT INTO Stock_Transactions ' +
                     '(id, stock_id, type, amount, quantity, fee, transaction_date, currency, created_datetime, last_modified_datetime) ' +
@@ -307,15 +287,9 @@ const upsertStockTransactionData = async (data: TransactionDataBody) => {
             }
         );
 
-        await conn.commit();
     } catch (err) {
 
-        if (conn) await conn.rollback();
-
         throw err;
-    } finally {
-
-        if (conn) await conn.end();
     }
 
     return result;
@@ -329,33 +303,20 @@ const deleteStockTransactionData = async (args: TransactionDataGetParams) => {
 
     const id = args.id;
 
-    let conn;
     let result: UpsertResult[] = [];
 
     try {
 
-        conn = await db.pool.getConnection();
-
-        await conn.beginTransaction();
-
-        result = await conn.query({
+        result = await executeQuery({
             namedPlaceholders: true,
             sql: `DELETE FROM Stock_Transactions WHERE id = :id`
         }, {
             id: id
         });
 
-        await conn.commit();
-
     } catch (err) {
 
-        if (conn) await conn.rollback();
-
         throw err;
-
-    } finally {
-
-        if (conn) await conn.end();
     }
 
     return result;
