@@ -1,5 +1,5 @@
 import {ValidationRule, validator, ValidatorResult} from "#root/src/utilities/Validator.ts";
-import {DuplicateFoundError, InvalidRequestError} from "#root/src/errors/Errors.ts";
+import {InvalidRequestError, RecordNotFoundError} from "#root/src/errors/Errors.ts";
 import {FieldMapping, filterClauseGenerator, processData, ProcessDataMapping} from "#root/src/helpers/DBHelpers.ts";
 import {executeBatch, executeQuery} from "#root/src/db/db.ts";
 import {stringToDateConverter} from "#root/src/helpers/DateHelper.ts";
@@ -10,9 +10,9 @@ import DiaryEntry from "#root/src/models/DiaryEntry.ts";
 export type DiaryEntryDataGetParams = {
     id?: number,
     stock_id?: number,
-    title: string,
-    start_date: string,
-    end_date: string
+    title?: string,
+    start_date?: string,
+    end_date?: string
 }
 
 export type DiaryEntryDataBody = {
@@ -32,21 +32,15 @@ const DIARY_ENTRY_PARAM_VALIDATION: ValidationRule[] = [
     },
     {
         name: 'stock_id',
-        isRequired: false,
+        isRequired: true,
         rule: (stock_id: any): boolean => typeof stock_id === 'number',
         errorMessage: 'Stock Id must be a number'
     },
     {
         name: 'title',
-        isRequired: true,
+        isRequired: false,
         rule: (title: any): boolean => typeof title === 'string',
         errorMessage: 'Title must be string'
-    },
-    {
-        name: 'content',
-        isRequired: true,
-        rule: (content: any): boolean => typeof content === 'string',
-        errorMessage: 'Content must be string'
     },
     {
         name: 'start_date',
@@ -65,7 +59,7 @@ const DIARY_ENTRY_PARAM_VALIDATION: ValidationRule[] = [
 const DIARY_ENTRY_PARAM_SINGLE_VALIDATION: ValidationRule[] = [
     {
         name: 'id',
-        isRequired: false,
+        isRequired: true,
         rule: (id: any): boolean => typeof id === 'number',
         errorMessage: 'Id must be a number'
     }
@@ -165,7 +159,7 @@ const getDiaryEntryData = async (args: DiaryEntryDataGetParams) => {
 
     if (validationResult.length > 0) throw new InvalidRequestError(validationResult);
 
-    let result = [];
+    let result: DiaryEntry[] = [];
 
     const whereString = filterClauseGenerator(whereFieldMapping, args);
 
@@ -185,7 +179,6 @@ const getDiaryEntryData = async (args: DiaryEntryDataGetParams) => {
     } catch (err) {
 
         throw err;
-
     }
 
     return result;
@@ -208,11 +201,11 @@ const createDiaryEntryData = async (data: DiaryEntryDataBody[]) => {
             ids: stockIds
         });
 
-        if (existingRecords.length > 0) {
+        if (existingRecords.length === 0) {
 
-            const existingCodes: string[] = existingRecords.map((d: Stock): string => d.ticker_no);
+            const nonExistentStockIds: number[] = data.map((d: DiaryEntryDataBody): number => d.stock_id);
 
-            throw new DuplicateFoundError(`Stocks with ids ( ${existingCodes.join(', ')} ) already exist!`);
+            throw new RecordNotFoundError(`Stocks with ids ( ${nonExistentStockIds.join(', ')} ) already exist!`);
         }
 
         result = await executeBatch({
@@ -284,11 +277,9 @@ const deleteDiaryEntryData = async (args: DiaryEntryDataGetParams) => {
 
     const id = args.id;
 
-    let result: UpsertResult[] = [];
-
     try {
 
-        result = await executeQuery({
+        await executeQuery({
             namedPlaceholders: true,
             sql: `DELETE FROM Diary_Entries WHERE id = :id`
         }, {
@@ -301,7 +292,10 @@ const deleteDiaryEntryData = async (args: DiaryEntryDataGetParams) => {
 
     }
 
-    return result;
+    return {
+        id: id,
+        status: 'success',
+    };
 }
 
 export {
