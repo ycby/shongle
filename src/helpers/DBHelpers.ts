@@ -15,9 +15,13 @@ const filterClauseGenerator: (fieldMapping: FieldMapping[], args: Object) => str
     //list of objects where: param - param in url, field - db field, operator
     let whereArray: string[] = [];
 
+    //changed to use Object.keys instead of hasOwnProperty because query doesnt extend Object
+    //maybe after validation, should extract necessary fields and put into a real js object?
+    const objKeys = Object.keys(args);
+
     for (const el of fieldMapping) {
 
-        if (!args.hasOwnProperty(el.param)) continue;
+        if (!objKeys.includes(el.param)) continue;
 
         whereArray.push(`(${el.field} ${el.operator} :${el.param})`);
     }
@@ -27,7 +31,6 @@ const filterClauseGenerator: (fieldMapping: FieldMapping[], args: Object) => str
 const processData: <T>(bodyData: Object, columns: ProcessDataMapping[], editedObject: T) => T = <T>(bodyData: Object, columns: ProcessDataMapping[], editedObject: T): T => {
 
     columns.forEach(column => {
-
         //map but set default to null if not found
         let newValue: any = bodyData[column.field as keyof Object] ?? null;
 

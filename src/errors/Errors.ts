@@ -14,7 +14,6 @@ class DuplicateFoundError extends ShongleError {
 
     constructor(message: string) {
         super(422, message);
-        this.code = 422;
     }
 }
 
@@ -39,10 +38,18 @@ class InvalidRequestError extends ShongleError {
     }
 }
 
+class RecordMissingDataError extends ShongleError {
+
+    constructor(supportingData?: any) {
+        super(-1, 'Request failed because record is missing essential data. Please fix the data first.', supportingData);
+    }
+}
+
 export {
     ShongleError,
     DuplicateFoundError,
     RecordNotFoundError,
     UnexpectedFileError,
-    InvalidRequestError
+    InvalidRequestError,
+    RecordMissingDataError
 }

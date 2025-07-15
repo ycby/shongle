@@ -1,4 +1,4 @@
-const generateStandardResponse = (responseObject: any, statusCode: number, statusDescription: string) => {
+const generateStandardResponse = (statusCode: number, statusDescription: string, responseObject: any) => {
 
     return {
         "status": statusCode,

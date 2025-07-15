@@ -1,6 +1,6 @@
-import mariadb from 'mariadb'
+import mariadb, {QueryOptions, UpsertResult} from 'mariadb'
 
-export default Object.freeze({
+const dbPool = Object.freeze({
 	pool: mariadb.createPool({
 		host: process.env.DB_HOST,
 		port: Number(process.env.DB_PORT),
@@ -9,6 +9,71 @@ export default Object.freeze({
 		database: process.env.DB_NAME,
 		connectionLimit: 5,
 		bigIntAsNumber: true,
+		insertIdAsNumber: true,
 		trace: true
 	})
-})
+});
+
+const executeQuery = async <T>(queryObject: QueryOptions, placeholders: any = undefined): Promise<T> => {
+
+	let conn;
+
+	try {
+
+		conn = await dbPool.pool.getConnection();
+
+		await conn.beginTransaction();
+
+		if (placeholders === undefined) return await conn.query(queryObject);
+		if (typeof placeholders === 'function') return await conn.query(queryObject, placeholders());
+
+		//if has placeholders and is not function
+		const result = await conn.query(queryObject, placeholders);
+
+		await conn.commit();
+
+		return result;
+	} catch (err) {
+
+		if (conn) await conn.rollback();
+
+		throw err;
+	} finally {
+
+		if (conn) await conn.end();
+	}
+}
+
+const executeBatch = async (queryObject: QueryOptions, placeholders: {}): Promise<UpsertResult[]> => {
+
+	let conn;
+
+	try {
+
+		conn = await dbPool.pool.getConnection();
+
+		await conn.beginTransaction();
+
+		if (placeholders === undefined) throw new Error('Placeholders must be provided for batch.');
+
+		const result = await conn.batch(queryObject, placeholders);
+
+		await conn.commit();
+
+		return result instanceof Array ? result : [result];
+	} catch (err) {
+
+		if (conn) await conn.rollback();
+
+		throw err;
+	} finally {
+
+		if (conn) await conn.end();
+	}
+}
+
+export default dbPool;
+export {
+	executeQuery,
+	executeBatch
+};

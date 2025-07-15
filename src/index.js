@@ -1,6 +1,6 @@
 import express from 'express'
 
-import {getStockRouter} from "#root/src/controllers/StockController.js";
+import {getStockRouter} from "#root/src/controllers/StockController.ts";
 import {getShortDataRouter} from "#root/src/controllers/ShortDataController.js";
 import {ShongleError} from "#root/src/errors/Errors.ts";
 import * as ResponseStandardiser from "#root/src/utilities/ResponseStandardiser.ts";

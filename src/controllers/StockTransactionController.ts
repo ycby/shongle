@@ -25,9 +25,9 @@ const getStockTransactions = async (req: Request<{}, {}, {}, TransactionDataGetP
 
         return res.status(Constants.HTTP_STATUS_CODES.SUCCESS).json(
             ResponseStandardiser.generateStandardResponse(
-                transactions,
                 Constants.APP_STATUS_CODES.SUCCESS,
-                Constants.APP_STATUS_DESCRIPTORS.RESULT_FOUND
+                Constants.APP_STATUS_DESCRIPTORS.RESULT_FOUND,
+                transactions
             )
         );
     } catch (err) {
@@ -44,9 +44,9 @@ const createStockTransactions = async (req: Request<{}, {}, TransactionDataBody[
 
         return res.status(Constants.HTTP_STATUS_CODES.SUCCESS).json(
             ResponseStandardiser.generateStandardResponse(
-                transactions,
                 Constants.APP_STATUS_CODES.SUCCESS,
-                Constants.APP_STATUS_DESCRIPTORS.RESULT_FOUND
+                Constants.APP_STATUS_DESCRIPTORS.RESULT_FOUND,
+                transactions
             )
         );
     } catch (err) {
@@ -63,9 +63,9 @@ const upsertStockTransaction = async (req: Request<{}, {}, TransactionDataBody, 
 
         return res.status(Constants.HTTP_STATUS_CODES.SUCCESS).json(
             ResponseStandardiser.generateStandardResponse(
-                transactions,
                 Constants.APP_STATUS_CODES.SUCCESS,
-                Constants.APP_STATUS_DESCRIPTORS.RESULT_FOUND
+                Constants.APP_STATUS_DESCRIPTORS.RESULT_FOUND,
+                transactions
             )
         );
     } catch (err) {
@@ -82,9 +82,9 @@ const deleteStockTransaction = async (req: Request<{}, {}, {}, TransactionDataGe
 
         return res.status(Constants.HTTP_STATUS_CODES.SUCCESS).json(
             ResponseStandardiser.generateStandardResponse(
-                transactions,
                 Constants.APP_STATUS_CODES.SUCCESS,
-                Constants.APP_STATUS_DESCRIPTORS.RESULT_FOUND
+                Constants.APP_STATUS_DESCRIPTORS.RESULT_FOUND,
+                transactions
             )
         );
     } catch (err) {
