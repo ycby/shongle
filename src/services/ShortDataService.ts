@@ -1,6 +1,6 @@
-import db, {executeBatch, executeQuery} from '#root/src/db/db.ts'
+import {executeBatch, executeQuery} from '#root/src/db/db.ts'
 import {FieldMapping, filterClauseGenerator, processData, ProcessDataMapping} from "#root/src/helpers/DBHelpers.ts";
-import {InvalidRequestError, RecordNotFoundError} from "#root/src/errors/Errors.ts";
+import {InvalidRequestError, RecordNotFoundError, RecordMissingDataError} from "#root/src/errors/Errors.ts";
 import ShortData from "#root/src/models/ShortData.ts";
 import Stock from "#root/src/models/Stock.ts";
 import {retrieveShortData} from "#root/src/helpers/ShortDataRetriever.ts";
@@ -307,28 +307,21 @@ const retrieveShortDataFromSource = async (endDate: Date) => {
 	//Step 1: get the last date which was imported
 	//Step 2: loop over each date from the last date to today and insert records as appropriate
 	//Step 2.1: use settimeout to wait for 1 minute before doing the next call = https://stackoverflow.com/questions/23316525/nodejs-wait-in-a-loop
-	let conn;
 	let result;
 
 	try {
 
-		conn = await db.pool.getConnection();
-
-		await conn.beginTransaction();
-
-		result = await conn.query({
+		result = await executeQuery<ShortData[]>({
 			sql: `SELECT id, reporting_date FROM Short_Reporting ORDER BY reporting_date DESC LIMIT 1`
 		});
-
-		// console.log(result[0].reporting_date);
 	} catch (err) {
 
-		if (conn) await conn.rollback();
-
 		throw err;
-	} finally {
+	}
 
-		if (conn) await conn.end();
+	if (!result[0].reporting_date) {
+
+		throw new RecordMissingDataError();
 	}
 
 	const finalDate = endDate === null ? new Date() : endDate;
@@ -338,6 +331,7 @@ const retrieveShortDataFromSource = async (endDate: Date) => {
 
 		latestDate.setDate(latestDate.getDate() + 1);
 
+		//fire and forget
 		retrieveShortData(latestDate, postShortData);
 
 		await wait(10000);

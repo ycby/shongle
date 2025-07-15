@@ -14,7 +14,7 @@ const dbPool = Object.freeze({
 	})
 });
 
-const executeQuery = async <T>(queryObject: QueryOptions, placeholders: {}): Promise<T> => {
+const executeQuery = async <T>(queryObject: QueryOptions, placeholders: any = undefined): Promise<T> => {
 
 	let conn;
 
