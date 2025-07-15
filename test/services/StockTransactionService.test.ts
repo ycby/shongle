@@ -1,27 +1,26 @@
 import {afterEach, describe, expect, jest, test} from "@jest/globals";
-import * as StockService from "#root/src/services/StockService.ts";
-import {StocksDataBody, StocksDataGetParam} from "#root/src/services/StockService.ts";
+import * as StockTransactionService from "#root/src/services/StockTransactionService.ts";
+import {TransactionDataGetParams, TransactionDataBody} from "#root/src/services/StockTransactionService.ts";
 import * as db from "#root/src/db/db.ts";
-import {DuplicateFoundError, InvalidRequestError} from "#root/src/errors/Errors.ts";
+import {InvalidRequestError, RecordNotFoundError} from "#root/src/errors/Errors.ts";
 
 jest.mock('#root/src/db/db.ts');
 const executeQueryMock = db.executeQuery as jest.MockedFunction<typeof db.executeQuery>;
 const executeBatchMock = db.executeBatch as jest.MockedFunction<typeof db.executeBatch>;
 
-const testStockDataBody = {
-    ticker_no: '00002',
-    name: 'Test1',
-    full_name: 'Full Test 1',
-    description: '',
-    category: 'exchange_traded_products',
-    subcategory: 'etf',
-    board_lot: 500,
-    ISIN: 'testISIN',
+const testStockTransactionDataBody = {
+    id: 1,
+    stock_id: 1,
+    type: 'buy',
+    amount: 123.45,
+    quantity: 100,
+    fee: 43.21,
+    transaction_date: '2025-01-01',
     currency: 'HKD',
 }
 
 //TODO: Complete testing
-describe('Stock Service Tests', () => {
+describe('Stock Transaction Service Tests', () => {
 
     afterEach(() => {
         jest.resetAllMocks();
@@ -29,449 +28,551 @@ describe('Stock Service Tests', () => {
 
     describe('GET by Query', () => {
 
-        test('Get all stocks', async () => {
+        test('Get all stocks transactions', async () => {
 
             executeQueryMock.mockResolvedValueOnce([
                 {
                     id: 1,
-                    ticker_no: '00001',
-                    name: 'test1',
-                    full_name: 'test full 1',
-                    description: '',
-                    category: 'equity',
-                    subcategory: 'equity_securities_main',
-                    board_lot: 100,
-                    ISIN: 'xxyyzz',
+                    stock_id: 1,
+                    type: 'buy',
+                    quantity: 10,
+                    amount: 100,
+                    fee: 10,
+                    amount_per_share: 10,
                     currency: 'HKD',
                 }
             ]);
             //Check if running normally, accepts {} with no complaint
-            const args:StocksDataGetParam = {};
+            const args:TransactionDataGetParams = {};
 
-            const result = await StockService.getStocksData(args);
+            const result = await StockTransactionService.getStockTransactionsData(args);
 
             expect(result).toHaveLength(1);
         });
 
-        test('Get all stocks, verify ticker_no success', async () => {
+        test('Get all stocks transactions, check all params success', async () => {
 
             executeQueryMock.mockResolvedValueOnce([
                 {
                     id: 1,
-                    ticker_no: '00001',
-                    name: 'test1',
-                    full_name: 'test full 1',
-                    description: '',
-                    category: 'equity',
-                    subcategory: 'equity_securities_main',
-                    board_lot: 100,
-                    ISIN: 'xxyyzz',
+                    stock_id: 1,
+                    type: 'buy',
+                    quantity: 10,
+                    amount: 100,
+                    fee: 10,
+                    amount_per_share: 10,
+                    currency: 'HKD',
+                }
+            ]);
+            //Check if running normally, accepts {} with no complaint
+            const args:TransactionDataGetParams = {
+                id: 1,
+                stock_id: 1,
+                type: ['buy'],
+                start_date: '2025-01-01',
+                end_date: '2025-12-31',
+            };
+
+            const result = await StockTransactionService.getStockTransactionsData(args);
+
+            expect(result).toHaveLength(1);
+        });
+
+        test('Get all stock transactions, verify type success', async () => {
+
+            executeQueryMock.mockResolvedValueOnce([
+                {
+                    id: 1,
+                    stock_id: 1,
+                    type: 'buy',
+                    quantity: 10,
+                    amount: 100,
+                    fee: 10,
+                    amount_per_share: 10,
                     currency: 'HKD',
                 }
             ]);
 
-            const args:StocksDataGetParam = {
-                ticker_no: '00001'
+            const args:TransactionDataGetParams = {
+                type: ['buy', 'sell']
             };
 
-            const result = await StockService.getStocksData(args);
+            const result = await StockTransactionService.getStockTransactionsData(args);
 
             expect(result).toHaveLength(1);
         });
 
-        test('Get all stocks, verify ticker_no violate length', async () => {
+        test('Get all stock transactions, verify type violate values', async () => {
 
             executeQueryMock.mockResolvedValueOnce([
                 {
                     id: 1,
-                    ticker_no: '00001',
-                    name: 'test1',
-                    full_name: 'test full 1',
-                    description: '',
-                    category: 'equity',
-                    subcategory: 'equity_securities_main',
-                    board_lot: 100,
-                    ISIN: 'xxyyzz',
+                    stock_id: 1,
+                    type: 'buy',
+                    quantity: 10,
+                    amount: 100,
+                    fee: 10,
+                    amount_per_share: 10,
                     currency: 'HKD',
                 }
             ]);
 
             //ticker no must be 5 chars long and a string
-            const args: StocksDataGetParam = {
-                ticker_no: '1'
+            const args: TransactionDataGetParams = {
+                type: ['buy', 'yeowza']
             };
 
-            await expect(async () => StockService.getStocksData(args))
+            await expect(async () => StockTransactionService.getStockTransactionsData(args))
                 .rejects.toThrow(InvalidRequestError);
         });
 
-        test('Get all stocks, verify name success', async () => {
+        test('Get all stock transactions, expect error when start_date invalid format', async () => {
 
             executeQueryMock.mockResolvedValueOnce([
                 {
                     id: 1,
-                    ticker_no: '00001',
-                    name: 'test1',
-                    full_name: 'test full 1',
-                    description: '',
-                    category: 'equity',
-                    subcategory: 'equity_securities_main',
-                    board_lot: 100,
-                    ISIN: 'xxyyzz',
+                    stock_id: 1,
+                    type: 'buy',
+                    quantity: 10,
+                    amount: 100,
+                    fee: 10,
+                    amount_per_share: 10,
                     currency: 'HKD',
                 }
             ]);
 
-            const args:StocksDataGetParam = {
-                name: 'test1'
+            const args:TransactionDataGetParams = {
+                start_date: '2025-01-aa'
             };
 
-            const result = await StockService.getStocksData(args);
-
-            expect(result).toHaveLength(1);
+            await expect(async () => StockTransactionService.getStockTransactionsData(args))
+                .rejects.toThrow(InvalidRequestError);
         });
 
-        test('Get all stocks, verify ISIN success', async () => {
+        test('Get all stock transactions, expect error when end_date invalid format', async () => {
 
             executeQueryMock.mockResolvedValueOnce([
                 {
                     id: 1,
-                    ticker_no: '00001',
-                    name: 'test1',
-                    full_name: 'test full 1',
-                    description: '',
-                    category: 'equity',
-                    subcategory: 'equity_securities_main',
-                    board_lot: 100,
-                    ISIN: 'xxyyzz',
+                    stock_id: 1,
+                    type: 'buy',
+                    quantity: 10,
+                    amount: 100,
+                    fee: 10,
+                    amount_per_share: 10,
                     currency: 'HKD',
                 }
             ]);
 
-            const args:StocksDataGetParam = {
-                ISIN: 'test1'
+            const args:TransactionDataGetParams = {
+                end_date: '2025-01-aa'
             };
 
-            const result = await StockService.getStocksData(args);
-
-            expect(result).toHaveLength(1);
+            await expect(async () => StockTransactionService.getStockTransactionsData(args))
+                .rejects.toThrow(InvalidRequestError);
         });
     });
 
     describe('POST', () => {
 
-        test('Post stocks', async () => {
+        test('Post stock transactions', async () => {
+
+            executeQueryMock.mockResolvedValueOnce([
+                {
+                    id: 1,
+                    ticker_no: '00001',
+                    name: 'test1',
+                }
+            ]);
+            executeBatchMock.mockResolvedValueOnce([{affectedRows: 1, insertId: 1, warningStatus: 0}]);
+
+            const data: TransactionDataBody[] = [
+                testStockTransactionDataBody
+            ];
+
+            const result = await StockTransactionService.createStockTransactionsData(data);
+
+            expect(result).toHaveLength(1);
+        });
+
+        test('Post stock transactions, but existing does not exist', async () => {
 
             executeQueryMock.mockResolvedValueOnce([]);
             executeBatchMock.mockResolvedValueOnce([{affectedRows: 1, insertId: 1, warningStatus: 0}]);
 
-            const data: StocksDataBody[] = [
-                testStockDataBody
+            const data: TransactionDataBody[] = [
+                testStockTransactionDataBody
             ];
 
-            const result = await StockService.postStockData(data);
-
-            expect(result).toHaveLength(1);
+            await expect(async () => StockTransactionService.createStockTransactionsData(data))
+                .rejects.toThrow(RecordNotFoundError);
         });
 
-        test('Post stocks, but existing exists', async () => {
+        test('Post stock transactions, expect error when stock_id does not exist', async () => {
 
             executeQueryMock.mockResolvedValueOnce([
                 {
                     id: 1,
                     ticker_no: '00001',
                     name: 'test1',
-                    full_name: 'test full 1',
-                    description: '',
-                    category: 'equity',
-                    subcategory: 'equity_securities_main',
-                    board_lot: 100,
-                    ISIN: 'xxyyzz',
-                    currency: 'HKD',
                 }
             ]);
             executeBatchMock.mockResolvedValueOnce([{affectedRows: 1, insertId: 1, warningStatus: 0}]);
-
-            const data: StocksDataBody[] = [
-                testStockDataBody
-            ];
-
-            await expect(async () => StockService.postStockData(data))
-                .rejects.toThrow(DuplicateFoundError);
-        });
-
-        test('Post stocks, verify ticker_no violate length', async () => {
-
-            executeQueryMock.mockResolvedValueOnce([
-                {
-                    id: 1,
-                    ticker_no: '00001',
-                    name: 'test1',
-                    full_name: 'test full 1',
-                    description: '',
-                    category: 'equity',
-                    subcategory: 'equity_securities_main',
-                    board_lot: 100,
-                    ISIN: 'xxyyzz',
-                    currency: 'HKD',
-                }
-            ]);
-            executeBatchMock.mockResolvedValueOnce([{affectedRows: 1, insertId: 1, warningStatus: 0}]);
-
 
             //ticker no must be 5 chars long and a string
-            const data: StocksDataBody[] = [
-                {...testStockDataBody, ticker_no: '2'}
+            const data: any[] = [
+                {...testStockTransactionDataBody, stock_id: undefined}
             ];
 
-            await expect(async () => StockService.postStockData(data))
+            await expect(async () => StockTransactionService.createStockTransactionsData(data))
                 .rejects.toThrow(InvalidRequestError);
         });
 
-        test('Post stocks, verify category with accepted values', async () => {
+        test('Post stock transactions, expect error when type does not exist', async () => {
 
             executeQueryMock.mockResolvedValueOnce([
                 {
                     id: 1,
                     ticker_no: '00001',
                     name: 'test1',
-                    full_name: 'test full 1',
-                    description: '',
-                    category: 'equity',
-                    subcategory: 'equity_securities_main',
-                    board_lot: 100,
-                    ISIN: 'xxyyzz',
-                    currency: 'HKD',
                 }
             ]);
             executeBatchMock.mockResolvedValueOnce([{affectedRows: 1, insertId: 1, warningStatus: 0}]);
 
-
             //ticker no must be 5 chars long and a string
-            const data: StocksDataBody[] = [
-                {...testStockDataBody, category: 'cryptocurrency'}
+            const data: any[] = [
+                {...testStockTransactionDataBody, type: undefined}
             ];
 
-            await expect(async () => StockService.postStockData(data))
+            await expect(async () => StockTransactionService.createStockTransactionsData(data))
                 .rejects.toThrow(InvalidRequestError);
         });
 
-        test('Post stocks, verify subcategory with accepted values', async () => {
+        test('Post stock transactions, expect error when type is not supported', async () => {
 
             executeQueryMock.mockResolvedValueOnce([
                 {
                     id: 1,
                     ticker_no: '00001',
                     name: 'test1',
-                    full_name: 'test full 1',
-                    description: '',
-                    category: 'equity',
-                    subcategory: 'equity_securities_main',
-                    board_lot: 100,
-                    ISIN: 'xxyyzz',
-                    currency: 'HKD',
                 }
             ]);
             executeBatchMock.mockResolvedValueOnce([{affectedRows: 1, insertId: 1, warningStatus: 0}]);
 
-
             //ticker no must be 5 chars long and a string
-            const data: StocksDataBody[] = [
-                {...testStockDataBody, subcategory: 'memecoins'}
+            const data: any[] = [
+                {...testStockTransactionDataBody, type: 'transfer'}
             ];
 
-            await expect(async () => StockService.postStockData(data))
+            await expect(async () => StockTransactionService.createStockTransactionsData(data))
                 .rejects.toThrow(InvalidRequestError);
         });
 
-        test('Post stocks, verify currency with accepted values', async () => {
+        test('Post stock transactions, expect error when amount does not exist', async () => {
 
             executeQueryMock.mockResolvedValueOnce([
                 {
                     id: 1,
                     ticker_no: '00001',
                     name: 'test1',
-                    full_name: 'test full 1',
-                    description: '',
-                    category: 'equity',
-                    subcategory: 'equity_securities_main',
-                    board_lot: 100,
-                    ISIN: 'xxyyzz',
-                    currency: 'HKD',
                 }
             ]);
             executeBatchMock.mockResolvedValueOnce([{affectedRows: 1, insertId: 1, warningStatus: 0}]);
 
-
             //ticker no must be 5 chars long and a string
-            const data: StocksDataBody[] = [
-                {...testStockDataBody, currency: 'GBP'}
+            const data: any[] = [
+                {...testStockTransactionDataBody, amount: undefined}
             ];
 
-            await expect(async () => StockService.postStockData(data))
+            await expect(async () => StockTransactionService.createStockTransactionsData(data))
+                .rejects.toThrow(InvalidRequestError);
+        });
+
+        test('Post stock transactions, expect error when quantity does not exist', async () => {
+
+            executeQueryMock.mockResolvedValueOnce([
+                {
+                    id: 1,
+                    ticker_no: '00001',
+                    name: 'test1',
+                }
+            ]);
+            executeBatchMock.mockResolvedValueOnce([{affectedRows: 1, insertId: 1, warningStatus: 0}]);
+
+            //ticker no must be 5 chars long and a string
+            const data: any[] = [
+                {...testStockTransactionDataBody, quantity: undefined}
+            ];
+
+            await expect(async () => StockTransactionService.createStockTransactionsData(data))
+                .rejects.toThrow(InvalidRequestError);
+        });
+
+        test('Post stock transactions, expect error when quantity is less than 0', async () => {
+
+            executeQueryMock.mockResolvedValueOnce([
+                {
+                    id: 1,
+                    ticker_no: '00001',
+                    name: 'test1',
+                }
+            ]);
+            executeBatchMock.mockResolvedValueOnce([{affectedRows: 1, insertId: 1, warningStatus: 0}]);
+
+            //ticker no must be 5 chars long and a string
+            const data: any[] = [
+                {...testStockTransactionDataBody, quantity: -1}
+            ];
+
+            await expect(async () => StockTransactionService.createStockTransactionsData(data))
+                .rejects.toThrow(InvalidRequestError);
+        });
+
+        test('Post stock transactions, expect error when fee does not exist', async () => {
+
+            executeQueryMock.mockResolvedValueOnce([
+                {
+                    id: 1,
+                    ticker_no: '00001',
+                    name: 'test1',
+                }
+            ]);
+            executeBatchMock.mockResolvedValueOnce([{affectedRows: 1, insertId: 1, warningStatus: 0}]);
+
+            //ticker no must be 5 chars long and a string
+            const data: any[] = [
+                {...testStockTransactionDataBody, fee: undefined}
+            ];
+
+            await expect(async () => StockTransactionService.createStockTransactionsData(data))
+                .rejects.toThrow(InvalidRequestError);
+        });
+
+        test('Post stock transactions, expect error when transaction_date does not exist', async () => {
+
+            executeQueryMock.mockResolvedValueOnce([
+                {
+                    id: 1,
+                    ticker_no: '00001',
+                    name: 'test1',
+                }
+            ]);
+            executeBatchMock.mockResolvedValueOnce([{affectedRows: 1, insertId: 1, warningStatus: 0}]);
+
+            //ticker no must be 5 chars long and a string
+            const data: any[] = [
+                {...testStockTransactionDataBody, transaction_date: undefined}
+            ];
+
+            await expect(async () => StockTransactionService.createStockTransactionsData(data))
+                .rejects.toThrow(InvalidRequestError);
+        });
+
+        test('Post stock transactions, expect error when transaction_date format is wrong', async () => {
+
+            executeQueryMock.mockResolvedValueOnce([
+                {
+                    id: 1,
+                    ticker_no: '00001',
+                    name: 'test1',
+                }
+            ]);
+            executeBatchMock.mockResolvedValueOnce([{affectedRows: 1, insertId: 1, warningStatus: 0}]);
+
+            //ticker no must be 5 chars long and a string
+            const data: any[] = [
+                {...testStockTransactionDataBody, transaction_date: '2025-01-aaa'}
+            ];
+
+            await expect(async () => StockTransactionService.createStockTransactionsData(data))
+                .rejects.toThrow(InvalidRequestError);
+        });
+
+        test('Post stock transactions, expect error when currency does not exist', async () => {
+
+            executeQueryMock.mockResolvedValueOnce([
+                {
+                    id: 1,
+                    ticker_no: '00001',
+                    name: 'test1',
+                }
+            ]);
+            executeBatchMock.mockResolvedValueOnce([{affectedRows: 1, insertId: 1, warningStatus: 0}]);
+
+            //ticker no must be 5 chars long and a string
+            const data: any[] = [
+                {...testStockTransactionDataBody, currency: undefined}
+            ];
+
+            await expect(async () => StockTransactionService.createStockTransactionsData(data))
+                .rejects.toThrow(InvalidRequestError);
+        });
+
+        test('Post stock transactions, expect error when currency is not supported', async () => {
+
+            executeQueryMock.mockResolvedValueOnce([
+                {
+                    id: 1,
+                    ticker_no: '00001',
+                    name: 'test1',
+                }
+            ]);
+            executeBatchMock.mockResolvedValueOnce([{affectedRows: 1, insertId: 1, warningStatus: 0}]);
+
+            //ticker no must be 5 chars long and a string
+            const data: any[] = [
+                {...testStockTransactionDataBody, currency: 'GBP'}
+            ];
+
+            await expect(async () => StockTransactionService.createStockTransactionsData(data))
                 .rejects.toThrow(InvalidRequestError);
         });
     });
 
-    describe('GET by ticker_no', () => {
-
-        test('Get single stock', async () => {
-
-            executeQueryMock.mockResolvedValueOnce([
-                {
-                    id: 1,
-                    ticker_no: '00001',
-                    name: 'test1',
-                    full_name: 'test full 1',
-                    description: '',
-                    category: 'equity',
-                    subcategory: 'equity_securities_main',
-                    board_lot: 100,
-                    ISIN: 'xxyyzz',
-                    currency: 'HKD',
-                }
-            ]);
-            const args:StocksDataGetParam = {ticker_no: '00001'};
-
-            const result = await StockService.getStockData(args);
-
-            expect(result).toHaveLength(1);
-        });
-
-        test('Get single stock, error on missing ticker_no', async () => {
-
-            executeQueryMock.mockResolvedValueOnce([
-                {
-                    id: 1,
-                    ticker_no: '00001',
-                    name: 'test1',
-                    full_name: 'test full 1',
-                    description: '',
-                    category: 'equity',
-                    subcategory: 'equity_securities_main',
-                    board_lot: 100,
-                    ISIN: 'xxyyzz',
-                    currency: 'HKD',
-                }
-            ]);
-            const args:StocksDataGetParam = {};
-
-            await expect(async () => StockService.getStockData(args))
-                .rejects.toThrow(InvalidRequestError);
-        });
-
-        test('Get single stock, invalid ticker_no', async () => {
-
-            executeQueryMock.mockResolvedValueOnce([
-                {
-                    id: 1,
-                    ticker_no: '00001',
-                    name: 'test1',
-                    full_name: 'test full 1',
-                    description: '',
-                    category: 'equity',
-                    subcategory: 'equity_securities_main',
-                    board_lot: 100,
-                    ISIN: 'xxyyzz',
-                    currency: 'HKD',
-                }
-            ]);
-            const args:StocksDataGetParam = {ticker_no: '001'};
-
-            await expect(async () => StockService.getStockData(args))
-                .rejects.toThrow(InvalidRequestError);
-        });
-    })
-
     describe('PUT', () => {
 
-        test('Put stock', async () => {
+        test('Put stock transaction', async () => {
 
             executeQueryMock.mockResolvedValueOnce([{affectedRows: 1, insertId: 1, warningStatus: 0}]);
 
-            const data: StocksDataBody = testStockDataBody;
+            const data: TransactionDataBody = testStockTransactionDataBody;
 
-            const result = await StockService.putStockData(data);
+            const result = await StockTransactionService.upsertStockTransactionData(data);
 
             expect(result).toHaveLength(1);
         });
 
-        test('Put stocks, verify ticker_no violate length', async () => {
+        test('Put stock transactions, expect error when stock_id does not exist', async () => {
 
             executeQueryMock.mockResolvedValueOnce([{affectedRows: 1, insertId: 1, warningStatus: 0}]);
 
+            const data: any = {...testStockTransactionDataBody, stock_id: undefined};
 
-            //ticker no must be 5 chars long and a string
-            const data: StocksDataBody = {...testStockDataBody, ticker_no: '2'};
-
-            await expect(async () => StockService.putStockData(data))
+            await expect(async () => StockTransactionService.upsertStockTransactionData(data))
                 .rejects.toThrow(InvalidRequestError);
         });
 
-        test('Put stocks, verify category with accepted values', async () => {
+        test('Put stock transactions, expect error when type does not exist', async () => {
 
             executeQueryMock.mockResolvedValueOnce([{affectedRows: 1, insertId: 1, warningStatus: 0}]);
 
-            //ticker no must be 5 chars long and a string
-            const data: StocksDataBody = {...testStockDataBody, category: 'cryptocurrency'};
+            const data: any = {...testStockTransactionDataBody, type: undefined};
 
-            await expect(async () => StockService.putStockData(data))
+            await expect(async () => StockTransactionService.upsertStockTransactionData(data))
                 .rejects.toThrow(InvalidRequestError);
         });
 
-        test('Put stocks, verify subcategory with accepted values', async () => {
+        test('Put stock transactions, expect error when type is not supported', async () => {
 
             executeQueryMock.mockResolvedValueOnce([{affectedRows: 1, insertId: 1, warningStatus: 0}]);
 
-            //ticker no must be 5 chars long and a string
-            const data: StocksDataBody = {...testStockDataBody, subcategory: 'memecoins'};
+            const data: any = {...testStockTransactionDataBody, type: 'yowza'};
 
-            await expect(async () => StockService.putStockData(data))
+            await expect(async () => StockTransactionService.upsertStockTransactionData(data))
                 .rejects.toThrow(InvalidRequestError);
         });
 
-        test('Put stocks, verify currency with accepted values', async () => {
+        test('Put stock transactions, expect error when amount does not exist', async () => {
 
             executeQueryMock.mockResolvedValueOnce([{affectedRows: 1, insertId: 1, warningStatus: 0}]);
 
-            //ticker no must be 5 chars long and a string
-            const data: StocksDataBody = {...testStockDataBody, currency: 'GBP'};
+            const data: any = {...testStockTransactionDataBody, amount: undefined};
 
-            await expect(async () => StockService.putStockData(data))
+            await expect(async () => StockTransactionService.upsertStockTransactionData(data))
+                .rejects.toThrow(InvalidRequestError);
+        });
+
+        test('Put stock transactions, expect error when quantity does not exist', async () => {
+
+            executeQueryMock.mockResolvedValueOnce([{affectedRows: 1, insertId: 1, warningStatus: 0}]);
+
+            const data: any = {...testStockTransactionDataBody, quantity: undefined};
+
+            await expect(async () => StockTransactionService.upsertStockTransactionData(data))
+                .rejects.toThrow(InvalidRequestError);
+        });
+
+        test('Put stock transactions, expect error when quantity is less than 0', async () => {
+
+            executeQueryMock.mockResolvedValueOnce([{affectedRows: 1, insertId: 1, warningStatus: 0}]);
+
+            const data: any = {...testStockTransactionDataBody, quantity: -1};
+
+            await expect(async () => StockTransactionService.upsertStockTransactionData(data))
+                .rejects.toThrow(InvalidRequestError);
+        });
+
+        test('Put stock transactions, expect error when fee does not exist', async () => {
+
+            executeQueryMock.mockResolvedValueOnce([{affectedRows: 1, insertId: 1, warningStatus: 0}]);
+
+            const data: any = {...testStockTransactionDataBody, fee: undefined};
+
+            await expect(async () => StockTransactionService.upsertStockTransactionData(data))
+                .rejects.toThrow(InvalidRequestError);
+        });
+
+        test('Put stock transactions, expect error when transaction_date does not exist', async () => {
+
+            executeQueryMock.mockResolvedValueOnce([{affectedRows: 1, insertId: 1, warningStatus: 0}]);
+
+            const data: any = {...testStockTransactionDataBody, transaction_date: undefined};
+
+            await expect(async () => StockTransactionService.upsertStockTransactionData(data))
+                .rejects.toThrow(InvalidRequestError);
+        });
+
+        test('Put stock transactions, expect error when transaction_date format is wrong', async () => {
+
+            executeQueryMock.mockResolvedValueOnce([{affectedRows: 1, insertId: 1, warningStatus: 0}]);
+
+            const data: any = {...testStockTransactionDataBody, transaction_date: '2025-01-0a'};
+
+            await expect(async () => StockTransactionService.upsertStockTransactionData(data))
+                .rejects.toThrow(InvalidRequestError);
+        });
+
+        test('Put stock transactions, expect error when currency does not exist', async () => {
+
+            executeQueryMock.mockResolvedValueOnce([{affectedRows: 1, insertId: 1, warningStatus: 0}]);
+
+            const data: any = {...testStockTransactionDataBody, currency: undefined};
+
+            await expect(async () => StockTransactionService.upsertStockTransactionData(data))
+                .rejects.toThrow(InvalidRequestError);
+        });
+
+        test('Put stock transactions, expect error when currency is not supported', async () => {
+
+            executeQueryMock.mockResolvedValueOnce([{affectedRows: 1, insertId: 1, warningStatus: 0}]);
+
+            const data: any = {...testStockTransactionDataBody, currency: 'GBP'};
+
+            await expect(async () => StockTransactionService.upsertStockTransactionData(data))
                 .rejects.toThrow(InvalidRequestError);
         });
     });
 
     describe('DELETE', () => {
 
-        test('Delete stock', async () => {
+        test('Delete stock transaction', async () => {
 
             executeQueryMock.mockResolvedValueOnce([{affectedRows: 1, insertId: 0, warningStatus: 0}]);
 
-            const args:StocksDataGetParam = {ticker_no: '00001'};
+            const args:TransactionDataGetParams = {id: 1};
 
-            const result = await StockService.deleteStockData(args);
+            const result = await StockTransactionService.deleteStockTransactionData(args);
 
             expect(result.status).toBe('success');
         });
 
-        test('Delete single stock, error on missing ticker_no', async () => {
+        test('Delete stock transaction, error on missing id', async () => {
 
             executeQueryMock.mockResolvedValueOnce([{affectedRows: 1, insertId: 0, warningStatus: 0}]);
 
-            const args:StocksDataGetParam = {};
+            const args:TransactionDataGetParams = {};
 
-            await expect(async () => StockService.deleteStockData(args))
-                .rejects.toThrow(InvalidRequestError);
-        });
-
-        test('Delete single stock, invalid ticker_no', async () => {
-
-            executeQueryMock.mockResolvedValueOnce([{affectedRows: 1, insertId: 0, warningStatus: 0}]);
-
-            const args:StocksDataGetParam = {ticker_no: '001'};
-
-            await expect(async () => StockService.deleteStockData(args))
+            await expect(async () => StockTransactionService.deleteStockTransactionData(args))
                 .rejects.toThrow(InvalidRequestError);
         });
     });

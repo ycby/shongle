@@ -18,13 +18,20 @@ const Currency = {
     RMB: 'RMB',
     USD: 'USD',
 } as const;
+const TransactionType = {
+    BUY: 'buy',
+    SELL: 'sell',
+    DIVIDEND: 'dividend'
+} as const;
 
 export type CategoryKeys = typeof Category[keyof typeof Category];
 export type SubcategoryKeys = typeof Subcategory[keyof typeof Subcategory];
 export type CurrencyKeys = typeof Currency[keyof typeof Currency];
+export type TransactionTypeKeys = typeof TransactionType[keyof typeof TransactionType];
 
 export {
     Category,
     Subcategory,
-    Currency
+    Currency,
+    TransactionType,
 }
