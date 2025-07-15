@@ -49,7 +49,6 @@ describe('Stock Service Tests', () => {
             const args:StocksDataGetParam = {};
 
             const result = await StockService.getStocksData(args);
-            console.log(result);
 
             expect(result).toHaveLength(1);
         });

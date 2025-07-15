@@ -1,4 +1,4 @@
-import db from '#root/src/db/db.ts'
+import db, {executeBatch, executeQuery} from '#root/src/db/db.ts'
 import {FieldMapping, filterClauseGenerator, processData, ProcessDataMapping} from "#root/src/helpers/DBHelpers.ts";
 import {InvalidRequestError, RecordNotFoundError} from "#root/src/errors/Errors.ts";
 import ShortData from "#root/src/models/ShortData.ts";
@@ -8,17 +8,21 @@ import {UpsertResult} from "mariadb";
 import {ValidationRule, validator, ValidatorResult} from "#root/src/utilities/Validator.ts";
 import {stringToDateConverter} from "#root/src/helpers/DateHelper.ts";
 
-type ShortDataGetParam = {
+export type ShortDataGetParam = {
 	id?: number,
 	ticker_no: string;
-	start_date: Date;
-	end_date: Date;
+	start_date?: string;
+	end_date?: string;
+}
+
+export type ShortDataGetSingleParam = {
+	id: number;
 }
 
 export type ShortDataBody = {
 	id?: number;
 	stock_id: number;
-	reporting_date: Date;
+	reporting_date: string;
 	shorted_shares: number;
 	shorted_amount: number;
 }
@@ -44,12 +48,21 @@ const SHORT_PARAM_VALIDATION: ValidationRule[] = [
 	},
 ];
 
+const SHORT_PARAM_SINGLE_VALIDATION: ValidationRule[] = [
+	{
+		name: 'id',
+		isRequired: true,
+		rule: (id: any): boolean => typeof id === 'number',
+		errorMessage: 'Id is required and must be a number'
+	}
+]
+
 const SHORT_BODY_VALIDATION: ValidationRule[] = [
 	{
 		name: 'id',
 		isRequired: false,
 		rule: (id: any): boolean => typeof id === 'number',
-		errorMessage: 'Id is must be a number and is required"'
+		errorMessage: 'Id is must be a number"'
 	},
 	{
 		name: 'stock_id',
@@ -120,17 +133,13 @@ const getShortData = async (args: ShortDataGetParam) => {
 
 	if (validationResult.length > 0) throw new InvalidRequestError(validationResult);
 
-	let conn;
-	let result = [];
+	let result: ShortData[] = [];
 
 	const whereString = filterClauseGenerator(fieldMapping, args);
 
 	try {
-		conn = await db.pool.getConnection();
-		
-		await conn.beginTransaction();
 
-		result = await conn.query({
+		result = await executeQuery<ShortData[]>({
 			namedPlaceholders: true,
 			sql: `SELECT * FROM Short_Reporting_w_Stocks WHERE ${whereString !== '' ? whereString : ''} ORDER BY reporting_date DESC`
 		}, {
@@ -141,13 +150,8 @@ const getShortData = async (args: ShortDataGetParam) => {
 
 	} catch (err) {
 
-		if (conn) await conn.rollback();
-
 		throw err;
 
-	} finally {
-
-		if (conn) await conn.end();
 	}
 
 	return result;
@@ -160,20 +164,15 @@ const postShortData = async (data: ShortDataBody[]) => {
 
 	if (validationResult.length > 0) throw new InvalidRequestError(validationResult);
 
-	let conn;
 	let result: UpsertResult[] = [];
-	console.log(data);
 
 	const dataIds = data.map(d => d.stock_id);
 
-	data.forEach(d => {d.reporting_date = new Date(d.reporting_date);})
+	data.forEach(d => {d.reporting_date = (d.reporting_date)});
 
 	try {
-		conn = await db.pool.getConnection();
 
-		await conn.beginTransaction();
-
-		const existingRecords = await conn.query({
+		const existingRecords = await executeQuery<Stock[]>({
 			namedPlaceholders: true,
 			sql: "SELECT id, ticker_no, name FROM Stocks WHERE id IN (:stock_ids)"
 		}, {
@@ -182,13 +181,13 @@ const postShortData = async (data: ShortDataBody[]) => {
 
 		if (existingRecords.length === 0) {
 
-			const existingCodes = existingRecords.map((d: Stock) => d.ticker_no);
+			const nonExistantStockIds = data.map((d: ShortDataBody) => d.stock_id);
 
-			throw new RecordNotFoundError(`Stocks with ids ( ${existingCodes.join(', ')} ) do not exist!`);
+			throw new RecordNotFoundError(`Stocks with ids ( ${nonExistantStockIds.join(', ')} ) do not exist!`);
 		}
 
 		//use existing records to set stock_id
-		result = await conn.batch({
+		result = await executeBatch({
 			namedPlaceholders: true,
 			sql: 'INSERT INTO Short_Reporting ' +
 				'(stock_id, reporting_date, shorted_shares, shorted_amount, created_datetime, last_modified_datetime) ' +
@@ -200,40 +199,28 @@ const postShortData = async (data: ShortDataBody[]) => {
 
 				return processData(item, columnInsertionOrder, shortData);
 			})
-		)
-
-		await conn.commit();
+		);
 
 	} catch (err) {
 
-		if (conn) await conn.rollback();
-
 		throw err;
-
-	} finally {
-
-		if (conn) await conn.end();
 	}
 
 	return result;
 }
 
-const getShortDatum = async (args: ShortDataGetParam) => {
+const getShortDatum = async (args: ShortDataGetSingleParam) => {
 
-	let validationResults: ValidatorResult[] = validator(args, SHORT_PARAM_VALIDATION);
+	let validationResults: ValidatorResult[] = validator(args, SHORT_PARAM_SINGLE_VALIDATION);
 
 	if (validationResults.length > 0) throw new InvalidRequestError(validationResults);
 	//TODO: if stockCode is invalid/does not exist, return error
 
-	let conn;
 	let result = [];
 
 	try {
-		conn = await db.pool.getConnection();
 
-		await conn.beginTransaction();
-
-		result = await conn.query({
+		result = await executeQuery<ShortData[]>({
 			namedPlaceholders: true,
 			sql: `SELECT * FROM Short_Reporting_w_Stocks WHERE id = :id`
 		}, {
@@ -242,13 +229,7 @@ const getShortDatum = async (args: ShortDataGetParam) => {
 
 	} catch (err) {
 
-		if (conn) await conn.rollback();
-
 		throw err;
-
-	} finally {
-
-		if (conn) await conn.end();
 	}
 
 	return result;
@@ -262,15 +243,11 @@ const putShortDatum = async (data: ShortDataBody) => {
 
 	//TODO: if stockCode is invalid/does not exist, return error
 
-	let conn;
 	let result = [];
 
 	try {
-		conn = await db.pool.getConnection();
 
-		await conn.beginTransaction();
-
-		result = await conn.query({
+		result = await executeQuery<ShortData[]>({
 			namedPlaceholders: true,
 			sql: 'INSERT INTO Short_Reporting ' +
 				'(id, stock_id, reporting_date, shorted_shares, shorted_amount, created_datetime, last_modified_datetime) ' +
@@ -288,59 +265,40 @@ const putShortDatum = async (data: ShortDataBody) => {
 
 				return processData(data, columnInsertionOrder, shortData);
 			}
-		)
-
-		await conn.commit();
+		);
 
 	} catch (err) {
 
-		if (conn) await conn.rollback();
-
 		throw err;
-
-	} finally {
-
-		if (conn) await conn.end();
 	}
 
 	return result;
 }
 
-const deleteShortDatum = async (args: ShortDataGetParam) => {
+const deleteShortDatum = async (args: ShortDataGetSingleParam) => {
 
-	let validationResults: ValidatorResult[] = validator(args, SHORT_PARAM_VALIDATION);
+	let validationResults: ValidatorResult[] = validator(args, SHORT_PARAM_SINGLE_VALIDATION);
 
 	if (validationResults.length > 0) throw new InvalidRequestError(validationResults);
 
-	let conn;
-	let result = [];
-
 	try {
-		conn = await db.pool.getConnection();
 
-		await conn.beginTransaction();
-
-		result = await conn.query({
+		await executeQuery({
 			namedPlaceholders: true,
 			sql: `DELETE FROM Short_Reporting WHERE id = :id`,
 		}, {
 			id: args.id
 		});
 
-		await conn.commit();
-
 	} catch (err) {
 
-		if (conn) await conn.rollback();
-
 		throw err;
-
-	} finally {
-
-		if (conn) await conn.end();
 	}
 
-	return result;
+	return {
+		id: args.id,
+		status: 'success'
+	};
 }
 
 const retrieveShortDataFromSource = async (endDate: Date) => {

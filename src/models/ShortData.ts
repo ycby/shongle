@@ -4,7 +4,7 @@ export default class ShortData extends DatabaseObject {
 
 	private _id?: number;
 	private _stock_id?: number;
-	private _reporting_date?: Date;
+	private _reporting_date?: string;
 	private _shorted_shares?: number;
 	private _shorted_amount?: number;
 
@@ -33,12 +33,12 @@ export default class ShortData extends DatabaseObject {
 		this._stock_id = stock_id;
 	}
 
-	get reporting_date(): Date | undefined {
+	get reporting_date(): string {
 
-		return this._reporting_date;
+		return this._reporting_date ?? '';
 	}
 
-	set reporting_date(date: Date) {
+	set reporting_date(date: string) {
 
 		this._reporting_date = date;
 	}
