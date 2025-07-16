@@ -216,7 +216,7 @@ const getStocksWithTransactions = async () => {
     try {
 
         result = await executeQuery<StockTransaction[]>({
-            sql: `SELECT * FROM Stocks_w_Transactions ORDER BY ticker_no DESC`
+            sql: `SELECT * FROM Stocks_w_Transactions ORDER BY ticker_no ASC`
         });
 
     } catch (err) {
