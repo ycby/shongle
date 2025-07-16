@@ -11,6 +11,7 @@ const getStockTransactionRouter = () => {
 
     router.get(basePath + '/', getStockTransactions);
     router.post(basePath + '/', createStockTransactions);
+    router.get(basePath + '/stocks', getStocksWithTransactions);
     router.put(basePath + '/:id', upsertStockTransaction);
     router.delete(basePath + '/:id', deleteStockTransaction);
 
@@ -22,6 +23,25 @@ const getStockTransactions = async (req: Request<{}, {}, {}, TransactionDataGetP
     try {
 
         const transactions = await StockTransactionService.getStockTransactionsData(req.query);
+
+        return res.status(Constants.HTTP_STATUS_CODES.SUCCESS).json(
+            ResponseStandardiser.generateStandardResponse(
+                Constants.APP_STATUS_CODES.SUCCESS,
+                Constants.APP_STATUS_DESCRIPTORS.RESULT_FOUND,
+                transactions
+            )
+        );
+    } catch (err) {
+
+        next(err);
+    }
+}
+
+const getStocksWithTransactions = async (_: any, res: Response, next: NextFunction) => {
+
+    try {
+
+        const transactions = await StockTransactionService.getStocksWithTransactions();
 
         return res.status(Constants.HTTP_STATUS_CODES.SUCCESS).json(
             ResponseStandardiser.generateStandardResponse(

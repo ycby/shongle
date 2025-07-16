@@ -192,13 +192,31 @@ const getStockTransactionsData = async (args: TransactionDataGetParams) => {
 
         result = await executeQuery<StockTransaction[]>({
             namedPlaceholders: true,
-            sql: `SELECT * FROM Stock_Transactions WHERE ${whereString !== '' ? whereString : ''} ORDER BY transaction_date DESC`
+            sql: `SELECT * FROM Stock_Transactions ${whereString !== '' ? 'WHERE ' + whereString : ''} ORDER BY transaction_date DESC`
         }, {
             id: args.id,
             stock_id: args.stock_id,
             type: args.type,
             start_date: args.start_date,
             end_date: args.end_date,
+        });
+
+    } catch (err) {
+
+        throw err;
+    }
+
+    return result;
+}
+
+const getStocksWithTransactions = async () => {
+
+    let result = [];
+
+    try {
+
+        result = await executeQuery<StockTransaction[]>({
+            sql: `SELECT * FROM Stocks_w_Transactions ORDER BY ticker_no DESC`
         });
 
     } catch (err) {
@@ -222,7 +240,7 @@ const createStockTransactionsData = async (data: TransactionDataBody[]) => {
 
         const existingRecords: Stock[] = await executeQuery<Stock[]>({
             namedPlaceholders: true,
-            sql: "SELECT id, ticker_no, name FROM Stocks WHERE id IN :ids"
+            sql: "SELECT id, ticker_no, name FROM Stocks WHERE id IN (:ids)"
         }, {
             ids: stockIds
         });
@@ -329,6 +347,7 @@ const deleteStockTransactionData = async (args: TransactionDataGetParams) => {
 export {
     getStockTransactionsData,
     createStockTransactionsData,
+    getStocksWithTransactions,
     upsertStockTransactionData,
     deleteStockTransactionData
 }
