@@ -37,7 +37,7 @@ const TRANSACTION_PARAM_VALIDATION: ValidationRule[] = [
     {
         name: 'stock_id',
         isRequired: false,
-        rule: (stock_id: any): boolean => typeof stock_id === 'number',
+        rule: (stock_id: any): boolean => typeof stock_id === 'string' && !isNaN(Number(stock_id)),
         errorMessage: 'Stock Id must be a number'
     },
     {
