@@ -94,11 +94,11 @@ const upsertStockTransaction = async (req: Request<{}, {}, TransactionDataBody, 
     }
 }
 
-const deleteStockTransaction = async (req: Request<{}, {}, {}, TransactionDataGetParams>, res: Response, next: NextFunction) => {
+const deleteStockTransaction = async (req: Request<TransactionDataGetParams, {}, {}, {}>, res: Response, next: NextFunction) => {
 
     try {
 
-        const transactions = await StockTransactionService.deleteStockTransactionData(req.query);
+        const transactions = await StockTransactionService.deleteStockTransactionData(req.params);
 
         return res.status(Constants.HTTP_STATUS_CODES.SUCCESS).json(
             ResponseStandardiser.generateStandardResponse(

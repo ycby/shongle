@@ -67,7 +67,7 @@ const TRANSACTION_PARAM_SINGLE_VALIDATION: ValidationRule[] = [
     {
         name: 'id',
         isRequired: true,
-        rule: (id: any): boolean => typeof id === 'number',
+        rule: (id: any): boolean => !isNaN(Number(id)),
         errorMessage: 'Id must be a number'
     }
 ]
