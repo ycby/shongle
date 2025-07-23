@@ -195,7 +195,8 @@ const createDiaryEntryData = async (data: DiaryEntryDataBody[]) => {
     const stockIds: number[] = data.map((d: DiaryEntryDataBody): number => d.stock_id);
     try {
 
-        const existingRecords: Stock[] = await executeQuery({
+        const existingRecords: Stock[] = await executeQuery<Stock[]>({
+            namedPlaceholders: true,
             sql: "SELECT id, ticker_no, name FROM Stocks WHERE id IN (:ids)"
         }, {
             ids: stockIds
