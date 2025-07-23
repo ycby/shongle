@@ -6,7 +6,7 @@ export type FieldMapping = {
 
 export type ProcessDataMapping = {
     field: string;
-    transform?: ((element: string | number | boolean | Date) => string | number | boolean | Date);
+    transform?: <T,U>(element: T) => U;
 }
 
 const filterClauseGenerator: (fieldMapping: FieldMapping[], args: Object) => string = (fieldMapping: FieldMapping[], args: Object) => {

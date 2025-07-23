@@ -134,22 +134,14 @@ const insertColumnMapping: ProcessDataMapping[] = [
         field: 'stock_id'
     },
     {
-        field: 'type'
+        field: 'title'
     },
     {
-        field: 'amount'
+        field: 'content'
     },
     {
-        field: 'quantity'
-    },
-    {
-        field: 'fee'
-    },
-    {
-        field: 'transaction_date'
-    },
-    {
-        field: 'currency'
+        field: 'posted_date',
+        transform: (postedDate: string): Date => stringToDateConverter(postedDate) ?? new Date(1970, 1, 1)
     }
 ];
 
