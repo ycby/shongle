@@ -141,7 +141,10 @@ const insertColumnMapping: ProcessDataMapping[] = [
     },
     {
         field: 'posted_date',
-        transform: (postedDate: string): Date => stringToDateConverter(postedDate) ?? new Date(1970, 1, 1)
+        transform: (postedDate: string): Date => {
+
+            return (stringToDateConverter(postedDate) ?? new Date(1970, 1, 1));
+        }
     }
 ];
 
