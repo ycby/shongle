@@ -24,11 +24,19 @@ const executeQuery = async <T>(queryObject: QueryOptions, placeholders: any = un
 
 		await conn.beginTransaction();
 
-		if (placeholders === undefined) return await conn.query(queryObject);
-		if (typeof placeholders === 'function') return await conn.query(queryObject, placeholders());
+		let result;
 
-		//if has placeholders and is not function
-		const result = await conn.query(queryObject, placeholders);
+		if (placeholders === undefined) {
+
+			result = await conn.query(queryObject);
+		} else if (typeof placeholders === 'function') {
+
+			result = await conn.query(queryObject, placeholders());
+		} else {
+
+			//if has placeholders and is not function
+			 result = await conn.query(queryObject, placeholders);
+		}
 
 		await conn.commit();
 

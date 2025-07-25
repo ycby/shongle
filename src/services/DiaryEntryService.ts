@@ -233,6 +233,8 @@ const upsertDiaryEntryData = async (data: DiaryEntryDataBody) => {
 
     if (validationResult.length > 0) throw new InvalidRequestError(validationResult);
 
+    console.log(data);
+
     let result: UpsertResult[] = [];
 
     try {
@@ -253,7 +255,9 @@ const upsertDiaryEntryData = async (data: DiaryEntryDataBody) => {
 
                 let diaryEntry: DiaryEntry = new DiaryEntry('UPDATE');
 
-                return processData(data, insertColumnMapping, diaryEntry);
+                const processedData = processData(data, insertColumnMapping, diaryEntry);
+                console.log(processedData.getPlainObject())
+                return processedData.getPlainObject();
             }
         );
 
