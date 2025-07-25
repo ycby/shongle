@@ -74,11 +74,11 @@ const upsertDiaryEntry = async (req: Request<{}, {}, DiaryEntryDataBody, {}>, re
     }
 }
 
-const deleteDiaryEntry = async (req: Request<{}, {}, {}, DiaryEntryDataGetParams>, res: Response, next: NextFunction) => {
+const deleteDiaryEntry = async (req: Request<DiaryEntryDataGetParams, {}, {}, {}>, res: Response, next: NextFunction) => {
 
     try {
 
-        const diaryEntry = await DiaryEntryService.deleteDiaryEntryData(req.query);
+        const diaryEntry = await DiaryEntryService.deleteDiaryEntryData(req.params);
 
         return res.status(Constants.HTTP_STATUS_CODES.SUCCESS).json(
             ResponseStandardiser.generateStandardResponse(

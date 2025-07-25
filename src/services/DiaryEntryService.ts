@@ -60,7 +60,7 @@ const DIARY_ENTRY_PARAM_SINGLE_VALIDATION: ValidationRule[] = [
     {
         name: 'id',
         isRequired: true,
-        rule: (id: any): boolean => typeof id === 'number',
+        rule: (id: any): boolean => !isNaN(Number(id)),
         errorMessage: 'Id must be a number'
     }
 ]
@@ -150,6 +150,8 @@ const insertColumnMapping: ProcessDataMapping[] = [
 
 const getDiaryEntryData = async (args: DiaryEntryDataGetParams) => {
 
+    console.log('getDiaryEntryData');
+
     let validationResult: ValidatorResult[] = validator(args, DIARY_ENTRY_PARAM_VALIDATION);
 
     if (validationResult.length > 0) throw new InvalidRequestError(validationResult);
@@ -180,6 +182,8 @@ const getDiaryEntryData = async (args: DiaryEntryDataGetParams) => {
 }
 
 const createDiaryEntryData = async (data: DiaryEntryDataBody[]) => {
+
+    console.log('createDiaryEntryData');
 
     let validationResult: ValidatorResult[] = validator(data, DIARY_ENTRY_BODY_VALIDATION);
 
@@ -229,11 +233,11 @@ const createDiaryEntryData = async (data: DiaryEntryDataBody[]) => {
 
 const upsertDiaryEntryData = async (data: DiaryEntryDataBody) => {
 
+    console.log('upsertDiaryEntryData');
+
     let validationResult: ValidatorResult[] = validator(data, DIARY_ENTRY_BODY_VALIDATION);
 
     if (validationResult.length > 0) throw new InvalidRequestError(validationResult);
-
-    console.log(data);
 
     let result: UpsertResult[] = [];
 
@@ -271,6 +275,8 @@ const upsertDiaryEntryData = async (data: DiaryEntryDataBody) => {
 
 const deleteDiaryEntryData = async (args: DiaryEntryDataGetParams) => {
 
+    console.log('deleteDiaryEntryData');
+
     let validationResult: ValidatorResult[] = validator(args, DIARY_ENTRY_PARAM_SINGLE_VALIDATION);
 
     if (validationResult.length > 0) throw new InvalidRequestError(validationResult);
@@ -289,7 +295,6 @@ const deleteDiaryEntryData = async (args: DiaryEntryDataGetParams) => {
     } catch (err) {
 
         throw err;
-
     }
 
     return {
