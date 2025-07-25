@@ -64,8 +64,8 @@ describe('Stock Transaction Service Tests', () => {
                     currency: 'HKD',
                 }
             ]);
-            //Check if running normally, accepts {} with no complaint
-            const args:TransactionDataGetParams = {
+
+            const args: TransactionDataGetParams = {
                 id: 1,
                 stock_id: 1,
                 type: ['buy'],
@@ -74,7 +74,6 @@ describe('Stock Transaction Service Tests', () => {
             };
 
             const result = await StockTransactionService.getStockTransactionsData(args);
-
             expect(result).toHaveLength(1);
         });
 
