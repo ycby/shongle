@@ -27,13 +27,13 @@ const DIARY_ENTRY_PARAM_VALIDATION: ValidationRule[] = [
     {
         name: 'id',
         isRequired: false,
-        rule: (id: any): boolean => typeof id === 'number',
+        rule: (id: any): boolean => !isNaN(Number(id)),
         errorMessage: 'Id must be a number',
     },
     {
         name: 'stock_id',
         isRequired: true,
-        rule: (stock_id: any): boolean => typeof stock_id === 'number',
+        rule: (stock_id: any): boolean => !isNaN(Number(stock_id)),
         errorMessage: 'Stock Id must be a number'
     },
     {
