@@ -24,6 +24,10 @@ export type StocksDataBody = {
 	currency: string;
 }
 
+export type StocksTrackParam = {
+	id: number;
+}
+
 const STOCK_PARAM_VALIDATION: ValidationRule[] = [
 	{
 		name: 'ticker_no',
@@ -370,11 +374,50 @@ const getTrackedStocks = async () => {
 	return result;
 }
 
+const setTrackStock = async (args: StocksTrackParam, isTrack: boolean) => {
+
+	let result: UpsertResult[] = [];
+
+	try {
+		const existingRecords: Stock[] = await executeQuery({
+			namedPlaceholders: true,
+			sql: "SELECT id, ticker_no, name FROM Stocks WHERE id = :id"
+		}, {
+			id: args.id
+		});
+
+		if (existingRecords.length === 0) {
+
+			const existingCodes: string[] = existingRecords.map((d: Stock): string => d.ticker_no);
+
+			throw new DuplicateFoundError(`No stocks with tickers ( ${existingCodes.join(', ')} ) found!`);
+		}
+
+		result = await executeQuery(
+			{
+				namedPlaceholders: true,
+				sql: 'UPDATE Stocks ' +
+					'SET is_tracked = :is_tracked ' +
+					'WHERE id = :id'
+			}, {
+				id: args.id,
+				is_tracked: isTrack
+			}
+		);
+	} catch (err) {
+
+		throw err;
+	}
+
+	return result;
+}
+
 export {
 	getStocksData,
 	postStockData,
 	getStockData,
 	putStockData,
 	deleteStockData,
-	getTrackedStocks
+	getTrackedStocks,
+	setTrackStock
 }

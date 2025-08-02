@@ -3,7 +3,7 @@ import * as Constants from '#root/src/constants/constants.ts';
 import * as StockService from '#root/src/services/StockService.ts';
 import * as ResponseStandardiser from "#root/src/utilities/ResponseStandardiser.ts";
 import {Request, Response, NextFunction} from "express";
-import {StocksDataGetParam} from "#root/src/services/StockService.ts";
+import {StocksDataGetParam, StocksTrackParam} from "#root/src/services/StockService.ts";
 
 const getStockRouter = () => {
 
@@ -13,6 +13,8 @@ const getStockRouter = () => {
     router.get(basePath, getStocks);
     router.post(basePath, createStocks);
     router.get(basePath + "/tracked", getTrackedStocks);
+    router.post(basePath + "/tracked/:id/track", trackStock);
+    router.post(basePath + "/tracked/:id/untrack", untrackStock);
     router.get(basePath + "/:ticker_no", getStock);
     router.put(basePath + "/:ticker_no", upsertStock);
     router.delete(basePath + "/:ticker_no", deleteStock);
@@ -114,11 +116,49 @@ const deleteStock = async (req: Request<StocksDataGetParam, {}, {}, {}>, res: Re
     }
 }
 
-const getTrackedStocks = async (req: Request, res: Response, next: NextFunction) => {
+const getTrackedStocks = async (_req: Request, res: Response, next: NextFunction) => {
 
     try {
 
         const stock = await StockService.getTrackedStocks();
+
+        return res.status(Constants.HTTP_STATUS_CODES.SUCCESS).json(
+            ResponseStandardiser.generateStandardResponse(
+                Constants.APP_STATUS_CODES.SUCCESS,
+                Constants.APP_STATUS_DESCRIPTORS.RESULT_FOUND,
+                stock
+            )
+        );
+    } catch (err) {
+
+        next(err);
+    }
+}
+
+const trackStock = async (req: Request<StocksTrackParam, {}, {},{}>, res: Response, next: NextFunction) => {
+
+    try {
+
+        const stock = await StockService.setTrackStock(req.params, true);
+
+        return res.status(Constants.HTTP_STATUS_CODES.SUCCESS).json(
+            ResponseStandardiser.generateStandardResponse(
+                Constants.APP_STATUS_CODES.SUCCESS,
+                Constants.APP_STATUS_DESCRIPTORS.RESULT_FOUND,
+                stock
+            )
+        );
+    } catch (err) {
+
+        next(err);
+    }
+}
+
+const untrackStock = async (req: Request<StocksTrackParam, {}, {},{}>, res: Response, next: NextFunction) => {
+
+    try {
+
+        const stock = await StockService.setTrackStock(req.params, false);
 
         return res.status(Constants.HTTP_STATUS_CODES.SUCCESS).json(
             ResponseStandardiser.generateStandardResponse(
