@@ -354,10 +354,27 @@ const deleteStockData = async (args: StocksDataGetParam) => {
 	};
 }
 
+const getTrackedStocks = async () => {
+
+	let result: Stock[] = [];
+
+	try {
+		result = await executeQuery({
+			sql: 'SELECT * FROM Stocks WHERE is_tracked = TRUE',
+		});
+	} catch (err) {
+
+		throw err;
+	}
+
+	return result;
+}
+
 export {
 	getStocksData,
 	postStockData,
 	getStockData,
 	putStockData,
-	deleteStockData
+	deleteStockData,
+	getTrackedStocks
 }

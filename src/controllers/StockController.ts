@@ -12,6 +12,7 @@ const getStockRouter = () => {
 
     router.get(basePath, getStocks);
     router.post(basePath, createStocks);
+    router.get(basePath + "/tracked", getTrackedStocks);
     router.get(basePath + "/:ticker_no", getStock);
     router.put(basePath + "/:ticker_no", upsertStock);
     router.delete(basePath + "/:ticker_no", deleteStock);
@@ -99,6 +100,25 @@ const deleteStock = async (req: Request<StocksDataGetParam, {}, {}, {}>, res: Re
     try {
 
         const stock = await StockService.deleteStockData(req.params);
+
+        return res.status(Constants.HTTP_STATUS_CODES.SUCCESS).json(
+            ResponseStandardiser.generateStandardResponse(
+                Constants.APP_STATUS_CODES.SUCCESS,
+                Constants.APP_STATUS_DESCRIPTORS.RESULT_FOUND,
+                stock
+            )
+        );
+    } catch (err) {
+
+        next(err);
+    }
+}
+
+const getTrackedStocks = async (req: Request, res: Response, next: NextFunction) => {
+
+    try {
+
+        const stock = await StockService.getTrackedStocks();
 
         return res.status(Constants.HTTP_STATUS_CODES.SUCCESS).json(
             ResponseStandardiser.generateStandardResponse(
