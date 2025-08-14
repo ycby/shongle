@@ -1,3 +1,5 @@
+import {QueryType, QueryTypeKeys} from "#root/src/types.ts";
+
 export type FieldMapping = {
     param: string;
     field: string;
@@ -9,7 +11,7 @@ export type ProcessDataMapping = {
     transform?: (element: any) => any;
 }
 
-const filterClauseGenerator: (fieldMapping: FieldMapping[], args: Object) => string = (fieldMapping: FieldMapping[], args: Object) => {
+const filterClauseGenerator: (queryType: QueryTypeKeys, fieldMapping: FieldMapping[], args: Object) => string = (queryType: QueryTypeKeys = QueryType.AND, fieldMapping: FieldMapping[], args: Object) => {
 
     //mapping format in case I forget:
     //list of objects where: param - param in url, field - db field, operator
@@ -25,7 +27,7 @@ const filterClauseGenerator: (fieldMapping: FieldMapping[], args: Object) => str
 
         whereArray.push(`(${el.field} ${el.operator} :${el.param})`);
     }
-    return whereArray.length !== 0 ? whereArray.join(' AND ') : '';
+    return whereArray.length !== 0 ? whereArray.join(` ${queryType} `) : '';
 }
 
 const processData: <T>(bodyData: Object, columns: ProcessDataMapping[], editedObject: T) => T = <T>(bodyData: Object, columns: ProcessDataMapping[], editedObject: T): T => {

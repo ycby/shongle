@@ -4,9 +4,18 @@ import {DuplicateFoundError, InvalidRequestError} from "#root/src/errors/Errors.
 import {FieldMapping, filterClauseGenerator, processData, ProcessDataMapping} from "#root/src/helpers/DBHelpers.ts";
 import {UpsertResult} from "mariadb";
 import {ValidationRule, validator, ValidatorResult} from "#root/src/utilities/Validator.ts";
-import {Category, Subcategory, Currency, CategoryKeys, SubcategoryKeys, CurrencyKeys} from "#root/src/types.ts";
+import {
+	Category,
+	Subcategory,
+	Currency,
+	CategoryKeys,
+	SubcategoryKeys,
+	CurrencyKeys,
+	QueryTypeKeys, QueryType
+} from "#root/src/types.ts";
 
 export type StocksDataGetParam = {
+	query_type?: QueryTypeKeys;
 	ticker_no?: string;
 	name?: string;
 	ISIN?: string;
@@ -29,6 +38,12 @@ export type StocksTrackParam = {
 }
 
 const STOCK_PARAM_VALIDATION: ValidationRule[] = [
+	{
+		name: 'query_type',
+		isRequired: false,
+		rule: (query_type: any): boolean => typeof query_type === 'string' && Object.values(QueryType).includes(query_type as QueryTypeKeys),
+		errorMessage: 'Query Type is invalid. It must be either "AND" or "OR".'
+	},
 	{
 		name: 'ticker_no',
 		isRequired: false,
@@ -190,7 +205,15 @@ const getStocksData = async (args: StocksDataGetParam) => {
 
 	let result: Stock[] = [];
 
-	const filterClause: string = filterClauseGenerator(fieldMapping, args);
+	const queryParams = {
+		name: args.name,
+		ticker_no: args.ticker_no,
+		ISIN: args.ISIN
+	}
+
+	const queryType = args.query_type ?? QueryType.AND;
+
+	const filterClause: string = filterClauseGenerator(queryType, fieldMapping, queryParams);
 
 	let whereString: string = filterClause !== '' ? 'WHERE ' + filterClause : '';
 

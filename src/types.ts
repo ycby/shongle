@@ -24,14 +24,24 @@ const TransactionType = {
     DIVIDEND: 'dividend'
 } as const;
 
+//****************************************************
+//Query
+//****************************************************
+const QueryType = {
+    AND: 'AND',
+    OR: 'OR'
+} as const;
+
 export type CategoryKeys = typeof Category[keyof typeof Category];
 export type SubcategoryKeys = typeof Subcategory[keyof typeof Subcategory];
 export type CurrencyKeys = typeof Currency[keyof typeof Currency];
 export type TransactionTypeKeys = typeof TransactionType[keyof typeof TransactionType];
+export type QueryTypeKeys = typeof QueryType[keyof typeof QueryType];
 
 export {
     Category,
     Subcategory,
     Currency,
     TransactionType,
+    QueryType
 }
