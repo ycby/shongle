@@ -7,10 +7,11 @@ import {retrieveShortData} from "#root/src/helpers/ShortDataRetriever.ts";
 import {UpsertResult} from "mariadb";
 import {ValidationRule, validator, ValidatorResult} from "#root/src/utilities/Validator.ts";
 import {stringToDateConverter} from "#root/src/helpers/DateHelper.ts";
+import {QueryType} from "#root/src/types.ts";
 
 export type ShortDataGetParam = {
 	id?: number,
-	ticker_no: string;
+	stock_id: string;
 	start_date?: string;
 	end_date?: string;
 }
@@ -29,10 +30,10 @@ export type ShortDataBody = {
 
 const SHORT_PARAM_VALIDATION: ValidationRule[] = [
 	{
-		name: 'ticker_no',
+		name: 'stock_id',
 		isRequired: true,
-		rule: (ticker_no: any): boolean => typeof ticker_no === 'string' && ticker_no.length === 5,
-		errorMessage: 'Ticker No. is formatted incorrectly, it should be 5 characters long. E.g "00001"'
+		rule: (stock_id: any): boolean => typeof stock_id === 'string',
+		errorMessage: 'Stock Id is required'
 	},
 	{
 		name: 'start_date',
@@ -110,8 +111,8 @@ const columnInsertionOrder: ProcessDataMapping[] = [
 
 const fieldMapping: FieldMapping[] = [
 	{
-		param: 'ticker_no',
-		field: 'ticker_no',
+		param: 'stock_id',
+		field: 'stock_id',
 		operator: '='
 	},
 	{
@@ -135,15 +136,15 @@ const getShortData = async (args: ShortDataGetParam) => {
 
 	let result: ShortData[] = [];
 
-	const whereString = filterClauseGenerator(fieldMapping, args);
+	const whereString = filterClauseGenerator(QueryType.AND, fieldMapping, args);
 
 	try {
 
 		result = await executeQuery<ShortData[]>({
 			namedPlaceholders: true,
-			sql: `SELECT * FROM Short_Reporting_w_Stocks WHERE ${whereString !== '' ? whereString : ''} ORDER BY reporting_date DESC`
+			sql: `SELECT * FROM Short_Reporting WHERE ${whereString !== '' ? whereString : ''} ORDER BY reporting_date DESC`
 		}, {
-			ticker_no: args.ticker_no,
+			stock_id: args.stock_id,
 			start_date: args.start_date,
 			end_date: args.end_date,
 		});

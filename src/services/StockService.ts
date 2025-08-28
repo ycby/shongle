@@ -47,7 +47,7 @@ const STOCK_PARAM_VALIDATION: ValidationRule[] = [
 	{
 		name: 'ticker_no',
 		isRequired: false,
-		rule: (ticker_no: any): boolean => typeof ticker_no === 'string' && ticker_no.length === 5,
+		rule: (ticker_no: any): boolean => typeof ticker_no === 'string',
 		errorMessage: 'Ticker No. is formatted incorrectly, it should be 5 characters long. E.g "00001"'
 	},
 	{
@@ -199,8 +199,9 @@ const fieldMapping: FieldMapping[] = [
 //TODO: Convert all db calls to use the new executeQuery and executeBatch functions
 const getStocksData = async (args: StocksDataGetParam) => {
 
+	console.log(args);
 	let validationResult: ValidatorResult[] = validator(args, STOCK_PARAM_VALIDATION);
-
+	console.log(validationResult);
 	if (validationResult.length > 0) throw new InvalidRequestError(validationResult);
 
 	let result: Stock[] = [];
