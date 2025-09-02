@@ -37,29 +37,11 @@ describe('Short Data Service Tests', () => {
                 }
             ]);
 
-            const args: ShortDataGetParam = {ticker_no: '00001'};
+            const args: ShortDataGetParam = {stock_id: 1};
 
             const result = await ShortDataService.getShortData(args);
 
             expect(result).toHaveLength(1);
-        });
-
-        test('Get all short data, verify ticker_no violate length', async () => {
-
-            executeQueryMock.mockResolvedValueOnce([
-                {
-                    id: 1,
-                    stock_id: 1,
-                    shorted_amount: 100,
-                    shorted_shares: 10,
-                    reporting_date: '2025-01-01'
-                }
-            ]);
-
-            const args: ShortDataGetParam = {ticker_no: '0001'};
-
-            await expect(() => ShortDataService.getShortData(args))
-                .rejects.toThrow(InvalidRequestError);
         });
 
         test('Get all short data, verify ticker_no exists', async () => {
@@ -92,7 +74,7 @@ describe('Short Data Service Tests', () => {
                 }
             ]);
 
-            const args: ShortDataGetParam = {ticker_no: '00001', start_date: '2025-aa-01'};
+            const args: ShortDataGetParam = {stock_id: 1, start_date: '2025-aa-01'};
 
             await expect(() => ShortDataService.getShortData(args))
                 .rejects.toThrow(InvalidRequestError);
@@ -110,7 +92,7 @@ describe('Short Data Service Tests', () => {
                 }
             ]);
 
-            const args: ShortDataGetParam = {ticker_no: '00001', end_date: '2025-aa-01'};
+            const args: ShortDataGetParam = {stock_id: 1, end_date: '2025-aa-01'};
 
             await expect(() => ShortDataService.getShortData(args))
                 .rejects.toThrow(InvalidRequestError);

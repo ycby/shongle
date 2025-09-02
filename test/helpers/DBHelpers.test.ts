@@ -1,5 +1,6 @@
 import {describe, expect, test} from "@jest/globals";
 import {FieldMapping, filterClauseGenerator, processData, ProcessDataMapping} from "#root/src/helpers/DBHelpers.ts";
+import {QueryType} from "#root/src/types.ts";
 
 describe('DBHelper Tests', () => {
 
@@ -29,7 +30,7 @@ describe('DBHelper Tests', () => {
             end_date: '2022-12-31',
         };
 
-        expect(filterClauseGenerator(fieldMapping, data)).toEqual('(name = :name) AND (reporting_date >= :start_date) AND (reporting_date <= :end_date)');
+        expect(filterClauseGenerator(QueryType.AND, fieldMapping, data)).toEqual('(name = :name) AND (reporting_date >= :start_date) AND (reporting_date <= :end_date)');
     });
 
     test('Checks filterClauseGenerator skips missing clauses given the field mapping and object', () => {
@@ -57,7 +58,7 @@ describe('DBHelper Tests', () => {
             end_date: '2022-12-31',
         };
 
-        expect(filterClauseGenerator(fieldMapping, data)).toEqual('(name = :name) AND (reporting_date <= :end_date)');
+        expect(filterClauseGenerator(QueryType.AND, fieldMapping, data)).toEqual('(name = :name) AND (reporting_date <= :end_date)');
     });
 
     test('Checks filterClauseGenerator ignores extra clauses given the field mapping and object', () => {
@@ -81,7 +82,7 @@ describe('DBHelper Tests', () => {
             end_date: '2022-12-31',
         };
 
-        expect(filterClauseGenerator(fieldMapping, data)).toEqual('(name = :name) AND (reporting_date <= :end_date)');
+        expect(filterClauseGenerator(QueryType.AND, fieldMapping, data)).toEqual('(name = :name) AND (reporting_date <= :end_date)');
     });
 
     test('Checks filterClauseGenerator returns empty string if no data', () => {
@@ -101,7 +102,7 @@ describe('DBHelper Tests', () => {
 
         const data = {};
 
-        expect(filterClauseGenerator(fieldMapping, data)).toEqual('');
+        expect(filterClauseGenerator(QueryType.AND, fieldMapping, data)).toEqual('');
     });
 
     test('Checks filterClauseGenerator returns empty string if no mapping', () => {
@@ -114,7 +115,7 @@ describe('DBHelper Tests', () => {
             end_date: '2022-12-31',
         };
 
-        expect(filterClauseGenerator(fieldMapping, data)).toEqual('');
+        expect(filterClauseGenerator(QueryType.AND, fieldMapping, data)).toEqual('');
     });
 
     test('Checks processData returns mapped objects with correct fields', () => {

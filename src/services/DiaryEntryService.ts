@@ -6,6 +6,7 @@ import {stringToDateConverter} from "#root/src/helpers/DateHelper.ts";
 import {UpsertResult} from "mariadb";
 import Stock from "#root/src/models/Stock.ts";
 import DiaryEntry from "#root/src/models/DiaryEntry.ts";
+import {QueryType} from "#root/src/types.ts";
 
 export type DiaryEntryDataGetParams = {
     id?: number,
@@ -158,7 +159,7 @@ const getDiaryEntryData = async (args: DiaryEntryDataGetParams) => {
 
     let result: DiaryEntry[] = [];
 
-    const whereString = filterClauseGenerator(whereFieldMapping, args);
+    const whereString = filterClauseGenerator(QueryType.AND, whereFieldMapping, args);
 
     try {
 

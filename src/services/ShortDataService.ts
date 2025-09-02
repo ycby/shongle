@@ -11,7 +11,7 @@ import {QueryType} from "#root/src/types.ts";
 
 export type ShortDataGetParam = {
 	id?: number,
-	stock_id: string;
+	stock_id: number;
 	start_date?: string;
 	end_date?: string;
 }
@@ -32,8 +32,8 @@ const SHORT_PARAM_VALIDATION: ValidationRule[] = [
 	{
 		name: 'stock_id',
 		isRequired: true,
-		rule: (stock_id: any): boolean => typeof stock_id === 'string',
-		errorMessage: 'Stock Id is required'
+		rule: (stock_id: any): boolean => !isNaN(Number(stock_id)),
+		errorMessage: 'Stock Id is required and must be a number',
 	},
 	{
 		name: 'start_date',

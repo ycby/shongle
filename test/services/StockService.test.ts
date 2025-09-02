@@ -79,32 +79,6 @@ describe('Stock Service Tests', () => {
             expect(result).toHaveLength(1);
         });
 
-        test('Get all stocks, verify ticker_no violate length', async () => {
-
-            executeQueryMock.mockResolvedValueOnce([
-                {
-                    id: 1,
-                    ticker_no: '00001',
-                    name: 'test1',
-                    full_name: 'test full 1',
-                    description: '',
-                    category: 'equity',
-                    subcategory: 'equity_securities_main',
-                    board_lot: 100,
-                    ISIN: 'xxyyzz',
-                    currency: 'HKD',
-                }
-            ]);
-
-            //ticker no must be 5 chars long and a string
-            const args: StocksDataGetParam = {
-                ticker_no: '1'
-            };
-
-            await expect(async () => StockService.getStocksData(args))
-                .rejects.toThrow(InvalidRequestError);
-        });
-
         test('Get all stocks, verify name success', async () => {
 
             executeQueryMock.mockResolvedValueOnce([

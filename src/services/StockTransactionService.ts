@@ -4,7 +4,7 @@ import {FieldMapping, filterClauseGenerator, processData, ProcessDataMapping} fr
 import {executeBatch, executeQuery} from "#root/src/db/db.ts";
 import {stringToDateConverter} from "#root/src/helpers/DateHelper.ts";
 import {UpsertResult} from "mariadb";
-import {Currency, CurrencyKeys, TransactionType, TransactionTypeKeys} from "#root/src/types.ts";
+import {Currency, CurrencyKeys, QueryType, TransactionType, TransactionTypeKeys} from "#root/src/types.ts";
 import Stock from "#root/src/models/Stock.ts";
 import StockTransaction from "#root/src/models/StockTransaction.ts";
 
@@ -186,7 +186,7 @@ const getStockTransactionsData = async (args: TransactionDataGetParams) => {
 
     let result = [];
 
-    const whereString = filterClauseGenerator(whereFieldMapping, args);
+    const whereString = filterClauseGenerator(QueryType.AND, whereFieldMapping, args);
 
     try {
 
