@@ -1,4 +1,4 @@
-import express from 'express'
+import express from 'express';
 
 import {getStockRouter} from "#root/src/controllers/StockController.ts";
 import {getShortDataRouter} from "#root/src/controllers/ShortDataController.js";

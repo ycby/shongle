@@ -25,6 +25,7 @@
   },
   "homepage": "https://github.com/ycby/shingle#readme",
   "dependencies": {
+    "cors": "^2.8.5",
     "csv": "^6.3.9",
     "eslint": "^9.4.0",
     "express": "^5.1.0",
