@@ -22,7 +22,8 @@ export type ShortDataGetSingleParam = {
 
 export type ShortDataBody = {
 	id?: number;
-	stock_id: number;
+	stock_code: string;
+	stock_id?: number;
 	reporting_date: string;
 	shorted_shares: number;
 	shorted_amount: number;
@@ -66,27 +67,27 @@ const SHORT_BODY_VALIDATION: ValidationRule[] = [
 		errorMessage: 'Id is must be a number"'
 	},
 	{
-		name: 'stock_id',
+		name: 'stock_code',
 		isRequired: true,
-		rule: (stock_id: any): boolean => typeof stock_id === 'number',
-		errorMessage: 'Stock Id is must be a number and is required"'
+		rule: (stock_code: any): boolean => stock_code.toString().length === 5,
+		errorMessage: 'Stock Code is must be a number and is required"'
 	},
 	{
 		name: 'reporting_date',
 		isRequired: false,
 		rule: (reporting_date: any): boolean => stringToDateConverter(reporting_date) !== null,
-		errorMessage: 'Reporting Date must be a date'
+		errorMessage: 'Reporting Date must be formatted like so: yyyy-MM-dd'
 	},
 	{
 		name: 'shorted_shares',
 		isRequired: false,
-		rule: (shorted_shares: any): boolean => typeof shorted_shares === 'number',
+		rule: (shorted_shares: any): boolean => !isNaN(Number(shorted_shares)),
 		errorMessage: 'Shorted Shares must be a number'
 	},
 	{
 		name: 'shorted_amount',
 		isRequired: false,
-		rule: (shorted_amount: any): boolean => typeof shorted_amount === 'number',
+		rule: (shorted_amount: any): boolean => !isNaN(Number(shorted_amount)),
 		errorMessage: 'Shorted Amount must be a number'
 	},
 ];
@@ -160,6 +161,7 @@ const getShortData = async (args: ShortDataGetParam) => {
 
 const postShortData = async (data: ShortDataBody[]) => {
 
+	console.log(data);
 	//TODO: if stockCode is invalid/does not exist, return error
 	let validationResult: ValidatorResult[] = validator(data, SHORT_BODY_VALIDATION);
 
@@ -167,25 +169,28 @@ const postShortData = async (data: ShortDataBody[]) => {
 
 	let result: UpsertResult[] = [];
 
-	const dataIds = data.map(d => d.stock_id);
-
-	data.forEach(d => {d.reporting_date = (d.reporting_date)});
+	const tickerNumbers = data.map(d => d.stock_code.toString().padStart(5, '0'));
 
 	try {
 
 		const existingRecords = await executeQuery<Stock[]>({
 			namedPlaceholders: true,
-			sql: "SELECT id, ticker_no, name FROM Stocks WHERE id IN (:stock_ids)"
+			sql: "SELECT id, ticker_no, name FROM Stocks WHERE ticker_no IN (:ticker_nos)"
 		}, {
-			stock_ids: [dataIds]
+			ticker_nos: [tickerNumbers]
 		});
 
-		if (existingRecords.length === 0) {
+		if (existingRecords.length !== tickerNumbers.length) {
 
-			const nonExistantStockIds = data.map((d: ShortDataBody) => d.stock_id);
-
-			throw new RecordNotFoundError(`Stocks with ids ( ${nonExistantStockIds.join(', ')} ) do not exist!`);
+			throw new RecordNotFoundError(`Mismatch between Short Data to insert and Stocks found in database.`);
 		}
+
+		//create map for getting right stock id -in future consider caching
+		const stockMap = new Map(existingRecords.map(element => [element.ticker_no, element.id]));
+
+		data.forEach(element => {
+			element.stock_id = stockMap.get(element.stock_code)
+		});
 
 		//use existing records to set stock_id
 		result = await executeBatch({
