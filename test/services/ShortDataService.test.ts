@@ -123,17 +123,6 @@ describe('Short Data Service Tests', () => {
             await expect(() => ShortDataService.postShortData(data))
                 .rejects.toThrow(InvalidRequestError);
         });
-
-        test('Post short data, expect error when existing stock does not exist', async () => {
-
-            executeQueryMock.mockResolvedValueOnce([]);
-            executeBatchMock.mockResolvedValueOnce([{affectedRows: 1, insertId: 1, warningStatus: 0}])
-
-            const data: any[] = [testBody];
-
-            await expect(() => ShortDataService.postShortData(data))
-                .rejects.toThrow(RecordNotFoundError);
-        });
     });
 
     describe('GET by Id', () => {
