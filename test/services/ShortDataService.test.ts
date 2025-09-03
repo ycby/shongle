@@ -11,7 +11,7 @@ const executeBatchMock = db.executeBatch as jest.MockedFunction<typeof db.execut
 
 const testBody: ShortDataBody = {
     id: 1,
-    stock_id: 1,
+    stock_code: '00001',
     shorted_amount: 100,
     shorted_shares: 10,
     reporting_date: '2025-01-01'
@@ -113,17 +113,6 @@ describe('Short Data Service Tests', () => {
             expect(result).toHaveLength(1);
         });
 
-        test('Post short data, expect error when stock_id missing', async () => {
-
-            executeQueryMock.mockResolvedValueOnce([{id: 1, ticker_no: '00001', name: 'test1'}]);
-            executeBatchMock.mockResolvedValueOnce([{affectedRows: 1, insertId: 1, warningStatus: 0}])
-
-            const data: any[] = [{...testBody, stock_id: undefined}];
-
-            await expect(() => ShortDataService.postShortData(data))
-                .rejects.toThrow(InvalidRequestError);
-        });
-
         test('Post short data, expect error when reporting_date is wrong format', async () => {
 
             executeQueryMock.mockResolvedValueOnce([{id: 1, ticker_no: '00001', name: 'test1'}]);
@@ -197,17 +186,6 @@ describe('Short Data Service Tests', () => {
             const result = await ShortDataService.putShortDatum(testBody);
 
             expect(result).toHaveLength(1);
-        });
-
-        test('Put short data, expect error when stock_id missing', async () => {
-
-            executeQueryMock.mockResolvedValueOnce([{id: 1, ticker_no: '00001', name: 'test1'}]);
-            executeBatchMock.mockResolvedValueOnce([{affectedRows: 1, insertId: 1, warningStatus: 0}])
-
-            const data: any = {...testBody, stock_id: undefined};
-
-            await expect(() => ShortDataService.putShortDatum(data))
-                .rejects.toThrow(InvalidRequestError);
         });
 
         test('Put short data, expect error when reporting_date is wrong format', async () => {
