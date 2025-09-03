@@ -1,6 +1,6 @@
 import {executeBatch, executeQuery} from '#root/src/db/db.ts'
 import {FieldMapping, filterClauseGenerator, processData, ProcessDataMapping} from "#root/src/helpers/DBHelpers.ts";
-import {InvalidRequestError, RecordNotFoundError, RecordMissingDataError} from "#root/src/errors/Errors.ts";
+import {InvalidRequestError, RecordMissingDataError} from "#root/src/errors/Errors.ts";
 import ShortData from "#root/src/models/ShortData.ts";
 import Stock from "#root/src/models/Stock.ts";
 import {retrieveShortData} from "#root/src/helpers/ShortDataRetriever.ts";
@@ -100,6 +100,9 @@ const columnInsertionOrder: ProcessDataMapping[] = [
 		field: 'stock_id',
 	},
 	{
+		field: 'stock_code',
+	},
+	{
 		field: 'reporting_date'
 	},
 	{
@@ -159,6 +162,7 @@ const getShortData = async (args: ShortDataGetParam) => {
 	return result;
 }
 
+//Allow dumping records without matching stock id first
 const postShortData = async (data: ShortDataBody[]) => {
 
 	console.log(data);
@@ -175,15 +179,10 @@ const postShortData = async (data: ShortDataBody[]) => {
 
 		const existingRecords = await executeQuery<Stock[]>({
 			namedPlaceholders: true,
-			sql: "SELECT id, ticker_no, name FROM Stocks WHERE ticker_no IN (:ticker_nos)"
+			sql: "SELECT id, ticker_no, name FROM Stocks WHERE ticker_no IN (:ticker_nos) AND is_active = TRUE"
 		}, {
 			ticker_nos: [tickerNumbers]
 		});
-
-		if (existingRecords.length !== tickerNumbers.length) {
-
-			throw new RecordNotFoundError(`Mismatch between Short Data to insert and Stocks found in database.`);
-		}
 
 		//create map for getting right stock id -in future consider caching
 		const stockMap = new Map(existingRecords.map(element => [element.ticker_no, element.id]));
@@ -196,8 +195,8 @@ const postShortData = async (data: ShortDataBody[]) => {
 		result = await executeBatch({
 			namedPlaceholders: true,
 			sql: 'INSERT INTO Short_Reporting ' +
-				'(stock_id, reporting_date, shorted_shares, shorted_amount, created_datetime, last_modified_datetime) ' +
-				'VALUES (:stock_id, :reporting_date, :shorted_shares, :shorted_amount, :created_datetime, :last_modified_datetime)'
+				'(stock_id, ticker_no, reporting_date, shorted_shares, shorted_amount, created_datetime, last_modified_datetime) ' +
+				'VALUES (:stock_id, :stock_code, :reporting_date, :shorted_shares, :shorted_amount, :created_datetime, :last_modified_datetime)'
 		},
 			data.map(item => {
 
