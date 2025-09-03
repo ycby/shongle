@@ -2,7 +2,7 @@ import {afterEach, describe, expect, jest, test} from "@jest/globals";
 import * as db from "#root/src/db/db.ts";
 import * as ShortDataService from "#root/src/services/ShortDataService.ts";
 import {ShortDataBody, ShortDataGetParam, ShortDataGetSingleParam} from "#root/src/services/ShortDataService.ts";
-import {InvalidRequestError, RecordNotFoundError} from "#root/src/errors/Errors.ts";
+import {InvalidRequestError} from "#root/src/errors/Errors.ts";
 
 jest.mock('#root/src/db/db.ts');
 

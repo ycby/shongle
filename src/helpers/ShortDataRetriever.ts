@@ -1,6 +1,7 @@
 import Papa from 'papaparse';
 import {UpsertResult} from "mariadb";
 import {ShortDataBody} from "#root/src/services/ShortDataService.ts";
+import {dateToStringConverter} from "#root/src/helpers/DateHelper.ts";
 
 type UploadDataMapping = { [p: string]: UploadDataMappingElement };
 type UploadDataMappingElement = { label: string; value: string };
@@ -70,7 +71,12 @@ const retrieveShortData = async (targetDate: Date, callbackHandler: (data:Array<
                 if (field === 'reporting_date') {
 
                     const dateString = value.split('/');
-                    return new Date(parseInt(dateString[2]), parseInt(dateString[1]) - 1, parseInt(dateString[0]));
+                    return dateToStringConverter(new Date(parseInt(dateString[2]), parseInt(dateString[1]) - 1, parseInt(dateString[0])));
+                }
+
+                if (field === 'stock_code') {
+
+                    return value.padStart(5, '0');
                 }
 
                 return value;

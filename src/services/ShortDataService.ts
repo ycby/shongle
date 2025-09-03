@@ -163,6 +163,7 @@ const getShortData = async (args: ShortDataGetParam) => {
 }
 
 //Allow dumping records without matching stock id first
+//TODO: for front end?, allow user to find unparented short reporting and manually parent them.
 const postShortData = async (data: ShortDataBody[]) => {
 
 	console.log(data);
@@ -341,6 +342,8 @@ const retrieveShortDataFromSource = async (endDate: Date) => {
 
 		await wait(10000);
 	}
+	//TODO: log this better.
+	console.log('Job Done.')
 }
 
 const wait = (milliseconds: number) => {
