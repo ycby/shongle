@@ -34,7 +34,7 @@ const performValidation: <T>(data: T, index: number, validationRules: Validation
 
     validationRules.forEach((rule: ValidationRule) => {
 
-        if (!data[rule.name as keyof T]) {
+        if (data[rule.name as keyof T] === undefined) {
 
             if (!rule.isRequired) return;
 

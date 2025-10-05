@@ -21,7 +21,8 @@ const Currency = {
 const TransactionType = {
     BUY: 'buy',
     SELL: 'sell',
-    DIVIDEND: 'dividend'
+    CASH_DIVIDEND: 'cash_dividend',
+    SCRIP_DIVIDEND: 'scrip_dividend',
 } as const;
 
 //****************************************************
