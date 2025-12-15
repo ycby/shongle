@@ -1,7 +1,7 @@
 import Papa from 'papaparse';
 import {UpsertResult} from "mariadb";
-import {ShortDataBody} from "#root/src/services/ShortDataService.ts";
-import {dateToStringConverter} from "#root/src/helpers/DateHelper.ts";
+import {ShortDataBody} from "#root/src/services/ShortDataService.js";
+import {dateToStringConverter} from "#root/src/helpers/DateHelper.js";
 
 type UploadDataMapping = { [p: string]: UploadDataMappingElement };
 type UploadDataMappingElement = { label: string; value: string };

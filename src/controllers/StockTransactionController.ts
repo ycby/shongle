@@ -1,8 +1,8 @@
 import express, {NextFunction, Request, Response, Router} from "express";
-import * as StockTransactionService from "#root/src/services/StockTransactionService.ts";
-import * as Constants from "#root/src/constants/constants.ts";
-import * as ResponseStandardiser from "#root/src/utilities/ResponseStandardiser.ts";
-import {TransactionDataBody, TransactionDataGetParams} from "#root/src/services/StockTransactionService.ts";
+import * as StockTransactionService from "#root/src/services/StockTransactionService.js";
+import * as Constants from "#root/src/constants/constants.js";
+import * as ResponseStandardiser from "#root/src/utilities/ResponseStandardiser.js";
+import {TransactionDataBody, TransactionDataGetParams} from "#root/src/services/StockTransactionService.js";
 
 const getStockTransactionRouter = () => {
 

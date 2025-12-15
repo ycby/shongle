@@ -1,9 +1,9 @@
-import {executeBatch, executeQuery} from '#root/src/db/db.ts';
-import Stock from '#root/src/models/Stock.ts';
-import {DuplicateFoundError, InvalidRequestError} from "#root/src/errors/Errors.ts";
-import {FieldMapping, filterClauseGenerator, processData, ProcessDataMapping} from "#root/src/helpers/DBHelpers.ts";
+import {executeBatch, executeQuery} from '#root/src/db/db.js';
+import Stock from '#root/src/models/Stock.js';
+import {DuplicateFoundError, InvalidRequestError} from "#root/src/errors/Errors.js";
+import {FieldMapping, filterClauseGenerator, processData, ProcessDataMapping} from "#root/src/helpers/DBHelpers.js";
 import {UpsertResult} from "mariadb";
-import {ValidationRule, validator, ValidatorResult} from "#root/src/utilities/Validator.ts";
+import {ValidationRule, validator, ValidatorResult} from "#root/src/utilities/Validator.js";
 import {
 	Category,
 	Subcategory,
@@ -12,7 +12,7 @@ import {
 	SubcategoryKeys,
 	CurrencyKeys,
 	QueryTypeKeys, QueryType
-} from "#root/src/types.ts";
+} from "#root/src/types.js";
 
 export type StocksDataGetParam = {
 	query_type?: QueryTypeKeys;

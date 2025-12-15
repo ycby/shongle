@@ -1,15 +1,25 @@
 import express from 'express';
+import https from 'https';
+import fs from 'fs';
 
-import {getStockRouter} from "#root/src/controllers/StockController.ts";
+import {getStockRouter} from "#root/src/controllers/StockController.js";
 import {getShortDataRouter} from "#root/src/controllers/ShortDataController.js";
-import {ShongleError} from "#root/src/errors/Errors.ts";
-import * as ResponseStandardiser from "#root/src/utilities/ResponseStandardiser.ts";
-import {getStockTransactionRouter} from "#root/src/controllers/StockTransactionController.ts";
-import {getDiaryEntryRouter} from "#root/src/controllers/DiaryEntryController.ts";
+import {ShongleError} from "#root/src/errors/Errors.js";
+import * as ResponseStandardiser from "#root/src/utilities/ResponseStandardiser.js";
+import {getStockTransactionRouter} from "#root/src/controllers/StockTransactionController.js";
+import {getDiaryEntryRouter} from "#root/src/controllers/DiaryEntryController.js";
 
 const app = express()
 const port = process.env.SERVER_PORT
 console.log(`db name: ${process.env.DB_NAME}`)
+
+const privateKey = fs.readFileSync(process.env.PRIVATE_KEY);
+const certificate = fs.readFileSync(process.env.CERTIFICATE);
+
+const credentials = {
+	key: privateKey,
+	cert: certificate,
+}
 
 app.use((req, res, next) => {
 
@@ -44,6 +54,8 @@ app.use((err, req, res, next) => {
 	res.status(500).json(response);
 })
 
-app.listen(port, () => {
-	console.log(`Listening on PORT ${port}`)
+const httpsServer = https.createServer(credentials, app);
+
+httpsServer.listen(port, () => {
+	console.log(`HTTPS Listening on PORT ${port}`)
 })

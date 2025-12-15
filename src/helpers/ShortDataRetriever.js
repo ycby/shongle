@@ -1,4 +1,5 @@
 import Papa from 'papaparse';
+import { dateToStringConverter } from "#root/src/helpers/DateHelper.ts";
 const mapping = {
     'id': {
         label: 'id',
@@ -51,7 +52,10 @@ const retrieveShortData = async (targetDate, callbackHandler) => {
             transform: (value, field) => {
                 if (field === 'reporting_date') {
                     const dateString = value.split('/');
-                    return new Date(parseInt(dateString[2]), parseInt(dateString[1]) - 1, parseInt(dateString[0]));
+                    return dateToStringConverter(new Date(parseInt(dateString[2]), parseInt(dateString[1]) - 1, parseInt(dateString[0])));
+                }
+                if (field === 'stock_code') {
+                    return value.padStart(5, '0');
                 }
                 return value;
             },

@@ -1,13 +1,13 @@
-import {executeBatch, executeQuery} from '#root/src/db/db.ts'
-import {FieldMapping, filterClauseGenerator, processData, ProcessDataMapping} from "#root/src/helpers/DBHelpers.ts";
-import {InvalidRequestError, RecordMissingDataError} from "#root/src/errors/Errors.ts";
-import ShortData from "#root/src/models/ShortData.ts";
-import Stock from "#root/src/models/Stock.ts";
-import {retrieveShortData} from "#root/src/helpers/ShortDataRetriever.ts";
+import {executeBatch, executeQuery} from '#root/src/db/db.js'
+import {FieldMapping, filterClauseGenerator, processData, ProcessDataMapping} from "#root/src/helpers/DBHelpers.js";
+import {InvalidRequestError, RecordMissingDataError} from "#root/src/errors/Errors.js";
+import ShortData from "#root/src/models/ShortData.js";
+import Stock from "#root/src/models/Stock.js";
+import {retrieveShortData} from "#root/src/helpers/ShortDataRetriever.js";
 import {UpsertResult} from "mariadb";
-import {ValidationRule, validator, ValidatorResult} from "#root/src/utilities/Validator.ts";
-import {stringToDateConverter} from "#root/src/helpers/DateHelper.ts";
-import {QueryType} from "#root/src/types.ts";
+import {ValidationRule, validator, ValidatorResult} from "#root/src/utilities/Validator.js";
+import {stringToDateConverter} from "#root/src/helpers/DateHelper.js";
+import {QueryType} from "#root/src/types.js";
 
 export type ShortDataGetParam = {
 	id?: number,

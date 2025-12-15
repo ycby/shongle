@@ -1,16 +1,13 @@
-import {describe, expect, test} from "@jest/globals";
-import {ValidationRule, validator, ValidatorResult} from "#root/src/utilities/Validator.js";
-
+import { describe, expect, test } from "@jest/globals";
+import { validator } from "#root/src/utilities/Validator.ts";
 describe('Validator tests', () => {
     test('Check validator validates single datum normally', () => {
-
         const data = {
             name: 'Test1',
             email: 'test@test.com',
             age: 23
         };
-
-        const validationRules: ValidationRule[] = [
+        const validationRules = [
             {
                 name: 'name',
                 isRequired: false,
@@ -29,15 +26,11 @@ describe('Validator tests', () => {
                 rule: (age) => typeof age === 'number',
                 errorMessage: 'Age must be a number'
             }
-        ]
-
-        let validationResults: ValidatorResult[] = validator(data, validationRules);
-
+        ];
+        let validationResults = validator(data, validationRules);
         expect(validationResults.length).toBe(0);
     });
-
     test('Check validator validates data normally', () => {
-
         const data = [
             {
                 name: 'Test1',
@@ -50,8 +43,7 @@ describe('Validator tests', () => {
                 age: 25
             }
         ];
-
-        const validationRules: ValidationRule[] = [
+        const validationRules = [
             {
                 name: 'name',
                 isRequired: false,
@@ -70,18 +62,13 @@ describe('Validator tests', () => {
                 rule: (age) => typeof age === 'number',
                 errorMessage: 'Age must be a number'
             }
-        ]
-
-        let validationResults: ValidatorResult[] = validator(data, validationRules);
-
+        ];
+        let validationResults = validator(data, validationRules);
         expect(validationResults.length).toBe(0);
     });
-
     test('Check validator validates single datum all fields missing', () => {
-
         const data = {};
-
-        const validationRules: ValidationRule[] = [
+        const validationRules = [
             {
                 name: 'name',
                 isRequired: false,
@@ -100,18 +87,13 @@ describe('Validator tests', () => {
                 rule: (age) => typeof age === 'number',
                 errorMessage: 'Age must be a number'
             }
-        ]
-
-        let validationResults: ValidatorResult[] = validator(data, validationRules);
-
+        ];
+        let validationResults = validator(data, validationRules);
         expect(validationResults.length).toBe(0);
     });
-
     test('Check validator validates single datum required field', () => {
-
         const data = {};
-
-        const validationRules: ValidationRule[] = [
+        const validationRules = [
             {
                 name: 'name',
                 isRequired: true,
@@ -130,24 +112,19 @@ describe('Validator tests', () => {
                 rule: (age) => typeof age === 'number',
                 errorMessage: 'Age must be a number'
             }
-        ]
-
-        let validationResults: ValidatorResult[] = validator(data, validationRules);
-
+        ];
+        let validationResults = validator(data, validationRules);
         expect(validationResults.length).toBe(1);
         expect(validationResults[0].index).toBe(0);
         expect(validationResults[0].errorMessages).toStrictEqual(['Field "name" is required.']);
     });
-
     test('Check validator validates single datum failing requirement', () => {
-
         const data = {
             name: 99,
             email: 'test@test.com',
             age: 23
         };
-
-        const validationRules: ValidationRule[] = [
+        const validationRules = [
             {
                 name: 'name',
                 isRequired: true,
@@ -166,12 +143,10 @@ describe('Validator tests', () => {
                 rule: (age) => typeof age === 'number',
                 errorMessage: 'Age must be a number'
             }
-        ]
-
-        let validationResults: ValidatorResult[] = validator(data, validationRules);
-
+        ];
+        let validationResults = validator(data, validationRules);
         expect(validationResults.length).toBe(1);
         expect(validationResults[0].index).toBe(0);
         expect(validationResults[0].errorMessages).toStrictEqual(['Field "name": Name must be a string']);
     });
-})
+});
