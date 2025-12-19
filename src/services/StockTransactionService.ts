@@ -266,12 +266,12 @@ const createStockTransactionsData = async (data: TransactionDataBody[]) => {
             })
         )
 
-        // await conn.commit();
     } catch (err) {
 
         throw err;
     }
 
+    console.log(result);
     return result;
 }
 
