@@ -1,8 +1,8 @@
 import express, {NextFunction, Request, Response, Router} from "express";
-import * as DiaryEntryService from "#root/src/services/DiaryEntryService.js";
-import * as Constants from "#root/src/constants/constants.js";
-import * as ResponseStandardiser from "#root/src/utilities/ResponseStandardiser.js";
-import {DiaryEntryDataBody, DiaryEntryDataGetParams} from "#root/src/services/DiaryEntryService.js";
+import * as DiaryEntryService from "#root/src/services/DiaryEntryService.ts";
+import * as Constants from "#root/src/constants/constants.ts";
+import * as ResponseStandardiser from "#root/src/utilities/ResponseStandardiser.ts";
+import {DiaryEntryDataBody, DiaryEntryDataGetParams} from "#root/src/services/DiaryEntryService.ts";
 
 const getDiaryEntryRouter = () => {
 

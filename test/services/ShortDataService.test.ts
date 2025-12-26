@@ -1,10 +1,10 @@
 import {afterEach, describe, expect, jest, test} from "@jest/globals";
-import * as db from "#root/src/db/db.js";
-import * as ShortDataService from "#root/src/services/ShortDataService.js";
-import {ShortDataBody, ShortDataGetParam, ShortDataGetSingleParam} from "#root/src/services/ShortDataService.js";
-import {InvalidRequestError} from "#root/src/errors/Errors.js";
+import * as db from "#root/src/db/db.ts";
+import * as ShortDataService from "#root/src/services/ShortDataService.ts";
+import {ShortDataBody, ShortDataGetParam, ShortDataGetSingleParam} from "#root/src/services/ShortDataService.ts";
+import {InvalidRequestError} from "#root/src/errors/Errors.ts";
 
-jest.mock('#root/src/db/db.js');
+jest.mock('#root/src/db/db.ts');
 
 const executeQueryMock = db.executeQuery as jest.MockedFunction<typeof db.executeQuery>;
 const executeBatchMock = db.executeBatch as jest.MockedFunction<typeof db.executeBatch>;

@@ -1,4 +1,4 @@
-import {QueryType, QueryTypeKeys} from "#root/src/types.js";
+import {QueryType, QueryTypeKeys} from "#root/src/types.ts";
 
 export type FieldMapping = {
     param: string;
@@ -19,7 +19,6 @@ const filterClauseGenerator: (queryType: QueryTypeKeys, fieldMapping: FieldMappi
 
     //changed to use Object.keys instead of hasOwnProperty because query doesnt extend Object
     //maybe after validation, should extract necessary fields and put into a real js object?
-    console.log(args);
     const objKeys = Object.keys(args);
 
     for (const el of fieldMapping) {
@@ -28,6 +27,7 @@ const filterClauseGenerator: (queryType: QueryTypeKeys, fieldMapping: FieldMappi
 
         whereArray.push(`(${el.field} ${el.operator} :${el.param})`);
     }
+
     return whereArray.length !== 0 ? whereArray.join(` ${queryType} `) : '';
 }
 

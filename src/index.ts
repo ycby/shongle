@@ -1,33 +1,51 @@
-import express from 'express';
+import express, {Request, Response, NextFunction} from 'express';
 import https from 'https';
 import fs from 'fs';
 
-import {getStockRouter} from "#root/src/controllers/StockController.js";
-import {getShortDataRouter} from "#root/src/controllers/ShortDataController.js";
-import {ShongleError} from "#root/src/errors/Errors.js";
-import * as ResponseStandardiser from "#root/src/utilities/ResponseStandardiser.js";
-import {getStockTransactionRouter} from "#root/src/controllers/StockTransactionController.js";
-import {getDiaryEntryRouter} from "#root/src/controllers/DiaryEntryController.js";
+import {getStockRouter} from "#root/src/controllers/StockController.ts";
+import {getShortDataRouter} from "#root/src/controllers/ShortDataController.ts";
+import {ShongleError} from "#root/src/errors/Errors.ts";
+import * as ResponseStandardiser from "#root/src/utilities/ResponseStandardiser.ts";
+import {getStockTransactionRouter} from "#root/src/controllers/StockTransactionController.ts";
+import {getDiaryEntryRouter} from "#root/src/controllers/DiaryEntryController.ts";
 
 const app = express()
+
+if (!process.env.PRIVATE_KEY || !process.env.CERTIFICATE) {
+	console.error('Missing filepath for credentials');
+	process.exit(1);
+}
+
+if (!process.env.SERVER_PORT) {
+	console.error('Missing port');
+	process.exit(1);
+}
+
+if (!process.env.WHITELISTED_ORIGIN) {
+	console.error('Missing whitelisted origin');
+	process.exit(1);
+}
+
 const port = process.env.SERVER_PORT
+const whitelistedOrigin = process.env.WHITELISTED_ORIGIN;
 console.log(`db name: ${process.env.DB_NAME}`)
 
 const privateKey = fs.readFileSync(process.env.PRIVATE_KEY);
 const certificate = fs.readFileSync(process.env.CERTIFICATE);
+
 
 const credentials = {
 	key: privateKey,
 	cert: certificate,
 }
 
-app.use((req, res, next) => {
+app.use((_req: Request, res: Response, next: NextFunction) => {
 
-	res.setHeader('Access-Control-Allow-Origin', process.env.WHITELISTED_ORIGIN);
+	res.setHeader('Access-Control-Allow-Origin', whitelistedOrigin);
 	res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE');
 	res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-	next()
+	next();
 });
 
 //use parser
@@ -36,7 +54,7 @@ app.use(express.json({limit: '500kb'}));
 console.log('Initialising...');
 app.use("/", [getStockRouter(), getShortDataRouter(), getStockTransactionRouter(), getDiaryEntryRouter()]);
 
-app.use((err, req, res, next) => {
+app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
 
 	console.error(err.name);
 	console.error(err.message);

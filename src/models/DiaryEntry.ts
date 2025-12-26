@@ -1,4 +1,4 @@
-import DatabaseObject from "#root/src/models/DatabaseObject.js";
+import DatabaseObject from "#root/src/models/DatabaseObject.ts";
 
 export default class DiaryEntry extends DatabaseObject{
 

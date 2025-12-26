@@ -1,10 +1,10 @@
 import {afterEach, describe, expect, jest, test} from "@jest/globals";
-import * as StockTransactionService from "#root/src/services/StockTransactionService.js";
-import {TransactionDataGetParams, TransactionDataBody} from "#root/src/services/StockTransactionService.js";
-import * as db from "#root/src/db/db.js";
-import {InvalidRequestError, RecordNotFoundError} from "#root/src/errors/Errors.js";
+import * as StockTransactionService from "#root/src/services/StockTransactionService.ts";
+import {TransactionDataGetParams, TransactionDataBody} from "#root/src/services/StockTransactionService.ts";
+import * as db from "#root/src/db/db.ts";
+import {InvalidRequestError, RecordNotFoundError} from "#root/src/errors/Errors.ts";
 
-jest.mock('#root/src/db/db.js');
+jest.mock('#root/src/db/db.ts');
 const executeQueryMock = db.executeQuery as jest.MockedFunction<typeof db.executeQuery>;
 const executeBatchMock = db.executeBatch as jest.MockedFunction<typeof db.executeBatch>;
 

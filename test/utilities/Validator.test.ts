@@ -1,5 +1,5 @@
 import {describe, expect, test} from "@jest/globals";
-import {ValidationRule, validator, ValidatorResult} from "#root/src/utilities/Validator.js";
+import {ValidationRule, validator, ValidatorResult} from "#root/src/utilities/Validator.ts";
 
 describe('Validator tests', () => {
     test('Check validator validates single datum normally', () => {

@@ -1,11 +1,11 @@
 import {afterEach, describe, expect, jest, test} from "@jest/globals";
-import * as db from "#root/src/db/db.js";
-import * as DiaryEntryService from "#root/src/services/DiaryEntryService.js";
-import {InvalidRequestError, RecordNotFoundError} from "#root/src/errors/Errors.js";
-import {DiaryEntryDataBody, DiaryEntryDataGetParams} from "#root/src/services/DiaryEntryService.js";
-import DiaryEntry from "#root/src/models/DiaryEntry.js";
+import * as db from "#root/src/db/db.ts";
+import * as DiaryEntryService from "#root/src/services/DiaryEntryService.ts";
+import {InvalidRequestError, RecordNotFoundError} from "#root/src/errors/Errors.ts";
+import {DiaryEntryDataBody, DiaryEntryDataGetParams} from "#root/src/services/DiaryEntryService.ts";
+import DiaryEntry from "#root/src/models/DiaryEntry.ts";
 
-jest.mock('#root/src/db/db.js');
+jest.mock('#root/src/db/db.ts');
 
 const executeQueryMock = db.executeQuery as jest.MockedFunction<typeof db.executeQuery>;
 const executeBatchMock = db.executeBatch as jest.MockedFunction<typeof db.executeBatch>;

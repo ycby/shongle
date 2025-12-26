@@ -1,5 +1,5 @@
 import {describe, expect, test} from "@jest/globals";
-import {stringToDateConverter} from "#root/src/helpers/DateHelper.js";
+import {stringToDateConverter} from "#root/src/helpers/DateHelper.ts";
 
 describe('Date Helper tests', () => {
     test('Check stringToDateHelper converts from yyyy-MM-dd to Date', () => {

@@ -1,8 +1,13 @@
-import express from 'express'
-import * as Constants from "#root/src/constants/constants.js";
-import * as ResponseStandardiser from "#root/src/utilities/ResponseStandardiser.js";
-import * as ShortDataService from "#root/src/services/ShortDataService.js";
-import {stringToDateConverter} from "#root/src/helpers/DateHelper.js";
+import express, {Request, NextFunction, Response} from 'express'
+import * as Constants from "#root/src/constants/constants.ts";
+import * as ResponseStandardiser from "#root/src/utilities/ResponseStandardiser.ts";
+import * as ShortDataService from "#root/src/services/ShortDataService.ts";
+import {stringToDateConverter} from "#root/src/helpers/DateHelper.ts";
+import {
+    ShortDataGetParam,
+    ShortDataGetSingleParam,
+    ShortDataRetrieveQuery
+} from "#root/src/services/ShortDataService.ts";
 
 const getShortDataRouter = () => {
 
@@ -19,7 +24,7 @@ const getShortDataRouter = () => {
     return router;
 }
 
-const getShortData = async (req, res, next) =>{
+const getShortData = async (req: Request<{}, {}, {}, ShortDataGetParam>, res: Response, next: NextFunction) =>{
 
     try {
         const shortData = await ShortDataService.getShortData(req.query);
@@ -37,7 +42,7 @@ const getShortData = async (req, res, next) =>{
     }
 }
 
-const createShortData = async (req, res, next) => {
+const createShortData = async (req: Request, res: Response, next: NextFunction) => {
 
     try {
 
@@ -56,7 +61,7 @@ const createShortData = async (req, res, next) => {
     }
 }
 
-const getShortDatum = async (req, res, next) => {
+const getShortDatum = async (req: Request<ShortDataGetSingleParam, {}, {}, {}>, res: Response, next: NextFunction) => {
 
     try {
 
@@ -75,7 +80,7 @@ const getShortDatum = async (req, res, next) => {
     }
 }
 
-const upsertShortDatum = async (req, res, next) => {
+const upsertShortDatum = async (req: Request, res: Response, next: NextFunction) => {
 
     try {
 
@@ -94,7 +99,7 @@ const upsertShortDatum = async (req, res, next) => {
     }
 }
 
-const deleteShortDatum = async (req, res, next) => {
+const deleteShortDatum = async (req: Request<ShortDataGetSingleParam, {}, {}, {}>, res: Response, next: NextFunction) => {
 
     try {
 
@@ -113,7 +118,7 @@ const deleteShortDatum = async (req, res, next) => {
     }
 }
 
-const retrieveShortDataFromSource = async (req, res, next) => {
+const retrieveShortDataFromSource = async (req: Request<{}, {}, {}, ShortDataRetrieveQuery>, res: Response, next: NextFunction) => {
 
     try {
 

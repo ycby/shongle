@@ -1,12 +1,12 @@
-import {ValidationRule, validator, ValidatorResult} from "#root/src/utilities/Validator.js";
-import {InvalidRequestError, RecordNotFoundError} from "#root/src/errors/Errors.js";
-import {FieldMapping, filterClauseGenerator, processData, ProcessDataMapping} from "#root/src/helpers/DBHelpers.js";
-import {executeBatch, executeQuery} from "#root/src/db/db.js";
-import {stringToDateConverter} from "#root/src/helpers/DateHelper.js";
+import {ValidationRule, validator, ValidatorResult} from "#root/src/utilities/Validator.ts";
+import {InvalidRequestError, RecordNotFoundError} from "#root/src/errors/Errors.ts";
+import {FieldMapping, filterClauseGenerator, processData, ProcessDataMapping} from "#root/src/helpers/DBHelpers.ts";
+import {executeBatch, executeQuery} from "#root/src/db/db.ts";
+import {stringToDateConverter} from "#root/src/helpers/DateHelper.ts";
 import {UpsertResult} from "mariadb";
-import {Currency, CurrencyKeys, QueryType, TransactionType, TransactionTypeKeys} from "#root/src/types.js";
-import Stock from "#root/src/models/Stock.js";
-import StockTransaction from "#root/src/models/StockTransaction.js";
+import {Currency, CurrencyKeys, QueryType, TransactionType, TransactionTypeKeys} from "#root/src/types.ts";
+import Stock from "#root/src/models/Stock.ts";
+import StockTransaction from "#root/src/models/StockTransaction.ts";
 
 export type TransactionDataGetParams = {
     id?: number,
@@ -185,7 +185,6 @@ const getStockTransactionsData = async (args: TransactionDataGetParams) => {
     if (validationResult.length > 0) throw new InvalidRequestError(validationResult);
 
     let result = [];
-
     const whereString = filterClauseGenerator(QueryType.AND, whereFieldMapping, args);
 
     try {

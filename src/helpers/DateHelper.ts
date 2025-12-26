@@ -5,7 +5,7 @@ const dateToStringConverter = (value: Date | null) => {
     return `${value.getFullYear()}-${(value.getMonth() + 1).toString().padStart(2, '0')}-${(value.getDate()).toString().padStart(2, '0')}`;
 }
 
-const stringToDateConverter = (value: String | null) => {
+const stringToDateConverter = (value: String | null | undefined) => {
 
     if (value === null || value === undefined) return null;
 

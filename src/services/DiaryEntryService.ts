@@ -1,12 +1,12 @@
-import {ValidationRule, validator, ValidatorResult} from "#root/src/utilities/Validator.js";
-import {InvalidRequestError, RecordNotFoundError} from "#root/src/errors/Errors.js";
-import {FieldMapping, filterClauseGenerator, processData, ProcessDataMapping} from "#root/src/helpers/DBHelpers.js";
-import {executeBatch, executeQuery} from "#root/src/db/db.js";
-import {stringToDateConverter} from "#root/src/helpers/DateHelper.js";
+import {ValidationRule, validator, ValidatorResult} from "#root/src/utilities/Validator.ts";
+import {InvalidRequestError, RecordNotFoundError} from "#root/src/errors/Errors.ts";
+import {FieldMapping, filterClauseGenerator, processData, ProcessDataMapping} from "#root/src/helpers/DBHelpers.ts";
+import {executeBatch, executeQuery} from "#root/src/db/db.ts";
+import {stringToDateConverter} from "#root/src/helpers/DateHelper.ts";
 import {UpsertResult} from "mariadb";
-import Stock from "#root/src/models/Stock.js";
-import DiaryEntry from "#root/src/models/DiaryEntry.js";
-import {QueryType} from "#root/src/types.js";
+import Stock from "#root/src/models/Stock.ts";
+import DiaryEntry from "#root/src/models/DiaryEntry.ts";
+import {QueryType} from "#root/src/types.ts";
 
 export type DiaryEntryDataGetParams = {
     id?: number,

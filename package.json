@@ -12,8 +12,8 @@
     "test": "jest",
     "coverage": "jest --coverage",
     "build": "npx tsc",
-    "start:prod": "node --env-file=.env --import=tsx src/index.js",
-    "start:dev": "nodemon --env-file=.env.dev --import=tsx --ext 'ts,json,js,mjs,cjs' src/index.js"
+    "start:prod": "node --env-file=.env --import=tsx src/index.ts",
+    "start:dev": "nodemon --env-file=.env.dev --import=tsx --ext 'ts,json,js,mjs,cjs' src/index.ts"
   },
   "repository": {
     "type": "git",

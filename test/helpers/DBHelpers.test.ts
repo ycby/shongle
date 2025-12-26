@@ -1,6 +1,6 @@
 import {describe, expect, test} from "@jest/globals";
-import {FieldMapping, filterClauseGenerator, processData, ProcessDataMapping} from "#root/src/helpers/DBHelpers.js";
-import {QueryType} from "#root/src/types.js";
+import {FieldMapping, filterClauseGenerator, processData, ProcessDataMapping} from "#root/src/helpers/DBHelpers.ts";
+import {QueryType} from "#root/src/types.ts";
 
 describe('DBHelper Tests', () => {
 

@@ -1,9 +1,9 @@
 import express from 'express';
-import * as Constants from '#root/src/constants/constants.js';
-import * as StockService from '#root/src/services/StockService.js';
-import * as ResponseStandardiser from "#root/src/utilities/ResponseStandardiser.js";
+import * as Constants from '#root/src/constants/constants.ts';
+import * as StockService from '#root/src/services/StockService.ts';
+import * as ResponseStandardiser from "#root/src/utilities/ResponseStandardiser.ts";
 import {Request, Response, NextFunction} from "express";
-import {StocksDataGetParam, StocksTrackParam} from "#root/src/services/StockService.js";
+import {StocksDataGetParam, StocksTrackParam} from "#root/src/services/StockService.ts";
 
 const getStockRouter = () => {
 

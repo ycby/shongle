@@ -1,5 +1,5 @@
-import DatabaseObject from "#root/src/models/DatabaseObject.js";
-import {CurrencyKeys} from "#root/src/types.js";
+import DatabaseObject from "#root/src/models/DatabaseObject.ts";
+import {CurrencyKeys} from "#root/src/types.ts";
 
 export default class StockTransaction extends DatabaseObject {
 
