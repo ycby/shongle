@@ -1,13 +1,13 @@
 import express, {Request, NextFunction, Response} from 'express'
-import * as Constants from "#root/src/constants/constants.ts";
-import * as ResponseStandardiser from "#root/src/utilities/ResponseStandardiser.ts";
-import * as ShortDataService from "#root/src/services/ShortDataService.ts";
-import {stringToDateConverter} from "#root/src/helpers/DateHelper.ts";
+import * as Constants from "#root/src/constants/constants.js";
+import * as ResponseStandardiser from "#root/src/utilities/ResponseStandardiser.js";
+import * as ShortDataService from "#root/src/services/ShortDataService.js";
+import {stringToDateConverter} from "#root/src/helpers/DateHelper.js";
 import {
     ShortDataGetParam,
     ShortDataGetSingleParam,
     ShortDataRetrieveQuery
-} from "#root/src/services/ShortDataService.ts";
+} from "#root/src/services/ShortDataService.js";
 
 const getShortDataRouter = () => {
 

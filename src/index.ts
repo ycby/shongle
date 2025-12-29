@@ -2,12 +2,12 @@ import express, {Request, Response, NextFunction} from 'express';
 import https from 'https';
 import fs from 'fs';
 
-import {getStockRouter} from "#root/src/controllers/StockController.ts";
-import {getShortDataRouter} from "#root/src/controllers/ShortDataController.ts";
-import {ShongleError} from "#root/src/errors/Errors.ts";
-import * as ResponseStandardiser from "#root/src/utilities/ResponseStandardiser.ts";
-import {getStockTransactionRouter} from "#root/src/controllers/StockTransactionController.ts";
-import {getDiaryEntryRouter} from "#root/src/controllers/DiaryEntryController.ts";
+import {getStockRouter} from "#root/src/controllers/StockController.js";
+import {getShortDataRouter} from "#root/src/controllers/ShortDataController.js";
+import {ShongleError} from "#root/src/errors/Errors.js";
+import * as ResponseStandardiser from "#root/src/utilities/ResponseStandardiser.js";
+import {getStockTransactionRouter} from "#root/src/controllers/StockTransactionController.js";
+import {getDiaryEntryRouter} from "#root/src/controllers/DiaryEntryController.js";
 
 const app = express()
 

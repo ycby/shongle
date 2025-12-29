@@ -1,4 +1,4 @@
-import DatabaseObject from '#root/src/models/DatabaseObject.ts'
+import DatabaseObject from '#root/src/models/DatabaseObject.js'
 
 export default class ShortData extends DatabaseObject {
 

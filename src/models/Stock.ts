@@ -1,5 +1,5 @@
-import DatabaseObject from '#root/src/models/DatabaseObject.ts'
-import {CurrencyKeys} from "#root/src/types.ts";
+import DatabaseObject from '#root/src/models/DatabaseObject.js'
+import {CurrencyKeys} from "#root/src/types.js";
 
 export default class ShortData extends DatabaseObject {
 

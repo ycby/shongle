@@ -1,4 +1,4 @@
-import {QueryType, QueryTypeKeys} from "#root/src/types.ts";
+import {QueryType, QueryTypeKeys} from "#root/src/types.js";
 
 export type FieldMapping = {
     param: string;
