@@ -1,10 +1,10 @@
 import {afterEach, describe, expect, jest, test} from "@jest/globals";
-import * as StockService from "#root/src/services/StockService.ts";
-import {StocksDataBody, StocksDataGetParam} from "#root/src/services/StockService.ts";
-import * as db from "#root/src/db/db.ts";
-import {DuplicateFoundError, InvalidRequestError} from "#root/src/errors/Errors.ts";
+import * as StockService from "#root/src/services/StockService.js";
+import {StocksDataBody, StocksDataGetParam} from "#root/src/services/StockService.js";
+import * as db from "#root/src/db/db.js";
+import {DuplicateFoundError, InvalidRequestError} from "#root/src/errors/Errors.js";
 
-jest.mock('#root/src/db/db.ts');
+jest.mock('#root/src/db/db.js');
 const executeQueryMock = db.executeQuery as jest.MockedFunction<typeof db.executeQuery>;
 const executeBatchMock = db.executeBatch as jest.MockedFunction<typeof db.executeBatch>;
 

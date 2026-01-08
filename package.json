@@ -9,7 +9,7 @@
     "#root/*.ts": "./*.ts"
   },
   "scripts": {
-    "test": "jest",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "coverage": "jest --coverage",
     "build": "npx tsc",
     "start:prod": "tsx --env-file=.env --import=tsx src/index.ts",
@@ -41,11 +41,13 @@
     "@eslint/js": "^9.4.0",
     "@jest/globals": "^30.0.4",
     "@types/express": "^5.0.3",
+    "@types/jest": "^30.0.0",
     "@types/papaparse": "^5.3.16",
     "babel-jest": "^30.0.4",
     "globals": "^15.4.0",
     "jest": "^30.0.4",
     "nodemon": "^3.1.3",
+    "ts-jest": "^29.4.6",
     "ts-node": "^10.9.2",
     "tsx": "^4.19.4"
   }
