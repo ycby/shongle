@@ -33,6 +33,15 @@ export type ShortDataRetrieveQuery = {
 	end_date?: string;
 }
 
+export type ShortDataTickersWithMismatchQuery = {
+	limit?: number;
+	offset?: number;
+}
+
+export type ShortDataMismatchQuery = {
+	ticker_no: string;
+}
+
 const SHORT_PARAM_VALIDATION: ValidationRule[] = [
 	{
 		name: 'stock_id',
@@ -95,6 +104,30 @@ const SHORT_BODY_VALIDATION: ValidationRule[] = [
 		errorMessage: 'Shorted Amount must be a number'
 	},
 ];
+
+const SHORT_MISMATCH_QUERY_VALIDATION = [
+	{
+		name: 'limit',
+		isRequired: false,
+		rule: (limit: any): boolean => !isNaN(Number(limit)) && Number(limit) >= 0,
+		errorMessage: 'Limit must be a positive number',
+	},
+	{
+		name: 'offset',
+		isRequired: false,
+		rule: (offset: any): boolean => !isNaN(Number(offset)) && Number(offset) >= 0,
+		errorMessage: 'Offset must be a positive number',
+	}
+]
+
+const SHORT_MISMATCH_PARAM_VALIDATION: ValidationRule[] = [
+	{
+		name: 'ticker_no',
+		isRequired: true,
+		rule: (ticker_no: any): boolean => typeof ticker_no === 'string' && ticker_no.length === 5,
+		errorMessage: 'Ticker No. in param is formatted incorrectly, it should be 5 characters long. E.g "00001"'
+	}
+]
 
 const columnInsertionOrder: ProcessDataMapping[] = [
 	{
@@ -316,7 +349,7 @@ const retrieveShortDataFromSource = async (endDate: Date | null) => {
 
 	//Step 1: get the last date which was imported
 	//Step 2: loop over each date from the last date to today and insert records as appropriate
-	//Step 2.1: use settimeout to wait for 1 minute before doing the next call = https://stackoverflow.com/questions/23316525/nodejs-wait-in-a-loop
+	//Step 2.1: use setTimeout to wait for 1 minute before doing the next call = https://stackoverflow.com/questions/23316525/nodejs-wait-in-a-loop
 	let result;
 
 	try {
@@ -350,6 +383,61 @@ const retrieveShortDataFromSource = async (endDate: Date | null) => {
 	console.log('Job Done.')
 }
 
+//Use limit+offset since I will be managing the data myself, and it won't change much
+const getTickersWithMismatchedData = async (args: ShortDataTickersWithMismatchQuery) => {
+
+	let validationResults: ValidatorResult[] = validator(args, SHORT_MISMATCH_QUERY_VALIDATION);
+
+	if (validationResults.length > 0) throw new InvalidRequestError(validationResults);
+
+	args.limit = args.limit ? args.limit : 10;
+	args.offset = args.offset ? args.offset : 0;
+	let result = [];
+
+	console.log(args);
+	try {
+
+		result = await executeQuery<Stock[]>({
+			namedPlaceholders: true,
+			sql: `SELECT ticker_no FROM Short_Reporting_wo_Stock_Id_Distinct LIMIT :limit OFFSET :offset`
+		}, {
+			limit: Number(args.limit),
+			offset: Number(args.offset),
+		});
+
+	} catch (err) {
+
+		throw err;
+	}
+	console.log(result);
+	return result.map(element => element.ticker_no);
+}
+
+const getMismatchedDataByTicker = async (args: ShortDataMismatchQuery) => {
+
+	let validationResults: ValidatorResult[] = validator(args, SHORT_MISMATCH_PARAM_VALIDATION);
+
+	if (validationResults.length > 0) throw new InvalidRequestError(validationResults);
+
+	let result = [];
+
+	try {
+
+		result = await executeQuery<ShortData[]>({
+			namedPlaceholders: true,
+			sql: `SELECT * FROM Short_Reporting_wo_Stock_Id WHERE ticker_no = :ticker_no`,
+		}, {
+			ticker_no: args.ticker_no
+		});
+
+	} catch (err) {
+
+		throw err;
+	}
+
+	return result;
+}
+
 const wait = (milliseconds: number) => {
 
 	return new Promise(resolve => setTimeout(resolve, milliseconds));
@@ -361,5 +449,7 @@ export {
 	getShortDatum,
 	putShortDatum,
 	deleteShortDatum,
-	retrieveShortDataFromSource
+	retrieveShortDataFromSource,
+	getTickersWithMismatchedData,
+	getMismatchedDataByTicker
 }
