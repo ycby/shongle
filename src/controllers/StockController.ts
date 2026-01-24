@@ -15,6 +15,7 @@ const getStockRouter = () => {
     router.get(basePath + "/tracked", getTrackedStocks);
     router.post(basePath + "/tracked/:id/track", trackStock);
     router.post(basePath + "/tracked/:id/untrack", untrackStock);
+    router.get(basePath + "/retrieve-from-source", retrieveStockDataFromSource);
     router.get(basePath + "/:ticker_no", getStock);
     router.put(basePath + "/:ticker_no", upsertStock);
     router.delete(basePath + "/:ticker_no", deleteStock);
@@ -165,6 +166,25 @@ const untrackStock = async (req: Request<StocksTrackParam, {}, {},{}>, res: Resp
                 Constants.APP_STATUS_CODES.SUCCESS,
                 Constants.APP_STATUS_DESCRIPTORS.RESULT_FOUND,
                 stock
+            )
+        );
+    } catch (err) {
+
+        next(err);
+    }
+}
+
+const retrieveStockDataFromSource = async (_req: Request, res: Response, next: NextFunction) => {
+
+    try {
+
+        StockService.retrieveStockDataFromSource();
+
+        return res.status(Constants.HTTP_STATUS_CODES.SUCCESS).json(
+            ResponseStandardiser.generateStandardResponse(
+                Constants.APP_STATUS_CODES.SUCCESS,
+                Constants.APP_STATUS_DESCRIPTORS.RESULT_FOUND,
+                "done!"
             )
         );
     } catch (err) {
