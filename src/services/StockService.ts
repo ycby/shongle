@@ -452,4 +452,5 @@ export {
 	deleteStockData,
 	getTrackedStocks,
 	setTrackStock,
+	retrieveStockDataFromSource
 }
