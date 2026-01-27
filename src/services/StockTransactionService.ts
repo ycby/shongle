@@ -1,6 +1,6 @@
 import {ValidationRule, validator, ValidatorResult} from "#root/src/utilities/Validator.js";
 import {InvalidRequestError, RecordNotFoundError} from "#root/src/errors/Errors.js";
-import {FieldMapping, filterClauseGenerator, processData, ProcessDataMapping} from "#root/src/helpers/DBHelpers.js";
+import {FieldMapping, filterClauseGenerator} from "#root/src/helpers/DBHelpers.js";
 import {executeBatch, executeQuery} from "#root/src/db/db.js";
 import {stringToDateConverter} from "#root/src/helpers/DateHelper.js";
 import {UpsertResult} from "mariadb";
@@ -151,33 +151,6 @@ const whereFieldMapping: FieldMapping[] = [
     }
 ];
 
-const insertColumnMapping: ProcessDataMapping[] = [
-    {
-        field: 'id'
-    },
-    {
-        field: 'stock_id'
-    },
-    {
-        field: 'type'
-    },
-    {
-        field: 'amount'
-    },
-    {
-        field: 'quantity'
-    },
-    {
-        field: 'fee'
-    },
-    {
-        field: 'transaction_date'
-    },
-    {
-        field: 'currency'
-    }
-];
-
 const getStockTransactionsData = async (args: TransactionDataGetParams) => {
 
     let validationResult: ValidatorResult[] = validator(args, TRANSACTION_PARAM_VALIDATION);
@@ -239,12 +212,7 @@ const createStockTransactionsData = async (data: TransactionDataBody[]) => {
                     '(stock_id, type, amount, quantity, fee, transaction_date, currency, created_datetime, last_modified_datetime) ' +
                     'VALUES (:stock_id, :type, :amount, :quantity, :fee, :transaction_date, :currency, :created_datetime, :last_modified_datetime)'
             },
-            data.map((item: TransactionDataBody): StockTransaction => {
-
-                let transaction: StockTransaction = new StockTransaction('INSERT');
-
-                return processData(item, insertColumnMapping, transaction);
-            })
+            data.map((item: TransactionDataBody): StockTransaction => new StockTransaction(item))
         );
 
     } catch (err) {
