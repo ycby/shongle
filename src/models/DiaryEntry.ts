@@ -2,23 +2,29 @@ import DatabaseObject from "#root/src/models/DatabaseObject.js";
 
 export default class DiaryEntry extends DatabaseObject{
 
-    private _id?: number;
+    private _id?: BigInt;
     private _stock_id?: number;
     private _title?: string;
     private _content?: string;
     private _posted_date?: Date;
 
-    constructor (operationType: string) {
+    constructor (data?: any) {
 
-        super(operationType);
+        super();
+
+        this._id = data?.id;
+        this._stock_id = data?.stock_id;
+        this._title = data?.title;
+        this._content = data?.content;
+        this._posted_date = data?.posted_date;
     }
 
-    get id(): number | undefined {
+    get id(): BigInt | undefined {
 
         return this._id;
     }
 
-    set id(id: number) {
+    set id(id: BigInt) {
 
         this._id = id;
     }

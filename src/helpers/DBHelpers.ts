@@ -6,11 +6,6 @@ export type FieldMapping = {
     operator: string;
 }
 
-export type ProcessDataMapping = {
-    field: string;
-    transform?: (element: any) => any;
-}
-
 const filterClauseGenerator: (queryType: QueryTypeKeys, fieldMapping: FieldMapping[], args: Object) => string = (queryType: QueryTypeKeys = QueryType.AND, fieldMapping: FieldMapping[], args: Object) => {
 
     //mapping format in case I forget:
@@ -31,23 +26,6 @@ const filterClauseGenerator: (queryType: QueryTypeKeys, fieldMapping: FieldMappi
     return whereArray.length !== 0 ? whereArray.join(` ${queryType} `) : '';
 }
 
-const processData: <T>(bodyData: Object, columns: ProcessDataMapping[], editedObject: T) => T = <T>(bodyData: Object, columns: ProcessDataMapping[], editedObject: T): T => {
-
-    columns.forEach(column => {
-        //map but set default to null if not found
-        let newValue: any = bodyData[column.field as keyof Object] ?? null;
-
-        if (column.transform) {
-
-            newValue = column.transform(newValue);
-        }
-        editedObject[column.field as keyof T] = newValue;
-    });
-
-    return editedObject;
-}
-
 export {
-    filterClauseGenerator,
-    processData
+    filterClauseGenerator
 }
