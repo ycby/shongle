@@ -10,11 +10,24 @@ export default class StockTransaction extends DatabaseObject {
     private _quantity?: number;
     private _fee?: number
     private _amount_per_share?: number;
+    private _transaction_date: Date;
     private _currency?: CurrencyKeys;
 
-    constructor(operationType: string) {
+    constructor(data?: any) {
 
-        super(operationType);
+        super();
+
+        this._id = data?.id;
+        this._stock_id = data?.stock_id;
+        this._type = data?.type;
+        this._amount = data?.amount;
+        this._quantity = data?.quantity;
+        this._fee = data?.fee;
+        this._amount_per_share = data?.amount_per_share;
+        this._transaction_date = data?.transaction_date;
+        this._currency = data?.currency;
+        this.created_datetime = data?.created_datetime ? data.created_datetime : this.created_datetime;
+        this.last_modified_datetime = data?.last_modified_datetime ? data.last_modified_datetime : this.last_modified_datetime;
     }
 
     get id(): BigInt | undefined {
@@ -85,6 +98,16 @@ export default class StockTransaction extends DatabaseObject {
     set amount_per_share(amountPerShare: number | undefined) {
 
         this._amount_per_share = amountPerShare;
+    }
+
+    get transaction_date(): Date | undefined {
+
+        return this._transaction_date;
+    }
+
+    set transaction_date(date: Date) {
+
+        this._transaction_date = date;
     }
 
     get currency(): CurrencyKeys | undefined {

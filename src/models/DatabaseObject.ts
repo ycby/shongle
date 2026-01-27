@@ -28,11 +28,6 @@ export default class DatabaseObject {
 		this._last_modified_datetime = value;
 	}
 
-	updateLastModifiedDateTime() {
-
-		this._last_modified_datetime = new Date();
-	}
-
 	getPlainObject(this: any) {
 
 		let result: any = {};

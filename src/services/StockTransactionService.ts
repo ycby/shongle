@@ -189,7 +189,7 @@ const getStockTransactionsData = async (args: TransactionDataGetParams) => {
 
     try {
 
-        result = await executeQuery<StockTransaction[]>({
+        result = await executeQuery<StockTransaction>({
             namedPlaceholders: true,
             sql: `SELECT * FROM Stock_Transactions ${whereString !== '' ? 'WHERE ' + whereString : ''} ORDER BY transaction_date DESC`
         }, {
@@ -198,7 +198,7 @@ const getStockTransactionsData = async (args: TransactionDataGetParams) => {
             type: args.type,
             start_date: args.start_date,
             end_date: args.end_date,
-        });
+        }, (element) => new StockTransaction(element));
 
     } catch (err) {
 
@@ -216,21 +216,21 @@ const createStockTransactionsData = async (data: TransactionDataBody[]) => {
 
     let result: UpsertResult[] = [];
 
-    const stockIds: number[] = data.map((d: TransactionDataBody): number => d.stock_id);
+    const stockIds: BigInt[] = data.map((d: TransactionDataBody): BigInt => BigInt(d.stock_id));
     try {
 
-        const existingRecords: Stock[] = await executeQuery<Stock[]>({
+        const existingRecords: Stock[] = await executeQuery<Stock>({
             namedPlaceholders: true,
             sql: "SELECT id, ticker_no, name FROM Stocks WHERE id IN (:ids)"
         }, {
             ids: stockIds
-        });
+        }, (element) => new Stock(element));
 
         if (existingRecords.length === 0) {
 
-            const nonExistantStockIds = data.map((d: TransactionDataBody) => d.stock_id);
+            const nonExistentStockIds = data.map((d: TransactionDataBody) => d.stock_id);
 
-            throw new RecordNotFoundError(`Stocks with ids ( ${nonExistantStockIds.join(', ')} ) already exist!`);
+            throw new RecordNotFoundError(`Stocks with ids ( ${nonExistentStockIds.join(', ')} ) already exist!`);
         }
 
         result = await executeBatch({
@@ -245,7 +245,7 @@ const createStockTransactionsData = async (data: TransactionDataBody[]) => {
 
                 return processData(item, insertColumnMapping, transaction);
             })
-        )
+        );
 
     } catch (err) {
 
@@ -280,12 +280,7 @@ const upsertStockTransactionData = async (data: TransactionDataBody) => {
                     'currency=VALUES(currency), ' +
                     'last_modified_datetime=VALUES(last_modified_datetime)'
             },
-            () => {
-
-                let transaction: StockTransaction = new StockTransaction('UPDATE');
-
-                return processData(data, insertColumnMapping, transaction);
-            }
+            () => new StockTransaction(data)
         );
 
     } catch (err) {
