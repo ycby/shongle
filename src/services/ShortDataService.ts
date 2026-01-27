@@ -1,6 +1,6 @@
 import {executeBatch, executeQuery} from '#root/src/db/db.js'
-import {FieldMapping, filterClauseGenerator, processData, ProcessDataMapping} from "#root/src/helpers/DBHelpers.js";
-import {InvalidRequestError, RecordMissingDataError} from "#root/src/errors/Errors.js";
+import {FieldMapping, filterClauseGenerator} from "#root/src/helpers/DBHelpers.js";
+import {InvalidRequestError, RecordMissingDataError, RecordNotFoundError} from "#root/src/errors/Errors.js";
 import ShortData from "#root/src/models/ShortData.js";
 import Stock from "#root/src/models/Stock.js";
 import {retrieveShortData} from "#root/src/helpers/ShortDataRetriever.js";
@@ -17,13 +17,13 @@ export type ShortDataGetParam = {
 }
 
 export type ShortDataGetSingleParam = {
-	id: number;
+	id: string;
 }
 
 export type ShortDataBody = {
-	id?: number;
-	stock_code: string;
-	stock_id?: number;
+	id?: string;
+	ticker_no?: string;
+	stock_id: number;
 	reporting_date: string;
 	shorted_shares: number;
 	shorted_amount: number;
@@ -67,8 +67,15 @@ const SHORT_PARAM_SINGLE_VALIDATION: ValidationRule[] = [
 	{
 		name: 'id',
 		isRequired: true,
-		rule: (id: any): boolean => typeof id === 'number',
-		errorMessage: 'Id is required and must be a number'
+		rule: (id: any): boolean => {
+			try {
+				BigInt(id)
+				return typeof id === 'string';
+			} catch (e) {
+				return false;
+			}
+		},
+		errorMessage: 'Id is required and must be a bigint string'
 	}
 ]
 
@@ -76,14 +83,34 @@ const SHORT_BODY_VALIDATION: ValidationRule[] = [
 	{
 		name: 'id',
 		isRequired: false,
-		rule: (id: any): boolean => typeof id === 'number',
+		rule: (id: any): boolean => {
+			try {
+				BigInt(id)
+				return typeof id === 'string';
+			} catch (e) {
+				return false;
+			}
+		},
 		errorMessage: 'Id is must be a number"'
 	},
 	{
-		name: 'stock_code',
-		isRequired: true,
+		name: 'ticker_no',
+		isRequired: false,
 		rule: (stock_code: any): boolean => stock_code.toString().length === 5,
-		errorMessage: 'Stock Code is must be a number and is required"'
+		errorMessage: 'Stock Code is must be a string of 5 characters and is required"'
+	},
+	{
+		name: 'stock_id',
+		isRequired: true,
+		rule: (id: any): boolean => {
+			try {
+				BigInt(id)
+				return typeof id === 'string';
+			} catch (e) {
+				return false;
+			}
+		},
+		errorMessage: 'Id is must be a number"'
 	},
 	{
 		name: 'reporting_date',
@@ -129,27 +156,6 @@ const SHORT_MISMATCH_PARAM_VALIDATION: ValidationRule[] = [
 	}
 ]
 
-const columnInsertionOrder: ProcessDataMapping[] = [
-	{
-		field: 'id'
-	},
-	{
-		field: 'stock_id',
-	},
-	{
-		field: 'stock_code',
-	},
-	{
-		field: 'reporting_date'
-	},
-	{
-		field: 'shorted_shares'
-	},
-	{
-		field: 'shorted_amount'
-	}
-]
-
 const fieldMapping: FieldMapping[] = [
 	{
 		param: 'stock_id',
@@ -181,14 +187,14 @@ const getShortData = async (args: ShortDataGetParam) => {
 
 	try {
 
-		result = await executeQuery<ShortData[]>({
+		result = await executeQuery<ShortData>({
 			namedPlaceholders: true,
 			sql: `SELECT * FROM Short_Reporting WHERE ${whereString !== '' ? whereString : ''} ORDER BY reporting_date DESC`
 		}, {
 			stock_id: args.stock_id,
 			start_date: args.start_date,
 			end_date: args.end_date,
-		});
+		}, (element) => new ShortData(element));
 
 	} catch (err) {
 
@@ -211,37 +217,31 @@ const postShortData = async (data: ShortDataBody[]) => {
 
 	let result: UpsertResult[] = [];
 
-	const tickerNumbers = data.map(d => d.stock_code.toString().padStart(5, '0'));
+	const stockIds = data.map(d => BigInt(d.stock_id));
 
 	try {
 
-		const existingRecords = await executeQuery<Stock[]>({
+		const existingRecords = await executeQuery<Stock>({
 			namedPlaceholders: true,
-			sql: "SELECT id, ticker_no, name FROM Stocks WHERE ticker_no IN (:ticker_nos) AND is_active = TRUE"
+			sql: "SELECT id, ticker_no, name FROM Stocks WHERE id IN (:ids) AND is_active = TRUE"
 		}, {
-			ticker_nos: [tickerNumbers]
-		});
+			ids: stockIds
+		}, (element) => new Stock(element));
 
-		//create map for getting right stock id -in future consider caching
-		const stockMap = new Map(existingRecords.map(element => [element.ticker_no, element.id]));
+		if (existingRecords.length === 0) {
 
-		data.forEach(element => {
-			element.stock_id = stockMap.get(element.stock_code)
-		});
+			const nonExistentStockIds = data.map((d: ShortDataBody) => d.stock_id);
 
-		//use existing records to set stock_id
+			throw new RecordNotFoundError(`Stocks with ids ( ${nonExistentStockIds.join(', ')} ) do not exist!`);
+		}
+
 		result = await executeBatch({
 			namedPlaceholders: true,
 			sql: 'INSERT INTO Short_Reporting ' +
 				'(stock_id, ticker_no, reporting_date, shorted_shares, shorted_amount, created_datetime, last_modified_datetime) ' +
-				'VALUES (:stock_id, :stock_code, :reporting_date, :shorted_shares, :shorted_amount, :created_datetime, :last_modified_datetime)'
+				'VALUES (:stock_id, :ticker_no, :reporting_date, :shorted_shares, :shorted_amount, :created_datetime, :last_modified_datetime)'
 		},
-			data.map(item => {
-
-				let shortData = new ShortData('INSERT');
-
-				return processData(item, columnInsertionOrder, shortData);
-			})
+			data.map(item => new ShortData(item))
 		);
 
 	} catch (err) {
@@ -259,16 +259,17 @@ const getShortDatum = async (args: ShortDataGetSingleParam) => {
 	if (validationResults.length > 0) throw new InvalidRequestError(validationResults);
 	//TODO: if stockCode is invalid/does not exist, return error
 
+	const bigIntId = BigInt(args.id);
 	let result = [];
 
 	try {
 
-		result = await executeQuery<ShortData[]>({
+		result = await executeQuery<ShortData>({
 			namedPlaceholders: true,
 			sql: `SELECT * FROM Short_Reporting_w_Stocks WHERE id = :id`
 		}, {
-			id: args.id
-		});
+			id: bigIntId
+		}, (element) => new ShortData(element));
 
 	} catch (err) {
 
@@ -290,24 +291,20 @@ const putShortDatum = async (data: ShortDataBody) => {
 
 	try {
 
-		result = await executeQuery<ShortData[]>({
+		result = await executeQuery({
 			namedPlaceholders: true,
 			sql: 'INSERT INTO Short_Reporting ' +
-				'(id, stock_id, reporting_date, shorted_shares, shorted_amount, created_datetime, last_modified_datetime) ' +
-				'VALUES (:id, :stock_id, :reporting_date, :shorted_shares, :shorted_amount, :created_datetime, :last_modified_datetime) ' +
+				'(id, stock_id, ticker_no, reporting_date, shorted_shares, shorted_amount, created_datetime, last_modified_datetime) ' +
+				'VALUES (:id, :stock_id, :ticker_no, :reporting_date, :shorted_shares, :shorted_amount, :created_datetime, :last_modified_datetime) ' +
 				'ON DUPLICATE KEY UPDATE ' +
 				'stock_id=VALUES(stock_id), ' +
+				'ticker_no=VALUES(ticker_no), ' +
 				'reporting_date=VALUES(reporting_date), ' +
 				'shorted_shares=VALUES(shorted_shares), ' +
 				'shorted_amount=VALUES(shorted_amount), ' +
 				'last_modified_datetime=VALUES(last_modified_datetime)'
 			},
-			() => {
-
-				let shortData = new ShortData('UPDATE');
-
-				return processData(data, columnInsertionOrder, shortData);
-			}
+			() => new ShortData(data).getPlainObject()
 		);
 
 	} catch (err) {
@@ -354,7 +351,7 @@ const retrieveShortDataFromSource = async (endDate: Date | null) => {
 
 	try {
 
-		result = await executeQuery<ShortData[]>({
+		result = await executeQuery<ShortData>({
 			sql: `SELECT id, reporting_date FROM Short_Reporting ORDER BY reporting_date DESC LIMIT 1`
 		});
 	} catch (err) {
@@ -394,22 +391,21 @@ const getTickersWithMismatchedData = async (args: ShortDataTickersWithMismatchQu
 	args.offset = args.offset ? args.offset : 0;
 	let result = [];
 
-	console.log(args);
 	try {
 
-		result = await executeQuery<Stock[]>({
+		result = await executeQuery<Stock>({
 			namedPlaceholders: true,
 			sql: `SELECT ticker_no FROM Short_Reporting_wo_Stock_Id_Distinct LIMIT :limit OFFSET :offset`
 		}, {
 			limit: Number(args.limit),
 			offset: Number(args.offset),
-		});
+		}, (element) => new Stock(element));
 
 	} catch (err) {
 
 		throw err;
 	}
-	console.log(result);
+
 	return result.map(element => element.ticker_no);
 }
 
@@ -423,12 +419,12 @@ const getMismatchedDataByTicker = async (args: ShortDataMismatchQuery) => {
 
 	try {
 
-		result = await executeQuery<ShortData[]>({
+		result = await executeQuery<ShortData>({
 			namedPlaceholders: true,
 			sql: `SELECT * FROM Short_Reporting_wo_Stock_Id WHERE ticker_no = :ticker_no`,
 		}, {
 			ticker_no: args.ticker_no
-		});
+		}, (element) => new ShortData(element));
 
 	} catch (err) {
 

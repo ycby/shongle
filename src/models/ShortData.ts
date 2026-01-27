@@ -2,35 +2,55 @@ import DatabaseObject from '#root/src/models/DatabaseObject.js'
 
 export default class ShortData extends DatabaseObject {
 
-	private _id?: number;
-	private _stock_id?: number;
+	private _id?: BigInt;
+	private _stock_id?: BigInt;
+	private _ticker_no?: string;
 	private _reporting_date?: Date;
 	private _shorted_shares?: number;
 	private _shorted_amount?: number;
 
-	constructor(operationType: string) {
+	constructor(data?: any) {
 
-		super(operationType)
+		super();
+
+		this._id = data?.id;
+		this._stock_id = data?.stock_id;
+		this._ticker_no = data?.ticker_no;
+		this._reporting_date = data?.reporting_date;
+		this._shorted_shares = data?.shorted_shares;
+		this._shorted_amount = data?.shorted_amount;
+		this.created_datetime = data?.created_datetime ? data.created_datetime : this.created_datetime;
+		this.last_modified_datetime = data?.last_modified_datetime ? data.last_modified_datetime : this.last_modified_datetime;
 	}
 
-	get id(): number | undefined{
+	get id(): BigInt | undefined {
 
 		return this._id;
 	}
 
-	set id(id: number) {
+	set id(id: BigInt) {
 
 		this._id = id;
 	}
 
-	get stock_id(): number | undefined {
+	get stock_id(): BigInt | undefined {
 
 		return this._stock_id;
 	}
 
-	set stock_id(stock_id: number) {
+	set stock_id(stock_id: BigInt) {
 
 		this._stock_id = stock_id;
+	}
+
+	get ticker_no(): string | undefined {
+
+		return this._ticker_no;
+	}
+
+	set ticker_no(ticker_no: string) {
+
+		this._ticker_no = ticker_no;
 	}
 
 	get reporting_date(): Date | undefined {
