@@ -8,8 +8,6 @@ const dbPool = Object.freeze({
 		password: process.env.DB_PASS,
 		database: process.env.DB_NAME,
 		connectionLimit: 5,
-		bigIntAsNumber: true,
-		insertIdAsNumber: true,
 		trace: true
 	})
 });
@@ -57,7 +55,7 @@ const executeQuery = async <T>(queryObject: QueryOptions, placeholders: any = un
 	}
 }
 
-const executeBatch = async (queryObject: QueryOptions, placeholders: {}): Promise<UpsertResult | UpsertResult[]> => {
+const executeBatch = async (queryObject: QueryOptions, placeholders: {}): Promise<UpsertResult[]> => {
 
 	let conn;
 

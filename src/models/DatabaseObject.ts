@@ -1,5 +1,5 @@
 export default class DatabaseObject {
-	
+
 	private readonly _operation?: string;
 	private readonly _created_datetime: Date;
 	private readonly _last_modified_datetime: Date;
@@ -43,6 +43,13 @@ export default class DatabaseObject {
 
 			result[slicedKey] = this[key];
 		});
+
+		return result;
+	}
+
+	toJSON() {
+
+		let result: any = this.getPlainObject();
 
 		return result;
 	}

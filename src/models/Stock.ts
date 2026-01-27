@@ -3,7 +3,7 @@ import {CurrencyKeys} from "#root/src/types.js";
 
 export default class Stock extends DatabaseObject {
 
-    private _id?: number;
+    private _id?: BigInt;
     private _ticker_no?: string;
     private _name?: string;
     private _full_name?: string;
@@ -34,12 +34,12 @@ export default class Stock extends DatabaseObject {
         this._is_tracked = data?.is_tracked;
     }
 
-    get id(): number | undefined {
+    get id(): BigInt | undefined {
 
         return this._id;
     }
 
-    set id(id: number) {
+    set id(id: BigInt) {
 
         this._id = id;
     }

@@ -208,24 +208,6 @@ const getStockTransactionsData = async (args: TransactionDataGetParams) => {
     return result;
 }
 
-const getStocksWithTransactions = async () => {
-
-    let result = [];
-
-    try {
-
-        result = await executeQuery<StockTransaction[]>({
-            sql: `SELECT * FROM Stocks_w_Transactions ORDER BY ticker_no ASC`
-        });
-
-    } catch (err) {
-
-        throw err;
-    }
-
-    return result;
-}
-
 const createStockTransactionsData = async (data: TransactionDataBody[]) => {
 
     let validationResult: ValidatorResult[] = validator(data, TRANSACTION_BODY_VALIDATION);
@@ -270,7 +252,6 @@ const createStockTransactionsData = async (data: TransactionDataBody[]) => {
         throw err;
     }
 
-    console.log(result);
     return result;
 }
 
@@ -346,7 +327,6 @@ const deleteStockTransactionData = async (args: TransactionDataGetParams) => {
 export {
     getStockTransactionsData,
     createStockTransactionsData,
-    getStocksWithTransactions,
     upsertStockTransactionData,
     deleteStockTransactionData
 }

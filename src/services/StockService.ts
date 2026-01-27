@@ -4,7 +4,7 @@ import {DuplicateFoundError, InvalidRequestError} from "#root/src/errors/Errors.
 import {FieldMapping, filterClauseGenerator, processData, ProcessDataMapping} from "#root/src/helpers/DBHelpers.js";
 import {UpsertResult} from "mariadb";
 import {ValidationRule, validator, ValidatorResult} from "#root/src/utilities/Validator.js";
-import ExcelJS from 'exceljs';
+import ExcelJS from 'exceljs3';
 import {
 	Category,
 	Subcategory,
@@ -291,18 +291,19 @@ const getStockData = async (args: StocksDataGetParam) => {
 	if (validationResult.length > 0) throw new InvalidRequestError(validationResult);
 
 	const ticker_no = args.ticker_no;
+	console.log(ticker_no)
 
 	let result: Stock[] = [];
 
 	try {
-
 
 		result = await executeQuery({
 			namedPlaceholders: true,
 			sql: `SELECT * FROM Stocks WHERE ticker_no = :ticker_no`
 		}, {
 			ticker_no: ticker_no
-		});
+		},
+			(result) => result.map((element) => new Stock('UPDATE', element)));
 	} catch (err) {
 
 		throw err;
@@ -476,11 +477,11 @@ const hkexStockMapping = {
 		"internal": "board_lot",
 	},
 	"ISIN": {
-		"hkex": 7,
+		"hkex": 6,
 		"internal": "ISIN",
 	},
 	"currency": {
-		"hkex": 21,
+		"hkex": 17,
 		"internal": "currency",
 	}
 }
@@ -508,20 +509,21 @@ const categoryMapping = {
 
 const retrieveStockDataFromSource = async () => {
 
-	const url = '/home/pikachu/Documents/Data/Exchange Data/2026ListOfSecurities.xlsx';
+	// const url = '/home/pikachu/Documents/Data/Exchange Data/2026ListOfSecurities.xlsx';
+	const url = 'https://www.hkex.com.hk/eng/services/trading/securities/securitieslists/ListOfSecurities.xlsx';
 	const workbook = new ExcelJS.Workbook();
 
 	try {
 
-		// const response = await fetch(url, {
-		// 	method: 'GET',
-		// });
-		//
-		// if (!response.ok) throw new Error('Failed to retrieve latest Stock Data');
-		// if (!response.body) throw new Error ('Body is null when attempting to access latest Stock Data');
-		//
-		// await workbook.xlsx.read(stream.Readable.fromWeb(response.body));
-		await workbook.xlsx.readFile(url);
+		const response = await fetch(url, {
+			method: 'GET',
+		});
+
+		if (!response.ok) throw new Error('Failed to retrieve latest Stock Data');
+		if (!response.body) throw new Error ('Body is null when attempting to access latest Stock Data');
+
+		await workbook.xlsx.read(stream.Readable.fromWeb(response.body));
+		// await workbook.xlsx.readFile(url);
 
 		console.log('read workbook');
 
@@ -611,6 +613,7 @@ const retrieveStockDataFromSource = async () => {
 			stocksToUpdate.push(stock);
 		});
 
+		console.log(stocksToUpdate);
 		const updateTickerResults = await executeBatch({
 			namedPlaceholders: true,
 			sql: 'INSERT INTO Tickers (ticker_no, created_datetime, last_modified_datetime) ' +
@@ -643,8 +646,6 @@ const retrieveStockDataFromSource = async () => {
 			},
 			() => stocksToUpdate.map(stock => stock.getPlainObject())
 		);
-
-		// console.log(updateResults);
 	} catch (e) {
 
 		console.error(e);

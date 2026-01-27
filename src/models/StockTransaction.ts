@@ -3,7 +3,7 @@ import {CurrencyKeys} from "#root/src/types.js";
 
 export default class StockTransaction extends DatabaseObject {
 
-    private _id?: number;
+    private _id?: BigInt;
     private _stock_id?: number;
     private _type?: string;
     private _amount?: number;
@@ -17,12 +17,12 @@ export default class StockTransaction extends DatabaseObject {
         super(operationType);
     }
 
-    get id(): number | undefined {
+    get id(): BigInt | undefined {
 
         return this._id;
     }
 
-    set id(id: number) {
+    set id(id: BigInt) {
 
         this._id = id;
     }
