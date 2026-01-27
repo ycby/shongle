@@ -1,27 +1,12 @@
 export default class DatabaseObject {
 
-	private readonly _operation?: string;
-	private readonly _created_datetime: Date;
-	private readonly _last_modified_datetime: Date;
+	private _created_datetime: Date;
+	private _last_modified_datetime: Date;
 
-	constructor(operationType: string) {
+	constructor() {
 
-		this._operation = operationType;
+		this._created_datetime = new Date();
 		this._last_modified_datetime = new Date();
-
-		switch (this.operation) {
-			case 'INSERT':
-				this._created_datetime = new Date();
-				break;
-			default:
-				this._created_datetime = new Date(0, 0, 0);
-				break;
-		}
-	}
-
-	get operation(): string {
-
-		return this._operation ?? '';
 	}
 
 	get created_datetime(): Date{
@@ -29,16 +14,31 @@ export default class DatabaseObject {
 		return this._created_datetime;
 	}
 
+	set created_datetime(value: Date){
+		this._created_datetime = value;
+	}
+
 	get last_modified_datetime(): Date {
 
 		return this._last_modified_datetime;
 	}
 
+	set last_modified_datetime(value: Date) {
+
+		this._last_modified_datetime = value;
+	}
+
+	updateLastModifiedDateTime() {
+
+		this._last_modified_datetime = new Date();
+	}
+
 	getPlainObject(this: any) {
 
 		let result: any = {};
-		Object.getOwnPropertyNames(this).forEach((key:string) => {
+		Object.getOwnPropertyNames(this).forEach((key: string) => {
 
+			if (!this[key]) return;
 			const slicedKey = key.slice(1);
 
 			result[slicedKey] = this[key];

@@ -1,7 +1,7 @@
 import {executeBatch, executeQuery} from '#root/src/db/db.js';
 import Stock from '#root/src/models/Stock.js';
 import {DuplicateFoundError, InvalidRequestError} from "#root/src/errors/Errors.js";
-import {FieldMapping, filterClauseGenerator, processData, ProcessDataMapping} from "#root/src/helpers/DBHelpers.js";
+import {FieldMapping, filterClauseGenerator} from "#root/src/helpers/DBHelpers.js";
 import {UpsertResult} from "mariadb";
 import {ValidationRule, validator, ValidatorResult} from "#root/src/utilities/Validator.js";
 
@@ -14,7 +14,7 @@ import {
 	CurrencyKeys,
 	QueryTypeKeys, QueryType
 } from "#root/src/types.js";
-import {retrieveStockData} from "#root/src/helpers/StocksLatestRetriever.ts.js";
+import {retrieveStockData} from "#root/src/helpers/StocksLatestRetriever.js";
 
 export type StocksDataGetParam = {
 	query_type?: QueryTypeKeys;
@@ -144,42 +144,6 @@ const STOCK_DATA_VALIDATION: ValidationRule[] = [
 	},
 ];
 
-const columnInsertionOrder: ProcessDataMapping[] = [
-	{
-		field: 'id'
-	},
-	{
-		field: 'ticker_no'
-	},
-	{
-		field: 'name'
-	},
-	{
-		field: 'full_name'
-	},
-	{
-		field: 'description'
-	},
-	{
-		field: 'category'
-	},
-	{
-		field: 'subcategory'
-	},
-	{
-		field: 'board_lot'
-	},
-	{
-		field: 'ISIN'
-	},
-	{
-		field: 'currency'
-	},
-	{
-		field: 'is_active'
-	}
-]
-
 const fieldMapping: FieldMapping[] = [
 	{
 		param: 'ticker_no',
@@ -203,7 +167,6 @@ const getStocksData = async (args: StocksDataGetParam) => {
 
 	console.log(args);
 	let validationResult: ValidatorResult[] = validator(args, STOCK_PARAM_VALIDATION);
-	console.log(validationResult);
 	if (validationResult.length > 0) throw new InvalidRequestError(validationResult);
 
 	let result: Stock[] = [];
@@ -219,17 +182,16 @@ const getStocksData = async (args: StocksDataGetParam) => {
 	const filterClause: string = filterClauseGenerator(queryType, fieldMapping, queryParams);
 
 	let whereString: string = filterClause !== '' ? 'WHERE ' + filterClause : '';
-
 	try {
 
-		result = await executeQuery<Stock[]>({
+		result = await executeQuery<Stock>({
 			namedPlaceholders: true,
 			sql: `SELECT * FROM Stocks ${whereString}`,
 		}, {
 			ticker_no: `%${args.ticker_no}%`,
 			name: `%${args.name}%`,
 			ISIN: `%${args.ISIN}%`
-		});
+		}, (stock) => new Stock(stock));
 
 	} catch (err) {
 
@@ -267,12 +229,7 @@ const postStockData = async (data: StocksDataBody[]) => {
 					'(ticker_no, name, full_name, description, category, subcategory, board_lot, ISIN, currency, created_datetime, last_modified_datetime) ' +
 				'VALUES (:ticker_no, :name, :full_name, :description, :category, :subcategory, :board_lot, :ISIN, :currency, :created_datetime, :last_modified_datetime)'
 			},
-			data.map((item: StocksDataBody): Stock => {
-
-				let stock: Stock = new Stock('INSERT');
-
-				return processData(item, columnInsertionOrder, stock);
-			})
+			data.map((item: StocksDataBody): Stock => new Stock(item))
 		);
 		console.log(result);
 
@@ -291,7 +248,6 @@ const getStockData = async (args: StocksDataGetParam) => {
 	if (validationResult.length > 0) throw new InvalidRequestError(validationResult);
 
 	const ticker_no = args.ticker_no;
-	console.log(ticker_no)
 
 	let result: Stock[] = [];
 
@@ -303,11 +259,10 @@ const getStockData = async (args: StocksDataGetParam) => {
 		}, {
 			ticker_no: ticker_no
 		},
-			(result) => result.map((element) => new Stock('UPDATE', element)));
+			(stock) => new Stock(stock));
 	} catch (err) {
 
 		throw err;
-
 	}
 
 	return result;
@@ -341,11 +296,7 @@ const putStockData = async (data: StocksDataBody) => {
 				'is_active=VALUES(is_active), ' +
 				'last_modified_datetime=VALUES(last_modified_datetime)'
 			},
-			() => {
-
-				let stock: Stock = new Stock('UPDATE');
-				return processData(data, columnInsertionOrder, stock).getPlainObject();
-			}
+			() => new Stock(data).getPlainObject()
 		)
 
 	} catch (err) {

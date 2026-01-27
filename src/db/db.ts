@@ -12,7 +12,7 @@ const dbPool = Object.freeze({
 	})
 });
 
-const executeQuery = async <T>(queryObject: QueryOptions, placeholders: any = undefined, postProcessor?: (elements: any) => T): Promise<T> => {
+const executeQuery = async <T>(queryObject: QueryOptions, placeholders: any = undefined, postProcessor?: (element: any) => T): Promise<T[]> => {
 
 	let conn;
 
@@ -40,7 +40,7 @@ const executeQuery = async <T>(queryObject: QueryOptions, placeholders: any = un
 
 		if (postProcessor) {
 
-			return postProcessor(result);
+			return result instanceof Array ? result.map(postProcessor) : [postProcessor(result)];
 		}
 
 		return result;

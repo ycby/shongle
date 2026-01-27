@@ -16,9 +16,9 @@ export default class Stock extends DatabaseObject {
     private _is_active?: boolean;
     private _is_tracked?: boolean;
 
-    constructor(operationType: string, data?: any) {
+    constructor(data?: any) {
 
-        super(operationType);
+        super();
 
         this._id = data?.id;
         this._ticker_no = data?.ticker_no;
@@ -32,6 +32,8 @@ export default class Stock extends DatabaseObject {
         this._currency = data?.currency;
         this._is_active = data?.is_active;
         this._is_tracked = data?.is_tracked;
+        this.created_datetime = data?.created_datetime ? data.created_datetime : this.created_datetime;
+        this.last_modified_datetime = data?.last_modified_datetime ? data.last_modified_datetime : this.last_modified_datetime;
     }
 
     get id(): BigInt | undefined {
