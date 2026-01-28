@@ -13,16 +13,16 @@ import {
 } from "#root/src/validation/VRule_StockTransaction.js";
 
 export type TransactionDataGetParams = {
-    id?: number,
-    stock_id?: number,
+    id?: string,
+    stock_id?: string,
     type?: string[],
     start_date?: string,
     end_date?: string
 }
 
 export type TransactionDataBody = {
-    id?: number;
-    stock_id: number;
+    id?: string;
+    stock_id: string;
     type: string;
     amount: number;
     quantity: number;

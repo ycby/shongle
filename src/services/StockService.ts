@@ -37,7 +37,7 @@ export type StocksDataBody = {
 }
 
 export type StocksTrackParam = {
-	id: number;
+	id: string;
 }
 
 const fieldMapping: FieldMapping[] = [
