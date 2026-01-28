@@ -13,8 +13,8 @@ import {
 } from "#root/src/validation/VRule_DiaryEntry.js";
 
 export type DiaryEntryDataGetParams = {
-    id?: number,
-    stock_id?: number,
+    id?: string,
+    stock_id?: string,
     title?: string,
     start_date?: string,
     end_date?: string
