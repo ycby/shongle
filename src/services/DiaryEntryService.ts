@@ -1,4 +1,4 @@
-import {ValidationRule, validator, ValidatorResult} from "#root/src/utilities/Validator.js";
+import {ValidationRule, validate, ValidatorResult} from "#root/src/utilities/Validator.js";
 import {InvalidRequestError, RecordNotFoundError} from "#root/src/errors/Errors.js";
 import {FieldMapping, filterClauseGenerator} from "#root/src/helpers/DBHelpers.js";
 import {executeBatch, executeQuery} from "#root/src/db/db.js";
@@ -143,7 +143,7 @@ const whereFieldMapping: FieldMapping[] = [
 
 const getDiaryEntryData = async (args: DiaryEntryDataGetParams) => {
 
-    let validationResult: ValidatorResult[] = validator(args, DIARY_ENTRY_PARAM_VALIDATION);
+    let validationResult: ValidatorResult[] = validate(args, DIARY_ENTRY_PARAM_VALIDATION);
 
     if (validationResult.length > 0) throw new InvalidRequestError(validationResult);
 
@@ -174,7 +174,7 @@ const getDiaryEntryData = async (args: DiaryEntryDataGetParams) => {
 
 const createDiaryEntryData = async (data: DiaryEntryDataBody[]) => {
 
-    let validationResult: ValidatorResult[] = validator(data, DIARY_ENTRY_BODY_VALIDATION);
+    let validationResult: ValidatorResult[] = validate(data, DIARY_ENTRY_BODY_VALIDATION);
 
     if (validationResult.length > 0) throw new InvalidRequestError(validationResult);
 
@@ -213,7 +213,7 @@ const createDiaryEntryData = async (data: DiaryEntryDataBody[]) => {
 
 const upsertDiaryEntryData = async (data: DiaryEntryDataBody) => {
 
-    let validationResult: ValidatorResult[] = validator(data, DIARY_ENTRY_BODY_VALIDATION);
+    let validationResult: ValidatorResult[] = validate(data, DIARY_ENTRY_BODY_VALIDATION);
 
     if (validationResult.length > 0) throw new InvalidRequestError(validationResult);
 
@@ -246,7 +246,7 @@ const upsertDiaryEntryData = async (data: DiaryEntryDataBody) => {
 
 const deleteDiaryEntryData = async (args: DiaryEntryDataGetParams) => {
 
-    let validationResult: ValidatorResult[] = validator(args, DIARY_ENTRY_PARAM_SINGLE_VALIDATION);
+    let validationResult: ValidatorResult[] = validate(args, DIARY_ENTRY_PARAM_SINGLE_VALIDATION);
 
     if (validationResult.length > 0) throw new InvalidRequestError(validationResult);
 

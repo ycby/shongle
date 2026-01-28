@@ -1,4 +1,4 @@
-import {ValidationRule, validator, ValidatorResult} from "#root/src/utilities/Validator.js";
+import {ValidationRule, validate, ValidatorResult} from "#root/src/utilities/Validator.js";
 import {InvalidRequestError, RecordNotFoundError} from "#root/src/errors/Errors.js";
 import {FieldMapping, filterClauseGenerator} from "#root/src/helpers/DBHelpers.js";
 import {executeBatch, executeQuery} from "#root/src/db/db.js";
@@ -153,7 +153,7 @@ const whereFieldMapping: FieldMapping[] = [
 
 const getStockTransactionsData = async (args: TransactionDataGetParams) => {
 
-    let validationResult: ValidatorResult[] = validator(args, TRANSACTION_PARAM_VALIDATION);
+    let validationResult: ValidatorResult[] = validate(args, TRANSACTION_PARAM_VALIDATION);
 
     if (validationResult.length > 0) throw new InvalidRequestError(validationResult);
 
@@ -183,7 +183,7 @@ const getStockTransactionsData = async (args: TransactionDataGetParams) => {
 
 const createStockTransactionsData = async (data: TransactionDataBody[]) => {
 
-    let validationResult: ValidatorResult[] = validator(data, TRANSACTION_BODY_VALIDATION);
+    let validationResult: ValidatorResult[] = validate(data, TRANSACTION_BODY_VALIDATION);
 
     if (validationResult.length > 0) throw new InvalidRequestError(validationResult);
 
@@ -225,7 +225,7 @@ const createStockTransactionsData = async (data: TransactionDataBody[]) => {
 
 const upsertStockTransactionData = async (data: TransactionDataBody) => {
 
-    let validationResult: ValidatorResult[] = validator(data, TRANSACTION_BODY_VALIDATION);
+    let validationResult: ValidatorResult[] = validate(data, TRANSACTION_BODY_VALIDATION);
 
     if (validationResult.length > 0) throw new InvalidRequestError(validationResult);
 
@@ -261,7 +261,7 @@ const upsertStockTransactionData = async (data: TransactionDataBody) => {
 
 const deleteStockTransactionData = async (args: TransactionDataGetParams) => {
 
-    let validationResult: ValidatorResult[] = validator(args, TRANSACTION_PARAM_SINGLE_VALIDATION);
+    let validationResult: ValidatorResult[] = validate(args, TRANSACTION_PARAM_SINGLE_VALIDATION);
 
     if (validationResult.length > 0) throw new InvalidRequestError(validationResult);
 

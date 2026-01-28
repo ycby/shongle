@@ -5,7 +5,7 @@ import ShortData from "#root/src/models/ShortData.js";
 import Stock from "#root/src/models/Stock.js";
 import {retrieveShortData} from "#root/src/helpers/ShortDataRetriever.js";
 import {UpsertResult} from "mariadb";
-import {ValidationRule, validator, ValidatorResult} from "#root/src/utilities/Validator.js";
+import {ValidationRule, validate, ValidatorResult} from "#root/src/utilities/Validator.js";
 import {stringToDateConverter} from "#root/src/helpers/DateHelper.js";
 import {QueryType} from "#root/src/types.js";
 
@@ -177,7 +177,7 @@ const fieldMapping: FieldMapping[] = [
 const getShortData = async (args: ShortDataGetParam) => {
 
 	//TODO: if stockCode is invalid/does not exist, return error
-	let validationResult: ValidatorResult[] = validator(args, SHORT_PARAM_VALIDATION);
+	let validationResult: ValidatorResult[] = validate(args, SHORT_PARAM_VALIDATION);
 
 	if (validationResult.length > 0) throw new InvalidRequestError(validationResult);
 
@@ -211,7 +211,7 @@ const postShortData = async (data: ShortDataBody[]) => {
 
 	console.log(data);
 	//TODO: if stockCode is invalid/does not exist, return error
-	let validationResult: ValidatorResult[] = validator(data, SHORT_BODY_VALIDATION);
+	let validationResult: ValidatorResult[] = validate(data, SHORT_BODY_VALIDATION);
 
 	if (validationResult.length > 0) throw new InvalidRequestError(validationResult);
 
@@ -254,7 +254,7 @@ const postShortData = async (data: ShortDataBody[]) => {
 
 const getShortDatum = async (args: ShortDataGetSingleParam) => {
 
-	let validationResults: ValidatorResult[] = validator(args, SHORT_PARAM_SINGLE_VALIDATION);
+	let validationResults: ValidatorResult[] = validate(args, SHORT_PARAM_SINGLE_VALIDATION);
 
 	if (validationResults.length > 0) throw new InvalidRequestError(validationResults);
 	//TODO: if stockCode is invalid/does not exist, return error
@@ -281,7 +281,7 @@ const getShortDatum = async (args: ShortDataGetSingleParam) => {
 
 const putShortDatum = async (data: ShortDataBody) => {
 
-	let validationResults: ValidatorResult[] = validator(data, SHORT_BODY_VALIDATION);
+	let validationResults: ValidatorResult[] = validate(data, SHORT_BODY_VALIDATION);
 
 	if (validationResults.length > 0) throw new InvalidRequestError(validationResults);
 
@@ -317,7 +317,7 @@ const putShortDatum = async (data: ShortDataBody) => {
 
 const deleteShortDatum = async (args: ShortDataGetSingleParam) => {
 
-	let validationResults: ValidatorResult[] = validator(args, SHORT_PARAM_SINGLE_VALIDATION);
+	let validationResults: ValidatorResult[] = validate(args, SHORT_PARAM_SINGLE_VALIDATION);
 
 	if (validationResults.length > 0) throw new InvalidRequestError(validationResults);
 
@@ -383,7 +383,7 @@ const retrieveShortDataFromSource = async (endDate: Date | null) => {
 //Use limit+offset since I will be managing the data myself, and it won't change much
 const getTickersWithMismatchedData = async (args: ShortDataTickersWithMismatchQuery) => {
 
-	let validationResults: ValidatorResult[] = validator(args, SHORT_MISMATCH_QUERY_VALIDATION);
+	let validationResults: ValidatorResult[] = validate(args, SHORT_MISMATCH_QUERY_VALIDATION);
 
 	if (validationResults.length > 0) throw new InvalidRequestError(validationResults);
 
@@ -411,7 +411,7 @@ const getTickersWithMismatchedData = async (args: ShortDataTickersWithMismatchQu
 
 const getMismatchedDataByTicker = async (args: ShortDataMismatchQuery) => {
 
-	let validationResults: ValidatorResult[] = validator(args, SHORT_MISMATCH_PARAM_VALIDATION);
+	let validationResults: ValidatorResult[] = validate(args, SHORT_MISMATCH_PARAM_VALIDATION);
 
 	if (validationResults.length > 0) throw new InvalidRequestError(validationResults);
 

@@ -26,6 +26,22 @@ const filterClauseGenerator: (queryType: QueryTypeKeys, fieldMapping: FieldMappi
     return whereArray.length !== 0 ? whereArray.join(` ${queryType} `) : '';
 }
 
+const canConvertToBigNumber = (value: string | number | bigint | boolean): boolean => {
+
+    try {
+        BigInt(value);
+        return true;
+    } catch (e) {
+        return false;
+    }
+}
+
+const canConvertToNumber = (value: any): boolean => {
+
+    return !isNaN(Number(value));
+}
 export {
-    filterClauseGenerator
+    filterClauseGenerator,
+    canConvertToBigNumber,
+    canConvertToNumber
 }
