@@ -1,12 +1,16 @@
-import {ValidationRule, validate, ValidatorResult} from "#root/src/utilities/Validator.js";
+import {validate, ValidatorResult} from "#root/src/utilities/Validator.js";
 import {InvalidRequestError, RecordNotFoundError} from "#root/src/errors/Errors.js";
 import {FieldMapping, filterClauseGenerator} from "#root/src/helpers/DBHelpers.js";
 import {executeBatch, executeQuery} from "#root/src/db/db.js";
-import {stringToDateConverter} from "#root/src/helpers/DateHelper.js";
 import {UpsertResult} from "mariadb";
 import Stock from "#root/src/models/Stock.js";
 import DiaryEntry from "#root/src/models/DiaryEntry.js";
 import {QueryType} from "#root/src/types.js";
+import {
+    DIARY_ENTRY_PARAM_VALIDATION,
+    DIARY_ENTRY_PARAM_SINGLE_VALIDATION,
+    DIARY_ENTRY_BODY_VALIDATION
+} from "#root/src/validation/VRule_DiaryEntry.js";
 
 export type DiaryEntryDataGetParams = {
     id?: number,
@@ -23,95 +27,6 @@ export type DiaryEntryDataBody = {
     content: string;
     posted_date: string;
 }
-
-const DIARY_ENTRY_PARAM_VALIDATION: ValidationRule[] = [
-    {
-        name: 'id',
-        isRequired: false,
-        rule: (id: any): boolean => !isNaN(Number(id)),
-        errorMessage: 'Id must be a number',
-    },
-    {
-        name: 'stock_id',
-        isRequired: true,
-        rule: (stock_id: any): boolean => !isNaN(Number(stock_id)),
-        errorMessage: 'Stock Id must be a number'
-    },
-    {
-        name: 'title',
-        isRequired: false,
-        rule: (title: any): boolean => typeof title === 'string',
-        errorMessage: 'Title must be string'
-    },
-    {
-        name: 'start_date',
-        isRequired: false,
-        rule: (start_date: any): boolean => stringToDateConverter(start_date) !== null,
-        errorMessage: 'Start Date must be formatted like so: yyyy-MM-dd'
-    },
-    {
-        name: 'end_date',
-        isRequired: false,
-        rule: (end_date: any): boolean => stringToDateConverter(end_date) !== null,
-        errorMessage: 'End Date must be formatted like so: yyyy-MM-dd'
-    },
-];
-
-const DIARY_ENTRY_PARAM_SINGLE_VALIDATION: ValidationRule[] = [
-    {
-        name: 'id',
-        isRequired: true,
-        rule: (id: any): boolean => !isNaN(Number(id)),
-        errorMessage: 'Id must be a number'
-    }
-]
-
-const DIARY_ENTRY_BODY_VALIDATION: ValidationRule[] = [
-    {
-        name: 'id',
-        isRequired: false,
-        rule: (id: any): boolean => {
-            try {
-                BigInt(id)
-                return typeof id === 'string';
-            } catch (e) {
-                return false;
-            }
-        },
-        errorMessage: 'Id must be a number'
-    },
-    {
-        name: 'stock_id',
-        isRequired: true,
-        rule: (stock_id: any): boolean => {
-            try {
-                BigInt(stock_id)
-                return typeof stock_id === 'string';
-            } catch (e) {
-                return false;
-            }
-        },
-        errorMessage: 'Stock Id must be a number'
-    },
-    {
-        name: 'title',
-        isRequired: true,
-        rule: (title: any): boolean => typeof title === 'string',
-        errorMessage: 'Title must be a string'
-    },
-    {
-        name: 'content',
-        isRequired: true,
-        rule: (content: any): boolean => typeof content === 'string',
-        errorMessage: 'String must be a string'
-    },
-    {
-        name: 'posted_date',
-        isRequired: true,
-        rule: (postedDate: any): boolean => typeof postedDate === 'string' && stringToDateConverter(postedDate) !== null,
-        errorMessage: 'Posted Date must be formatted like so: yyyy-MM-dd'
-    }
-];
 
 const whereFieldMapping: FieldMapping[] = [
     {
