@@ -5,13 +5,19 @@ import ShortData from "#root/src/models/ShortData.js";
 import Stock from "#root/src/models/Stock.js";
 import {retrieveShortData} from "#root/src/helpers/ShortDataRetriever.js";
 import {UpsertResult} from "mariadb";
-import {ValidationRule, validate, ValidatorResult} from "#root/src/utilities/Validator.js";
-import {stringToDateConverter} from "#root/src/helpers/DateHelper.js";
+import {validate, ValidatorResult} from "#root/src/utilities/Validator.js";
 import {QueryType} from "#root/src/types.js";
+import {
+	SHORT_PARAM_SINGLE_VALIDATION,
+	SHORT_PARAM_VALIDATION,
+	SHORT_BODY_VALIDATION,
+	SHORT_MISMATCH_PARAM_VALIDATION,
+	SHORT_MISMATCH_QUERY_VALIDATION
+} from "#root/src/validation/VRule_ShortData.js";
 
 export type ShortDataGetParam = {
-	id?: number,
-	stock_id: number;
+	id?: string,
+	stock_id: string;
 	start_date?: string;
 	end_date?: string;
 }
@@ -23,7 +29,7 @@ export type ShortDataGetSingleParam = {
 export type ShortDataBody = {
 	id?: string;
 	ticker_no?: string;
-	stock_id: number;
+	stock_id: string;
 	reporting_date: string;
 	shorted_shares: number;
 	shorted_amount: number;
@@ -41,120 +47,6 @@ export type ShortDataTickersWithMismatchQuery = {
 export type ShortDataMismatchQuery = {
 	ticker_no: string;
 }
-
-const SHORT_PARAM_VALIDATION: ValidationRule[] = [
-	{
-		name: 'stock_id',
-		isRequired: true,
-		rule: (stock_id: any): boolean => !isNaN(Number(stock_id)),
-		errorMessage: 'Stock Id is required and must be a number',
-	},
-	{
-		name: 'start_date',
-		isRequired: false,
-		rule: (start_date: any): boolean => stringToDateConverter(start_date) !== null,
-		errorMessage: 'Start Date must be a date'
-	},
-	{
-		name: 'end_date',
-		isRequired: false,
-		rule: (end_date: any): boolean => stringToDateConverter(end_date) !== null,
-		errorMessage: 'End Date must be a date'
-	},
-];
-
-const SHORT_PARAM_SINGLE_VALIDATION: ValidationRule[] = [
-	{
-		name: 'id',
-		isRequired: true,
-		rule: (id: any): boolean => {
-			try {
-				BigInt(id)
-				return typeof id === 'string';
-			} catch (e) {
-				return false;
-			}
-		},
-		errorMessage: 'Id is required and must be a bigint string'
-	}
-]
-
-const SHORT_BODY_VALIDATION: ValidationRule[] = [
-	{
-		name: 'id',
-		isRequired: false,
-		rule: (id: any): boolean => {
-			try {
-				BigInt(id)
-				return typeof id === 'string';
-			} catch (e) {
-				return false;
-			}
-		},
-		errorMessage: 'Id is must be a number"'
-	},
-	{
-		name: 'ticker_no',
-		isRequired: false,
-		rule: (stock_code: any): boolean => stock_code.toString().length === 5,
-		errorMessage: 'Stock Code is must be a string of 5 characters and is required"'
-	},
-	{
-		name: 'stock_id',
-		isRequired: true,
-		rule: (id: any): boolean => {
-			try {
-				BigInt(id)
-				return typeof id === 'string';
-			} catch (e) {
-				return false;
-			}
-		},
-		errorMessage: 'Id is must be a number"'
-	},
-	{
-		name: 'reporting_date',
-		isRequired: false,
-		rule: (reporting_date: any): boolean => stringToDateConverter(reporting_date) !== null,
-		errorMessage: 'Reporting Date must be formatted like so: yyyy-MM-dd'
-	},
-	{
-		name: 'shorted_shares',
-		isRequired: false,
-		rule: (shorted_shares: any): boolean => !isNaN(Number(shorted_shares)),
-		errorMessage: 'Shorted Shares must be a number'
-	},
-	{
-		name: 'shorted_amount',
-		isRequired: false,
-		rule: (shorted_amount: any): boolean => !isNaN(Number(shorted_amount)),
-		errorMessage: 'Shorted Amount must be a number'
-	},
-];
-
-const SHORT_MISMATCH_QUERY_VALIDATION = [
-	{
-		name: 'limit',
-		isRequired: false,
-		rule: (limit: any): boolean => !isNaN(Number(limit)) && Number(limit) >= 0,
-		errorMessage: 'Limit must be a positive number',
-	},
-	{
-		name: 'offset',
-		isRequired: false,
-		rule: (offset: any): boolean => !isNaN(Number(offset)) && Number(offset) >= 0,
-		errorMessage: 'Offset must be a positive number',
-	}
-]
-
-const SHORT_MISMATCH_PARAM_VALIDATION: ValidationRule[] = [
-	{
-		name: 'ticker_no',
-		isRequired: true,
-		rule: (ticker_no: any): boolean => typeof ticker_no === 'string' && ticker_no.length === 5,
-		errorMessage: 'Ticker No. in param is formatted incorrectly, it should be 5 characters long. E.g "00001"'
-	}
-]
 
 const fieldMapping: FieldMapping[] = [
 	{
