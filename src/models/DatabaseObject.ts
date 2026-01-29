@@ -33,7 +33,7 @@ export default class DatabaseObject {
 		let result: any = {};
 		Object.getOwnPropertyNames(this).forEach((key: string) => {
 
-			if (!this[key]) return;
+			if (this[key] === undefined) return;
 			const slicedKey = key.slice(1);
 
 			result[slicedKey] = this[key];

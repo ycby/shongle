@@ -124,7 +124,6 @@ const retrieveShortDataFromSource = async (req: Request<{}, {}, {}, ShortDataRet
 
     try {
 
-        console.log(`SD: ${req.query.start_date}, ED: ${req.query.end_date}`);
         try {
 
             ShortDataService.retrieveShortDataFromSource(stringToDateConverter(req.query.start_date), stringToDateConverter(req.query.end_date));

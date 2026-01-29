@@ -169,8 +169,7 @@ const retrieveStockData = async () => {
             stocksToUpdate.push(stock);
         });
 
-        console.log(stocksToUpdate);
-        const updateTickerResults = await executeBatch({
+        await executeBatch({
                 namedPlaceholders: true,
                 sql: 'INSERT INTO Tickers (ticker_no, created_datetime, last_modified_datetime) ' +
                     'VALUES (:ticker_no, :created_datetime, :last_modified_datetime) ' +
@@ -182,7 +181,7 @@ const retrieveStockData = async () => {
                 last_modified_datetime: element.last_modified_datetime,
             })));
 
-        const updateResults = await executeBatch({
+        await executeBatch({
                 namedPlaceholders: true,
                 sql: 'INSERT INTO Stocks ' +
                     '(id, ticker_no, name, full_name, description, category, subcategory, board_lot, ISIN, currency, is_active, created_datetime, last_modified_datetime) ' +
@@ -200,7 +199,7 @@ const retrieveStockData = async () => {
                     'is_active=VALUES(is_active), ' +
                     'last_modified_datetime=VALUES(last_modified_datetime)'
             },
-            () => stocksToUpdate.map(stock => stock.getPlainObject())
+            stocksToUpdate.map(stock => stock.getPlainObject())
         );
     } catch (e) {
 
