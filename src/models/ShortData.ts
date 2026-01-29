@@ -14,8 +14,8 @@ export default class ShortData extends DatabaseObject {
 
 		super();
 
-		this._id = BigInt(data?.id);
-		this._stock_id = BigInt(data?.stock_id);
+		if (data?.id) this._id = BigInt(data?.id);
+		if (data?.stock_id) this._stock_id = BigInt(data?.stock_id);
 		this._ticker_no = data?.ticker_no;
 
 		if (data?.reporting_date === undefined) {
