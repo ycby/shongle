@@ -1,10 +1,19 @@
 import Papa from 'papaparse';
-import {UpsertResult} from "mariadb";
-import {ShortDataBody} from "#root/src/services/ShortDataService.js";
 import {dateToStringConverter} from "#root/src/helpers/DateHelper.js";
+import Stock from "#root/src/models/Stock.js";
+import {executeQuery} from "#root/src/db/db.js";
+import ShortData from "#root/src/models/ShortData.js";
 
 type UploadDataMapping = { [p: string]: UploadDataMappingElement };
 type UploadDataMappingElement = { label: string; value: string };
+
+type SFCData = {
+    ticker_no: string;
+    name: string;
+    reporting_date: Date;
+    shorted_shares: number;
+    shorted_amount: number;
+}
 
 const mapping: UploadDataMapping = {
     'id': {
@@ -13,7 +22,11 @@ const mapping: UploadDataMapping = {
     },
     'Stock Code': {
         label: "Stock Code",
-        value: "stock_code"
+        value: "ticker_no"
+    },
+    'Stock Name': {
+        label: 'Stock Name',
+        value: 'name'
     },
     'Date': {
         label: "Reporting Date",
@@ -29,9 +42,10 @@ const mapping: UploadDataMapping = {
     }
 }
 
-const root = 'https://www.sfc.hk/-/media/EN/pdf/spr';
+const retrieveShortData = async (targetDate: Date, callbackHandler: (data: ShortData[]) => void) => {
 
-const retrieveShortData = async (targetDate: Date, callbackHandler: (data:Array<ShortDataBody>) => Promise<UpsertResult[]>) => {
+    const root = process.env.SHORT_DATA_RETRIEVAL_BASE_URL;
+    if (!root) throw new Error('Short Data retrieval URL is undefined!');
 
     let fileName = `Short_Position_Reporting_Aggregated_Data_${targetDate.getFullYear()}${(targetDate.getMonth() + 1).toString().padStart(2, '0')}${targetDate.getDate().toString().padStart(2, '0')}.csv`;
 
@@ -54,10 +68,31 @@ const retrieveShortData = async (targetDate: Date, callbackHandler: (data:Array<
         //this is for handling the unexpected errors
         if (responseHeaders !== null && !responseHeaders.includes('text/plain')) throw new Error('Unexpected error occurred when retrieving file.');
 
-        Papa.parse(await response.text(), {
-            complete: (results: Papa.ParseResult<ShortDataBody>): void => {
+        // const fileStream = fs.createReadStream('/home/pikachu/Documents/Data/Short Data/test.csv')
 
-                callbackHandler(results.data);
+        Papa.parse(await response.text(), {
+            complete: async (results: Papa.ParseResult<SFCData>): Promise<void> => {
+
+                const existingStockMap = new Map<string, Stock>();
+
+                const existingStocks = await executeQuery<Stock>(
+                    {
+                        namedPlaceholders: true,
+                        sql: 'SELECT id, ticker_no, name FROM Stocks WHERE ticker_no IN (?)'
+                    },
+                    [results.data.map((element) => element.ticker_no)],
+                    (element) => new Stock(element)
+                );
+
+                existingStocks.forEach((existingStock: Stock) => existingStockMap.set(`${existingStock.ticker_no}_${existingStock.name}`, existingStock));
+
+                callbackHandler(results.data.map((element: SFCData): ShortData => new ShortData({
+                    ticker_no: element.ticker_no,
+                    reporting_date: element.reporting_date,
+                    shorted_shares: element.shorted_shares,
+                    shorted_amount: element.shorted_amount,
+                    stock_id: existingStockMap.get(`${element.ticker_no}_${element.name}`)?.id
+                })));
             },
             header: true,
             transformHeader: (header: any) => {
@@ -74,7 +109,7 @@ const retrieveShortData = async (targetDate: Date, callbackHandler: (data:Array<
                     return dateToStringConverter(new Date(parseInt(dateString[2]), parseInt(dateString[1]) - 1, parseInt(dateString[0])));
                 }
 
-                if (field === 'stock_code') {
+                if (field === 'ticker_no') {
 
                     return value.padStart(5, '0');
                 }

@@ -124,7 +124,14 @@ const retrieveShortDataFromSource = async (req: Request<{}, {}, {}, ShortDataRet
 
     try {
 
-        ShortDataService.retrieveShortDataFromSource(stringToDateConverter(req.query.end_date));
+        console.log(`SD: ${req.query.start_date}, ED: ${req.query.end_date}`);
+        try {
+
+            ShortDataService.retrieveShortDataFromSource(stringToDateConverter(req.query.start_date), stringToDateConverter(req.query.end_date));
+        } catch (e) {
+
+            console.error(e);
+        }
 
         const response = 'Job has been started.';
 

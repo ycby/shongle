@@ -36,6 +36,7 @@ export type ShortDataBody = {
 }
 
 export type ShortDataRetrieveQuery = {
+	start_date?: string;
 	end_date?: string;
 }
 
@@ -101,7 +102,6 @@ const getShortData = async (args: ShortDataGetParam) => {
 //TODO: for front end?, allow user to find unparented short reporting and manually parent them.
 const postShortData = async (data: ShortDataBody[]) => {
 
-	console.log(data);
 	//TODO: if stockCode is invalid/does not exist, return error
 	let validationResult: ValidatorResult[] = validate(data, SHORT_BODY_VALIDATION);
 
@@ -233,7 +233,7 @@ const deleteShortDatum = async (args: ShortDataGetSingleParam) => {
 	};
 }
 
-const retrieveShortDataFromSource = async (endDate: Date | null) => {
+const retrieveShortDataFromSource = async (startDate: Date | null, endDate: Date | null) => {
 	console.log('Inside Retrieve Short Data From Source')
 
 	//Step 1: get the last date which was imported
@@ -245,26 +245,38 @@ const retrieveShortDataFromSource = async (endDate: Date | null) => {
 
 		result = await executeQuery<ShortData>({
 			sql: `SELECT id, reporting_date FROM Short_Reporting ORDER BY reporting_date DESC LIMIT 1`
-		});
+		},
+			undefined,
+			(element) => new ShortData(element));
 	} catch (err) {
 
 		throw err;
 	}
 
-	if (!result[0].reporting_date) {
+	if (!result[0]?.reporting_date) {
 
 		throw new RecordMissingDataError();
 	}
 
-	const finalDate = endDate === null ? new Date() : endDate;
-	let latestDate = result[0].reporting_date;
+	const finalDate = endDate ?? new Date();
+	let latestDate = startDate ?? result[0].reporting_date;
 
 	while(latestDate < finalDate) {
 
 		latestDate.setDate(latestDate.getDate() + 1);
 
 		//fire and forget
-		retrieveShortData(latestDate, postShortData);
+		retrieveShortData(latestDate, async (shortData: ShortData[]) => {
+
+			await executeBatch({
+					namedPlaceholders: true,
+					sql: 'INSERT INTO Short_Reporting ' +
+						'(stock_id, ticker_no, reporting_date, shorted_shares, shorted_amount, created_datetime, last_modified_datetime) ' +
+						'VALUES (:stock_id, :ticker_no, :reporting_date, :shorted_shares, :shorted_amount, :created_datetime, :last_modified_datetime)'
+				},
+				shortData.map(element => element.getPlainObject())
+			);
+		});
 
 		await wait(10000);
 	}

@@ -1,4 +1,5 @@
 import DatabaseObject from '#root/src/models/DatabaseObject.js'
+import {stringToDateConverter} from "#root/src/helpers/DateHelper.js";
 
 export default class ShortData extends DatabaseObject {
 
@@ -16,7 +17,21 @@ export default class ShortData extends DatabaseObject {
 		this._id = data?.id;
 		this._stock_id = data?.stock_id;
 		this._ticker_no = data?.ticker_no;
-		this._reporting_date = data?.reporting_date;
+
+		if (data?.reporting_date === undefined) {
+
+			this._reporting_date = data?.reporting_date;
+		} else if (data.reporting_date instanceof Date) {
+
+			this._reporting_date = data.reporting_date;
+		} else if (typeof data.reporting_date === 'string') {
+
+			const convertedDate = stringToDateConverter(data.reporting_date);
+			if (!convertedDate) throw new TypeError(`${data.reporting_date} cannot be cast to a date`);
+
+			this._reporting_date = convertedDate;
+		}
+
 		this._shorted_shares = data?.shorted_shares;
 		this._shorted_amount = data?.shorted_amount;
 		this.created_datetime = data?.created_datetime ? data.created_datetime : this.created_datetime;

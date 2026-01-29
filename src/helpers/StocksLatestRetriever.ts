@@ -64,7 +64,9 @@ const categoryMapping = {
 const retrieveStockData = async () => {
 
     // const url = '/home/pikachu/Documents/Data/Exchange Data/2026ListOfSecurities.xlsx';
-    const url = 'https://www.hkex.com.hk/eng/services/trading/securities/securitieslists/ListOfSecurities.xlsx';
+    const url = process.env.STOCK_DATA_RETRIEVAL_URL;
+    if (!url) throw new Error('Stock retrieval URL is undefined!');
+
     const workbook = new ExcelJS.Workbook();
 
     try {
@@ -109,18 +111,18 @@ const retrieveStockData = async () => {
 
         console.log(newStocksMap.size);
 
-        const activeStocks: Stock[] = await executeQuery<Stock[]>({
+        const activeStocks: Stock[] = await executeQuery<Stock>({
                 sql: `SELECT * FROM Stocks WHERE ticker_no IN (?) AND is_active = TRUE`,
             },
             [[...newStocksMap.keys()]],
-            (result: any): Stock[] => result.map((element: any) => new Stock('', element))
+            (element: any): Stock => new Stock(element)
         );
 
-        const nonActiveStocks: Stock[] = await executeQuery<Stock[]>({
+        const nonActiveStocks: Stock[] = await executeQuery<Stock>({
                 sql: `SELECT * FROM Stocks WHERE ticker_no NOT IN (?) AND is_active = TRUE`,
             },
             [[...newStocksMap.keys()]],
-            (result: any): Stock[] => result.map((element: any) => new Stock('', element))
+            (element: any): Stock => new Stock(element)
         );
 
         const stocksToUpdate: Stock[] = [];
