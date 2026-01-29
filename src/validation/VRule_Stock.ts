@@ -23,8 +23,8 @@ const STOCK_PARAM_VALIDATION: ValidationRule[] = [
     {
         name: 'ticker_no',
         isRequired: false,
-        rule: (ticker_no: any): boolean => typeof ticker_no === 'string' && ticker_no.length === 5,
-        errorMessage: 'Ticker No. is formatted incorrectly, it should be 5 characters long. E.g "00001"'
+        rule: (ticker_no: any): boolean => typeof ticker_no === 'string',
+        errorMessage: 'Ticker No. is not a string?!?"'
     },
     {
         name: 'name',
