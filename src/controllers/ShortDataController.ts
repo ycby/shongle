@@ -19,7 +19,7 @@ const getShortDataRouter = () => {
     router.get(path + "/retrieve-from-source", retrieveShortDataFromSource);
     router.get(path + "/mismatch", getTickersWithMismatchedData);
     router.get(path + "/:id", getShortDatum);
-    router.put(path + "/:id", upsertShortDatum);
+    router.put(path + "/", upsertShortDatum);
     router.delete(path + "/:id", deleteShortDatum);
     router.get(path + "/mismatch/:ticker_no", getMismatchedDataByTicker);
 

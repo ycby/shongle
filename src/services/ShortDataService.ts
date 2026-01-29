@@ -171,7 +171,7 @@ const getShortDatum = async (args: ShortDataGetSingleParam) => {
 	return result;
 }
 
-const putShortDatum = async (data: ShortDataBody) => {
+const putShortDatum = async (data: ShortDataBody[]) => {
 
 	let validationResults: ValidatorResult[] = validate(data, SHORT_BODY_VALIDATION);
 
@@ -183,11 +183,10 @@ const putShortDatum = async (data: ShortDataBody) => {
 
 	try {
 
-		result = await executeQuery({
-			namedPlaceholders: true,
+		result = await executeBatch({
 			sql: 'INSERT INTO Short_Reporting ' +
 				'(id, stock_id, ticker_no, reporting_date, shorted_shares, shorted_amount, created_datetime, last_modified_datetime) ' +
-				'VALUES (:id, :stock_id, :ticker_no, :reporting_date, :shorted_shares, :shorted_amount, :created_datetime, :last_modified_datetime) ' +
+				'VALUES (?, ?, ?, ?, ?, ?, ?, ?) ' +
 				'ON DUPLICATE KEY UPDATE ' +
 				'stock_id=VALUES(stock_id), ' +
 				'ticker_no=VALUES(ticker_no), ' +
@@ -196,7 +195,19 @@ const putShortDatum = async (data: ShortDataBody) => {
 				'shorted_amount=VALUES(shorted_amount), ' +
 				'last_modified_datetime=VALUES(last_modified_datetime)'
 			},
-			() => new ShortData(data).getPlainObject()
+			data.map(element => {
+				const result = new ShortData(element);
+				return [
+					result.id,
+					result.stock_id,
+					result.ticker_no,
+					result.reporting_date,
+					result.shorted_shares,
+					result.shorted_amount,
+					result.created_datetime,
+					result.last_modified_datetime
+				];
+			})
 		);
 
 	} catch (err) {
