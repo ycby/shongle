@@ -327,7 +327,6 @@ const getTickersWithMismatchedData = async (args: ShortDataTickersWithMismatchQu
 
 const getMismatchedDataByTicker = async (args: ShortDataMismatchQuery) => {
 
-	console.log(args)
 	let validationResults: ValidatorResult[] = validate(args, SHORT_MISMATCH_PARAM_VALIDATION);
 
 	if (validationResults.length > 0) throw new InvalidRequestError(validationResults);

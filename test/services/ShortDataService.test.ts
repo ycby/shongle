@@ -1,8 +1,15 @@
 import {afterEach, describe, expect, jest, test} from "@jest/globals";
 import * as db from "#root/src/db/db.js";
 import * as ShortDataService from "#root/src/services/ShortDataService.js";
-import {ShortDataBody, ShortDataGetParam, ShortDataGetSingleParam} from "#root/src/services/ShortDataService.js";
+import {
+    ShortDataBody,
+    ShortDataGetParam,
+    ShortDataGetSingleParam, ShortDataMismatchQuery,
+    ShortDataTickersWithMismatchQuery
+} from "#root/src/services/ShortDataService.js";
 import {InvalidRequestError} from "#root/src/errors/Errors.js";
+import {SqlError} from "mariadb";
+import ShortData from "#root/src/models/ShortData.js";
 
 jest.mock('#root/src/db/db.js');
 
@@ -98,6 +105,8 @@ describe('Short Data Service Tests', () => {
             await expect(() => ShortDataService.getShortData(args))
                 .rejects.toThrow(InvalidRequestError);
         });
+
+
     });
 
     describe('POST', () => {
@@ -213,8 +222,119 @@ describe('Short Data Service Tests', () => {
 
             const args: any = {};
 
-            await expect(() => ShortDataService.deleteShortDatum(args))
+            await expect(ShortDataService.deleteShortDatum(args))
                 .rejects.toThrow(InvalidRequestError);
         });
     });
-})
+
+    describe('GET Shorts with Mismatched Tickers', () => {
+
+        test('Get shorts with mismatched tickers', async () => {
+
+            executeQueryMock.mockResolvedValueOnce([
+                {
+                    ticker_no: '00001',
+                },
+                {
+                    ticker_no: '00002',
+                }
+            ]);
+
+            const args: ShortDataTickersWithMismatchQuery = {
+                limit: 0,
+                offset: 0
+            }
+
+            expect(await ShortDataService.getTickersWithMismatchedData(args)).toEqual(['00001', '00002']);
+        });
+
+        test('Get shorts with mismatched tickers, missing limit', async () => {
+
+            executeQueryMock.mockResolvedValueOnce([
+                {
+                    ticker_no: '00001',
+                },
+                {
+                    ticker_no: '00002',
+                }
+            ]);
+
+            const args: ShortDataTickersWithMismatchQuery = {
+                offset: 0
+            }
+
+            expect(await ShortDataService.getTickersWithMismatchedData(args)).toEqual(['00001', '00002']);
+        });
+
+        test('Get shorts with mismatched tickers, missing offset', async () => {
+
+            executeQueryMock.mockResolvedValueOnce([
+                {
+                    ticker_no: '00001',
+                },
+                {
+                    ticker_no: '00002',
+                }
+            ]);
+
+            const args: ShortDataTickersWithMismatchQuery = {
+                limit: 0
+            }
+
+            expect(await ShortDataService.getTickersWithMismatchedData(args)).toEqual(['00001', '00002']);
+        });
+
+        test('Get shorts with mismatched tickers, error with query', async () => {
+
+            executeQueryMock.mockRejectedValueOnce(new SqlError('Some error'));
+
+            const args: ShortDataTickersWithMismatchQuery = {
+                limit: 0,
+                offset: 0
+            };
+
+            await expect(ShortDataService.getTickersWithMismatchedData(args)).rejects.toThrow(SqlError);
+        });
+    });
+
+    describe('GET mismatched Short by Ticker', () => {
+
+        test('Get shorts with mismatched tickers', async () => {
+
+            executeQueryMock.mockResolvedValueOnce([
+                new ShortData({
+                    id: '1',
+                    stock_id: null,
+                    reporting_date: new Date(2025, 0, 1),
+                    shorted_shares: 100,
+                    shorted_amount: 1000,
+                    ticker_no: '00001',
+                    created_datetime: new Date(2025, 0, 1),
+                    last_modified_datetime: new Date(2025, 0, 1)
+                }),
+                new ShortData({
+                    id: '2',
+                    stock_id: null,
+                    reporting_date: new Date(2025, 0, 1),
+                    shorted_shares: 200,
+                    shorted_amount: 2000,
+                    ticker_no: '00001',
+                    created_datetime: new Date(2025, 0, 1),
+                    last_modified_datetime: new Date(2025, 0, 1)
+                })
+            ]);
+
+            const args: ShortDataMismatchQuery = {ticker_no: '00001'};
+
+            const result = await ShortDataService.getMismatchedDataByTicker(args);
+            expect(result.length).toBe(2);
+        });
+
+        test('Get shorts with mismatched tickers, fail validation', async () => {
+
+            const args: any = {ticker_no: 1};
+
+            await expect(ShortDataService.getMismatchedDataByTicker(args)).rejects.toThrow(InvalidRequestError);
+        });
+    });
+});
