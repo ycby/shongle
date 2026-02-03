@@ -10,8 +10,9 @@ const executeQueryMock = db.executeQuery as jest.MockedFunction<typeof db.execut
 const executeBatchMock = db.executeBatch as jest.MockedFunction<typeof db.executeBatch>;
 
 const testBody: ShortDataBody = {
-    id: 1,
-    stock_code: '00001',
+    id: '1',
+    stock_id: '1',
+    ticker_no: '00001',
     shorted_amount: 100,
     shorted_shares: 10,
     reporting_date: '2025-01-01'
@@ -29,15 +30,15 @@ describe('Short Data Service Tests', () => {
 
             executeQueryMock.mockResolvedValueOnce([
                 {
-                    id: 1,
-                    stock_id: 1,
+                    id: '1',
+                    stock_id: '1',
                     shorted_amount: 100,
                     shorted_shares: 10,
                     reporting_date: '2025-01-01'
                 }
             ]);
 
-            const args: ShortDataGetParam = {stock_id: 1};
+            const args: ShortDataGetParam = {stock_id: '1'};
 
             const result = await ShortDataService.getShortData(args);
 
@@ -74,7 +75,7 @@ describe('Short Data Service Tests', () => {
                 }
             ]);
 
-            const args: ShortDataGetParam = {stock_id: 1, start_date: '2025-aa-01'};
+            const args: ShortDataGetParam = {stock_id: '1', start_date: '2025-aa-01'};
 
             await expect(() => ShortDataService.getShortData(args))
                 .rejects.toThrow(InvalidRequestError);
@@ -84,15 +85,15 @@ describe('Short Data Service Tests', () => {
 
             executeQueryMock.mockResolvedValueOnce([
                 {
-                    id: 1,
-                    stock_id: 1,
+                    id: '1',
+                    stock_id: '1',
                     shorted_amount: 100,
                     shorted_shares: 10,
                     reporting_date: '2025-01-01'
                 }
             ]);
 
-            const args: ShortDataGetParam = {stock_id: 1, end_date: '2025-aa-01'};
+            const args: ShortDataGetParam = {stock_id: '1', end_date: '2025-aa-01'};
 
             await expect(() => ShortDataService.getShortData(args))
                 .rejects.toThrow(InvalidRequestError);
@@ -103,7 +104,7 @@ describe('Short Data Service Tests', () => {
 
         test('Post short data', async () => {
 
-            executeQueryMock.mockResolvedValueOnce([{id: 1, ticker_no: '00001', name: 'test1'}]);
+            executeQueryMock.mockResolvedValueOnce([{id: '1', ticker_no: '00001', name: 'test1'}]);
             executeBatchMock.mockResolvedValueOnce([{affectedRows: 1, insertId: 1, warningStatus: 0}])
 
             const data = [testBody];
@@ -139,7 +140,7 @@ describe('Short Data Service Tests', () => {
                 }
             ]);
 
-            const args: ShortDataGetSingleParam = {id: 1};
+            const args: ShortDataGetSingleParam = {id: '1'};
 
             const result = await ShortDataService.getShortDatum(args);
 
@@ -169,10 +170,10 @@ describe('Short Data Service Tests', () => {
 
         test('Put short data', async () => {
 
-            executeQueryMock.mockResolvedValueOnce([{id: 1, ticker_no: '00001', name: 'test1'}]);
+            executeQueryMock.mockResolvedValueOnce([{id: '1', ticker_no: '00001', name: 'test1'}]);
             executeBatchMock.mockResolvedValueOnce([{affectedRows: 1, insertId: 1, warningStatus: 0}])
 
-            const result = await ShortDataService.putShortDatum(testBody);
+            const result = await ShortDataService.putShortDatum([testBody]);
 
             expect(result).toHaveLength(1);
         });
@@ -184,7 +185,7 @@ describe('Short Data Service Tests', () => {
 
             const data: ShortDataBody = {...testBody, reporting_date: '2025-a1-01'};
 
-            await expect(() => ShortDataService.putShortDatum(data))
+            await expect(() => ShortDataService.putShortDatum([data]))
                 .rejects.toThrow(InvalidRequestError);
         });
     });
@@ -197,7 +198,7 @@ describe('Short Data Service Tests', () => {
                 {affectedRows: 1, insertId: 0, warningStatus: 0}
             ]);
 
-            const args: ShortDataGetSingleParam = {id: 1};
+            const args: ShortDataGetSingleParam = {id: '1'};
 
             const result = await ShortDataService.deleteShortDatum(args);
 

@@ -38,6 +38,8 @@ const canConvertToBigNumber = (value: string | number | bigint | boolean): boole
 
 const canConvertToNumber = (value: any): boolean => {
 
+    if (value === null) return false;
+
     return !isNaN(Number(value));
 }
 export {
