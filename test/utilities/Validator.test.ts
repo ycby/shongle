@@ -1,5 +1,5 @@
 import {describe, expect, test} from "@jest/globals";
-import {ValidationRule, validator, ValidatorResult} from "#root/src/utilities/Validator.ts";
+import {ValidationRule, validate, ValidatorResult} from "#root/src/utilities/Validator.ts";
 
 describe('Validator tests', () => {
     test('Check validator validates single datum normally', () => {
@@ -31,7 +31,7 @@ describe('Validator tests', () => {
             }
         ]
 
-        let validationResults: ValidatorResult[] = validator(data, validationRules);
+        let validationResults: ValidatorResult[] = validate(data, validationRules);
 
         expect(validationResults.length).toBe(0);
     });
@@ -72,7 +72,7 @@ describe('Validator tests', () => {
             }
         ]
 
-        let validationResults: ValidatorResult[] = validator(data, validationRules);
+        let validationResults: ValidatorResult[] = validate(data, validationRules);
 
         expect(validationResults.length).toBe(0);
     });
@@ -102,7 +102,7 @@ describe('Validator tests', () => {
             }
         ]
 
-        let validationResults: ValidatorResult[] = validator(data, validationRules);
+        let validationResults: ValidatorResult[] = validate(data, validationRules);
 
         expect(validationResults.length).toBe(0);
     });
@@ -132,7 +132,7 @@ describe('Validator tests', () => {
             }
         ]
 
-        let validationResults: ValidatorResult[] = validator(data, validationRules);
+        let validationResults: ValidatorResult[] = validate(data, validationRules);
 
         expect(validationResults.length).toBe(1);
         expect(validationResults[0].index).toBe(0);
@@ -168,7 +168,7 @@ describe('Validator tests', () => {
             }
         ]
 
-        let validationResults: ValidatorResult[] = validator(data, validationRules);
+        let validationResults: ValidatorResult[] = validate(data, validationRules);
 
         expect(validationResults.length).toBe(1);
         expect(validationResults[0].index).toBe(0);

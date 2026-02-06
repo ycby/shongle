@@ -1,4 +1,5 @@
 FROM node:lts-alpine
+RUN apk add --no-cache git
 WORKDIR /app
 COPY ./dist .
 COPY ./package.json .

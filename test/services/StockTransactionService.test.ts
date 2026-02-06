@@ -9,8 +9,8 @@ const executeQueryMock = db.executeQuery as jest.MockedFunction<typeof db.execut
 const executeBatchMock = db.executeBatch as jest.MockedFunction<typeof db.executeBatch>;
 
 const testStockTransactionDataBody = {
-    id: 1,
-    stock_id: 1,
+    id: '1',
+    stock_id: '1',
     type: 'buy',
     amount: 123.45,
     quantity: 100,
@@ -19,7 +19,6 @@ const testStockTransactionDataBody = {
     currency: 'HKD',
 }
 
-//TODO: Complete testing
 describe('Stock Transaction Service Tests', () => {
 
     afterEach(() => {
@@ -66,8 +65,8 @@ describe('Stock Transaction Service Tests', () => {
             ]);
 
             const args: TransactionDataGetParams = {
-                id: 1,
-                stock_id: 1,
+                id: '1',
+                stock_id: '1',
                 type: ['buy'],
                 start_date: '2025-01-01',
                 end_date: '2025-12-31',
@@ -203,7 +202,7 @@ describe('Stock Transaction Service Tests', () => {
                 testStockTransactionDataBody
             ];
 
-            await expect(async () => StockTransactionService.createStockTransactionsData(data))
+            await expect(StockTransactionService.createStockTransactionsData(data))
                 .rejects.toThrow(RecordNotFoundError);
         });
 
@@ -432,18 +431,18 @@ describe('Stock Transaction Service Tests', () => {
 
         test('Put stock transaction', async () => {
 
-            executeQueryMock.mockResolvedValueOnce([{affectedRows: 1, insertId: 1, warningStatus: 0}]);
+            executeBatchMock.mockResolvedValueOnce([{affectedRows: 1, insertId: 1, warningStatus: 0}]);
 
             const data: TransactionDataBody = testStockTransactionDataBody;
 
-            const result = await StockTransactionService.upsertStockTransactionData(data);
+            const result = await StockTransactionService.upsertStockTransactionData([data]);
 
             expect(result).toHaveLength(1);
         });
 
         test('Put stock transactions, expect error when stock_id does not exist', async () => {
 
-            executeQueryMock.mockResolvedValueOnce([{affectedRows: 1, insertId: 1, warningStatus: 0}]);
+            executeBatchMock.mockResolvedValueOnce([{affectedRows: 1, insertId: 1, warningStatus: 0}]);
 
             const data: any = {...testStockTransactionDataBody, stock_id: undefined};
 
@@ -453,7 +452,7 @@ describe('Stock Transaction Service Tests', () => {
 
         test('Put stock transactions, expect error when type does not exist', async () => {
 
-            executeQueryMock.mockResolvedValueOnce([{affectedRows: 1, insertId: 1, warningStatus: 0}]);
+            executeBatchMock.mockResolvedValueOnce([{affectedRows: 1, insertId: 1, warningStatus: 0}]);
 
             const data: any = {...testStockTransactionDataBody, type: undefined};
 
@@ -463,7 +462,7 @@ describe('Stock Transaction Service Tests', () => {
 
         test('Put stock transactions, expect error when type is not supported', async () => {
 
-            executeQueryMock.mockResolvedValueOnce([{affectedRows: 1, insertId: 1, warningStatus: 0}]);
+            executeBatchMock.mockResolvedValueOnce([{affectedRows: 1, insertId: 1, warningStatus: 0}]);
 
             const data: any = {...testStockTransactionDataBody, type: 'yowza'};
 
@@ -473,7 +472,7 @@ describe('Stock Transaction Service Tests', () => {
 
         test('Put stock transactions, expect error when amount does not exist', async () => {
 
-            executeQueryMock.mockResolvedValueOnce([{affectedRows: 1, insertId: 1, warningStatus: 0}]);
+            executeBatchMock.mockResolvedValueOnce([{affectedRows: 1, insertId: 1, warningStatus: 0}]);
 
             const data: any = {...testStockTransactionDataBody, amount: undefined};
 
@@ -483,7 +482,7 @@ describe('Stock Transaction Service Tests', () => {
 
         test('Put stock transactions, expect error when quantity does not exist', async () => {
 
-            executeQueryMock.mockResolvedValueOnce([{affectedRows: 1, insertId: 1, warningStatus: 0}]);
+            executeBatchMock.mockResolvedValueOnce([{affectedRows: 1, insertId: 1, warningStatus: 0}]);
 
             const data: any = {...testStockTransactionDataBody, quantity: undefined};
 
@@ -493,7 +492,7 @@ describe('Stock Transaction Service Tests', () => {
 
         test('Put stock transactions, expect error when quantity is less than 0', async () => {
 
-            executeQueryMock.mockResolvedValueOnce([{affectedRows: 1, insertId: 1, warningStatus: 0}]);
+            executeBatchMock.mockResolvedValueOnce([{affectedRows: 1, insertId: 1, warningStatus: 0}]);
 
             const data: any = {...testStockTransactionDataBody, quantity: -1};
 
@@ -503,7 +502,7 @@ describe('Stock Transaction Service Tests', () => {
 
         test('Put stock transactions, expect error when fee does not exist', async () => {
 
-            executeQueryMock.mockResolvedValueOnce([{affectedRows: 1, insertId: 1, warningStatus: 0}]);
+            executeBatchMock.mockResolvedValueOnce([{affectedRows: 1, insertId: 1, warningStatus: 0}]);
 
             const data: any = {...testStockTransactionDataBody, fee: undefined};
 
@@ -513,7 +512,7 @@ describe('Stock Transaction Service Tests', () => {
 
         test('Put stock transactions, expect error when transaction_date does not exist', async () => {
 
-            executeQueryMock.mockResolvedValueOnce([{affectedRows: 1, insertId: 1, warningStatus: 0}]);
+            executeBatchMock.mockResolvedValueOnce([{affectedRows: 1, insertId: 1, warningStatus: 0}]);
 
             const data: any = {...testStockTransactionDataBody, transaction_date: undefined};
 
@@ -523,7 +522,7 @@ describe('Stock Transaction Service Tests', () => {
 
         test('Put stock transactions, expect error when transaction_date format is wrong', async () => {
 
-            executeQueryMock.mockResolvedValueOnce([{affectedRows: 1, insertId: 1, warningStatus: 0}]);
+            executeBatchMock.mockResolvedValueOnce([{affectedRows: 1, insertId: 1, warningStatus: 0}]);
 
             const data: any = {...testStockTransactionDataBody, transaction_date: '2025-01-0a'};
 
@@ -533,7 +532,7 @@ describe('Stock Transaction Service Tests', () => {
 
         test('Put stock transactions, expect error when currency does not exist', async () => {
 
-            executeQueryMock.mockResolvedValueOnce([{affectedRows: 1, insertId: 1, warningStatus: 0}]);
+            executeBatchMock.mockResolvedValueOnce([{affectedRows: 1, insertId: 1, warningStatus: 0}]);
 
             const data: any = {...testStockTransactionDataBody, currency: undefined};
 
@@ -543,7 +542,7 @@ describe('Stock Transaction Service Tests', () => {
 
         test('Put stock transactions, expect error when currency is not supported', async () => {
 
-            executeQueryMock.mockResolvedValueOnce([{affectedRows: 1, insertId: 1, warningStatus: 0}]);
+            executeBatchMock.mockResolvedValueOnce([{affectedRows: 1, insertId: 1, warningStatus: 0}]);
 
             const data: any = {...testStockTransactionDataBody, currency: 'GBP'};
 
@@ -558,7 +557,7 @@ describe('Stock Transaction Service Tests', () => {
 
             executeQueryMock.mockResolvedValueOnce([{affectedRows: 1, insertId: 0, warningStatus: 0}]);
 
-            const args:TransactionDataGetParams = {id: 1};
+            const args:TransactionDataGetParams = {id: '1'};
 
             const result = await StockTransactionService.deleteStockTransactionData(args);
 

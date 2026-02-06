@@ -361,57 +361,56 @@ describe('Stock Service Tests', () => {
 
         test('Put stock', async () => {
 
-            executeQueryMock.mockResolvedValueOnce([{affectedRows: 1, insertId: 1, warningStatus: 0}]);
+            executeBatchMock.mockResolvedValueOnce([{affectedRows: 1, insertId: 1, warningStatus: 0}]);
 
             const data: StocksDataBody = testStockDataBody;
 
-            const result = await StockService.putStockData(data);
+            const result = await StockService.putStockData([data]);
 
             expect(result).toHaveLength(1);
         });
 
         test('Put stocks, verify ticker_no violate length', async () => {
 
-            executeQueryMock.mockResolvedValueOnce([{affectedRows: 1, insertId: 1, warningStatus: 0}]);
-
+            executeBatchMock.mockResolvedValueOnce([{affectedRows: 1, insertId: 1, warningStatus: 0}]);
 
             //ticker no must be 5 chars long and a string
             const data: StocksDataBody = {...testStockDataBody, ticker_no: '2'};
 
-            await expect(async () => StockService.putStockData(data))
+            await expect(async () => StockService.putStockData([data]))
                 .rejects.toThrow(InvalidRequestError);
         });
 
         test('Put stocks, verify category with accepted values', async () => {
 
-            executeQueryMock.mockResolvedValueOnce([{affectedRows: 1, insertId: 1, warningStatus: 0}]);
+            executeBatchMock.mockResolvedValueOnce([{affectedRows: 1, insertId: 1, warningStatus: 0}]);
 
             //ticker no must be 5 chars long and a string
             const data: StocksDataBody = {...testStockDataBody, category: 'cryptocurrency'};
 
-            await expect(async () => StockService.putStockData(data))
+            await expect(async () => StockService.putStockData([data]))
                 .rejects.toThrow(InvalidRequestError);
         });
 
         test('Put stocks, verify subcategory with accepted values', async () => {
 
-            executeQueryMock.mockResolvedValueOnce([{affectedRows: 1, insertId: 1, warningStatus: 0}]);
+            executeBatchMock.mockResolvedValueOnce([{affectedRows: 1, insertId: 1, warningStatus: 0}]);
 
             //ticker no must be 5 chars long and a string
             const data: StocksDataBody = {...testStockDataBody, subcategory: 'memecoins'};
 
-            await expect(async () => StockService.putStockData(data))
+            await expect(async () => StockService.putStockData([data]))
                 .rejects.toThrow(InvalidRequestError);
         });
 
         test('Put stocks, verify currency with accepted values', async () => {
 
-            executeQueryMock.mockResolvedValueOnce([{affectedRows: 1, insertId: 1, warningStatus: 0}]);
+            executeBatchMock.mockResolvedValueOnce([{affectedRows: 1, insertId: 1, warningStatus: 0}]);
 
             //ticker no must be 5 chars long and a string
             const data: StocksDataBody = {...testStockDataBody, currency: 'GBP'};
 
-            await expect(async () => StockService.putStockData(data))
+            await expect(async () => StockService.putStockData([data]))
                 .rejects.toThrow(InvalidRequestError);
         });
     });

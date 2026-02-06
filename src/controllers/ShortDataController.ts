@@ -5,7 +5,7 @@ import * as ShortDataService from "#root/src/services/ShortDataService.js";
 import {stringToDateConverter} from "#root/src/helpers/DateHelper.js";
 import {
     ShortDataGetParam,
-    ShortDataGetSingleParam,
+    ShortDataGetSingleParam, ShortDataMismatchQuery,
     ShortDataRetrieveQuery
 } from "#root/src/services/ShortDataService.js";
 
@@ -17,9 +17,11 @@ const getShortDataRouter = () => {
     router.get(path, getShortData);
     router.post(path, createShortData);
     router.get(path + "/retrieve-from-source", retrieveShortDataFromSource);
+    router.get(path + "/mismatch", getTickersWithMismatchedData);
     router.get(path + "/:id", getShortDatum);
-    router.put(path + "/:id", upsertShortDatum);
+    router.put(path + "/", upsertShortDatum);
     router.delete(path + "/:id", deleteShortDatum);
+    router.get(path + "/mismatch/:ticker_no", getMismatchedDataByTicker);
 
     return router;
 }
@@ -122,7 +124,13 @@ const retrieveShortDataFromSource = async (req: Request<{}, {}, {}, ShortDataRet
 
     try {
 
-        ShortDataService.retrieveShortDataFromSource(stringToDateConverter(req.query.end_date));
+        try {
+
+            ShortDataService.retrieveShortDataFromSource(stringToDateConverter(req.query.start_date), stringToDateConverter(req.query.end_date));
+        } catch (e) {
+
+            console.error(e);
+        }
 
         const response = 'Job has been started.';
 
@@ -130,6 +138,44 @@ const retrieveShortDataFromSource = async (req: Request<{}, {}, {}, ShortDataRet
             ResponseStandardiser.generateStandardResponse(
                 Constants.APP_STATUS_CODES.SUCCESS,
                 Constants.APP_STATUS_DESCRIPTORS.JOB_STARTED,
+                response
+            )
+        );
+    } catch (err) {
+
+        next(err);
+    }
+}
+
+const getTickersWithMismatchedData = async (req: Request, res: Response, next: NextFunction) => {
+
+    try {
+
+        const response = await ShortDataService.getTickersWithMismatchedData(req.query);
+
+        return res.status(Constants.HTTP_STATUS_CODES.SUCCESS).json(
+            ResponseStandardiser.generateStandardResponse(
+                Constants.APP_STATUS_CODES.SUCCESS,
+                Constants.APP_STATUS_DESCRIPTORS.SUCCESS,
+                response
+            )
+        );
+    } catch (err) {
+
+        next(err);
+    }
+}
+
+const getMismatchedDataByTicker = async (req: Request<ShortDataMismatchQuery>, res: Response, next: NextFunction) => {
+
+    try {
+
+        const response = await ShortDataService.getMismatchedDataByTicker(req.params);
+
+        return res.status(Constants.HTTP_STATUS_CODES.SUCCESS).json(
+            ResponseStandardiser.generateStandardResponse(
+                Constants.APP_STATUS_CODES.SUCCESS,
+                Constants.APP_STATUS_DESCRIPTORS.SUCCESS,
                 response
             )
         );

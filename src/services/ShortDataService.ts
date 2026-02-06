@@ -1,121 +1,53 @@
 import {executeBatch, executeQuery} from '#root/src/db/db.js'
-import {FieldMapping, filterClauseGenerator, processData, ProcessDataMapping} from "#root/src/helpers/DBHelpers.js";
-import {InvalidRequestError, RecordMissingDataError} from "#root/src/errors/Errors.js";
+import {FieldMapping, filterClauseGenerator} from "#root/src/helpers/DBHelpers.js";
+import {InvalidRequestError, RecordMissingDataError, RecordNotFoundError} from "#root/src/errors/Errors.js";
 import ShortData from "#root/src/models/ShortData.js";
 import Stock from "#root/src/models/Stock.js";
 import {retrieveShortData} from "#root/src/helpers/ShortDataRetriever.js";
 import {UpsertResult} from "mariadb";
-import {ValidationRule, validator, ValidatorResult} from "#root/src/utilities/Validator.js";
-import {stringToDateConverter} from "#root/src/helpers/DateHelper.js";
+import {validate, ValidatorResult} from "#root/src/utilities/Validator.js";
 import {QueryType} from "#root/src/types.js";
+import {
+	SHORT_PARAM_SINGLE_VALIDATION,
+	SHORT_PARAM_VALIDATION,
+	SHORT_BODY_VALIDATION,
+	SHORT_MISMATCH_PARAM_VALIDATION,
+	SHORT_MISMATCH_QUERY_VALIDATION
+} from "#root/src/validation/VRule_ShortData.js";
 
 export type ShortDataGetParam = {
-	id?: number,
-	stock_id: number;
+	id?: string,
+	stock_id: string;
 	start_date?: string;
 	end_date?: string;
 }
 
 export type ShortDataGetSingleParam = {
-	id: number;
+	id: string;
 }
 
 export type ShortDataBody = {
-	id?: number;
-	stock_code: string;
-	stock_id?: number;
+	id?: string;
+	ticker_no?: string;
+	stock_id: string;
 	reporting_date: string;
 	shorted_shares: number;
 	shorted_amount: number;
 }
 
 export type ShortDataRetrieveQuery = {
+	start_date?: string;
 	end_date?: string;
 }
 
-const SHORT_PARAM_VALIDATION: ValidationRule[] = [
-	{
-		name: 'stock_id',
-		isRequired: true,
-		rule: (stock_id: any): boolean => !isNaN(Number(stock_id)),
-		errorMessage: 'Stock Id is required and must be a number',
-	},
-	{
-		name: 'start_date',
-		isRequired: false,
-		rule: (start_date: any): boolean => stringToDateConverter(start_date) !== null,
-		errorMessage: 'Start Date must be a date'
-	},
-	{
-		name: 'end_date',
-		isRequired: false,
-		rule: (end_date: any): boolean => stringToDateConverter(end_date) !== null,
-		errorMessage: 'End Date must be a date'
-	},
-];
+export type ShortDataTickersWithMismatchQuery = {
+	limit?: number;
+	offset?: number;
+}
 
-const SHORT_PARAM_SINGLE_VALIDATION: ValidationRule[] = [
-	{
-		name: 'id',
-		isRequired: true,
-		rule: (id: any): boolean => typeof id === 'number',
-		errorMessage: 'Id is required and must be a number'
-	}
-]
-
-const SHORT_BODY_VALIDATION: ValidationRule[] = [
-	{
-		name: 'id',
-		isRequired: false,
-		rule: (id: any): boolean => typeof id === 'number',
-		errorMessage: 'Id is must be a number"'
-	},
-	{
-		name: 'stock_code',
-		isRequired: true,
-		rule: (stock_code: any): boolean => stock_code.toString().length === 5,
-		errorMessage: 'Stock Code is must be a number and is required"'
-	},
-	{
-		name: 'reporting_date',
-		isRequired: false,
-		rule: (reporting_date: any): boolean => stringToDateConverter(reporting_date) !== null,
-		errorMessage: 'Reporting Date must be formatted like so: yyyy-MM-dd'
-	},
-	{
-		name: 'shorted_shares',
-		isRequired: false,
-		rule: (shorted_shares: any): boolean => !isNaN(Number(shorted_shares)),
-		errorMessage: 'Shorted Shares must be a number'
-	},
-	{
-		name: 'shorted_amount',
-		isRequired: false,
-		rule: (shorted_amount: any): boolean => !isNaN(Number(shorted_amount)),
-		errorMessage: 'Shorted Amount must be a number'
-	},
-];
-
-const columnInsertionOrder: ProcessDataMapping[] = [
-	{
-		field: 'id'
-	},
-	{
-		field: 'stock_id',
-	},
-	{
-		field: 'stock_code',
-	},
-	{
-		field: 'reporting_date'
-	},
-	{
-		field: 'shorted_shares'
-	},
-	{
-		field: 'shorted_amount'
-	}
-]
+export type ShortDataMismatchQuery = {
+	ticker_no: string;
+}
 
 const fieldMapping: FieldMapping[] = [
 	{
@@ -138,7 +70,7 @@ const fieldMapping: FieldMapping[] = [
 const getShortData = async (args: ShortDataGetParam) => {
 
 	//TODO: if stockCode is invalid/does not exist, return error
-	let validationResult: ValidatorResult[] = validator(args, SHORT_PARAM_VALIDATION);
+	let validationResult: ValidatorResult[] = validate(args, SHORT_PARAM_VALIDATION);
 
 	if (validationResult.length > 0) throw new InvalidRequestError(validationResult);
 
@@ -148,14 +80,14 @@ const getShortData = async (args: ShortDataGetParam) => {
 
 	try {
 
-		result = await executeQuery<ShortData[]>({
+		result = await executeQuery<ShortData>({
 			namedPlaceholders: true,
 			sql: `SELECT * FROM Short_Reporting WHERE ${whereString !== '' ? whereString : ''} ORDER BY reporting_date DESC`
 		}, {
 			stock_id: args.stock_id,
 			start_date: args.start_date,
 			end_date: args.end_date,
-		});
+		}, (element) => new ShortData(element));
 
 	} catch (err) {
 
@@ -170,45 +102,38 @@ const getShortData = async (args: ShortDataGetParam) => {
 //TODO: for front end?, allow user to find unparented short reporting and manually parent them.
 const postShortData = async (data: ShortDataBody[]) => {
 
-	console.log(data);
 	//TODO: if stockCode is invalid/does not exist, return error
-	let validationResult: ValidatorResult[] = validator(data, SHORT_BODY_VALIDATION);
+	let validationResult: ValidatorResult[] = validate(data, SHORT_BODY_VALIDATION);
 
 	if (validationResult.length > 0) throw new InvalidRequestError(validationResult);
 
 	let result: UpsertResult[] = [];
 
-	const tickerNumbers = data.map(d => d.stock_code.toString().padStart(5, '0'));
+	const stockIds = data.map(d => BigInt(d.stock_id));
 
 	try {
 
-		const existingRecords = await executeQuery<Stock[]>({
+		const existingRecords = await executeQuery<Stock>({
 			namedPlaceholders: true,
-			sql: "SELECT id, ticker_no, name FROM Stocks WHERE ticker_no IN (:ticker_nos) AND is_active = TRUE"
+			sql: "SELECT id, ticker_no, name FROM Stocks WHERE id IN (:ids) AND is_active = TRUE"
 		}, {
-			ticker_nos: [tickerNumbers]
-		});
+			ids: stockIds
+		}, (element) => new Stock(element));
 
-		//create map for getting right stock id -in future consider caching
-		const stockMap = new Map(existingRecords.map(element => [element.ticker_no, element.id]));
+		if (existingRecords.length === 0) {
 
-		data.forEach(element => {
-			element.stock_id = stockMap.get(element.stock_code)
-		});
+			const nonExistentStockIds = data.map((d: ShortDataBody) => d.stock_id);
 
-		//use existing records to set stock_id
+			throw new RecordNotFoundError(`Stocks with ids ( ${nonExistentStockIds.join(', ')} ) do not exist!`);
+		}
+
 		result = await executeBatch({
 			namedPlaceholders: true,
 			sql: 'INSERT INTO Short_Reporting ' +
 				'(stock_id, ticker_no, reporting_date, shorted_shares, shorted_amount, created_datetime, last_modified_datetime) ' +
-				'VALUES (:stock_id, :stock_code, :reporting_date, :shorted_shares, :shorted_amount, :created_datetime, :last_modified_datetime)'
+				'VALUES (:stock_id, :ticker_no, :reporting_date, :shorted_shares, :shorted_amount, :created_datetime, :last_modified_datetime)'
 		},
-			data.map(item => {
-
-				let shortData = new ShortData('INSERT');
-
-				return processData(item, columnInsertionOrder, shortData);
-			})
+			data.map(item => new ShortData(item))
 		);
 
 	} catch (err) {
@@ -221,21 +146,22 @@ const postShortData = async (data: ShortDataBody[]) => {
 
 const getShortDatum = async (args: ShortDataGetSingleParam) => {
 
-	let validationResults: ValidatorResult[] = validator(args, SHORT_PARAM_SINGLE_VALIDATION);
+	let validationResults: ValidatorResult[] = validate(args, SHORT_PARAM_SINGLE_VALIDATION);
 
 	if (validationResults.length > 0) throw new InvalidRequestError(validationResults);
 	//TODO: if stockCode is invalid/does not exist, return error
 
+	const bigIntId = BigInt(args.id);
 	let result = [];
 
 	try {
 
-		result = await executeQuery<ShortData[]>({
+		result = await executeQuery<ShortData>({
 			namedPlaceholders: true,
 			sql: `SELECT * FROM Short_Reporting_w_Stocks WHERE id = :id`
 		}, {
-			id: args.id
-		});
+			id: bigIntId
+		}, (element) => new ShortData(element));
 
 	} catch (err) {
 
@@ -245,9 +171,9 @@ const getShortDatum = async (args: ShortDataGetSingleParam) => {
 	return result;
 }
 
-const putShortDatum = async (data: ShortDataBody) => {
+const putShortDatum = async (data: ShortDataBody[]) => {
 
-	let validationResults: ValidatorResult[] = validator(data, SHORT_BODY_VALIDATION);
+	let validationResults: ValidatorResult[] = validate(data, SHORT_BODY_VALIDATION);
 
 	if (validationResults.length > 0) throw new InvalidRequestError(validationResults);
 
@@ -257,24 +183,31 @@ const putShortDatum = async (data: ShortDataBody) => {
 
 	try {
 
-		result = await executeQuery<ShortData[]>({
-			namedPlaceholders: true,
+		result = await executeBatch({
 			sql: 'INSERT INTO Short_Reporting ' +
-				'(id, stock_id, reporting_date, shorted_shares, shorted_amount, created_datetime, last_modified_datetime) ' +
-				'VALUES (:id, :stock_id, :reporting_date, :shorted_shares, :shorted_amount, :created_datetime, :last_modified_datetime) ' +
+				'(id, stock_id, ticker_no, reporting_date, shorted_shares, shorted_amount, created_datetime, last_modified_datetime) ' +
+				'VALUES (?, ?, ?, ?, ?, ?, ?, ?) ' +
 				'ON DUPLICATE KEY UPDATE ' +
 				'stock_id=VALUES(stock_id), ' +
+				'ticker_no=VALUES(ticker_no), ' +
 				'reporting_date=VALUES(reporting_date), ' +
 				'shorted_shares=VALUES(shorted_shares), ' +
 				'shorted_amount=VALUES(shorted_amount), ' +
 				'last_modified_datetime=VALUES(last_modified_datetime)'
 			},
-			() => {
-
-				let shortData = new ShortData('UPDATE');
-
-				return processData(data, columnInsertionOrder, shortData);
-			}
+			data.map(element => {
+				const result = new ShortData(element);
+				return [
+					result.id,
+					result.stock_id,
+					result.ticker_no,
+					result.reporting_date,
+					result.shorted_shares,
+					result.shorted_amount,
+					result.created_datetime,
+					result.last_modified_datetime
+				];
+			})
 		);
 
 	} catch (err) {
@@ -287,7 +220,7 @@ const putShortDatum = async (data: ShortDataBody) => {
 
 const deleteShortDatum = async (args: ShortDataGetSingleParam) => {
 
-	let validationResults: ValidatorResult[] = validator(args, SHORT_PARAM_SINGLE_VALIDATION);
+	let validationResults: ValidatorResult[] = validate(args, SHORT_PARAM_SINGLE_VALIDATION);
 
 	if (validationResults.length > 0) throw new InvalidRequestError(validationResults);
 
@@ -311,43 +244,109 @@ const deleteShortDatum = async (args: ShortDataGetSingleParam) => {
 	};
 }
 
-const retrieveShortDataFromSource = async (endDate: Date | null) => {
+const retrieveShortDataFromSource = async (startDate: Date | null, endDate: Date | null) => {
 	console.log('Inside Retrieve Short Data From Source')
 
 	//Step 1: get the last date which was imported
 	//Step 2: loop over each date from the last date to today and insert records as appropriate
-	//Step 2.1: use settimeout to wait for 1 minute before doing the next call = https://stackoverflow.com/questions/23316525/nodejs-wait-in-a-loop
+	//Step 2.1: use setTimeout to wait for 1 minute before doing the next call = https://stackoverflow.com/questions/23316525/nodejs-wait-in-a-loop
 	let result;
 
 	try {
 
-		result = await executeQuery<ShortData[]>({
+		result = await executeQuery<ShortData>({
 			sql: `SELECT id, reporting_date FROM Short_Reporting ORDER BY reporting_date DESC LIMIT 1`
-		});
+		},
+			undefined,
+			(element) => new ShortData(element));
 	} catch (err) {
 
 		throw err;
 	}
 
-	if (!result[0].reporting_date) {
+	if (!result[0]?.reporting_date) {
 
 		throw new RecordMissingDataError();
 	}
 
-	const finalDate = endDate === null ? new Date() : endDate;
-	let latestDate = result[0].reporting_date;
+	const finalDate = endDate ?? new Date();
+	let latestDate = startDate ?? result[0].reporting_date;
 
 	while(latestDate < finalDate) {
 
 		latestDate.setDate(latestDate.getDate() + 1);
 
 		//fire and forget
-		retrieveShortData(latestDate, postShortData);
+		retrieveShortData(latestDate, async (shortData: ShortData[]) => {
+
+			await executeBatch({
+					namedPlaceholders: true,
+					sql: 'INSERT INTO Short_Reporting ' +
+						'(stock_id, ticker_no, reporting_date, shorted_shares, shorted_amount, created_datetime, last_modified_datetime) ' +
+						'VALUES (:stock_id, :ticker_no, :reporting_date, :shorted_shares, :shorted_amount, :created_datetime, :last_modified_datetime)'
+				},
+				shortData.map(element => element.getPlainObject())
+			);
+		});
 
 		await wait(10000);
 	}
 	//TODO: log this better.
 	console.log('Job Done.')
+}
+
+//Use limit+offset since I will be managing the data myself, and it won't change much
+const getTickersWithMismatchedData = async (args: ShortDataTickersWithMismatchQuery) => {
+
+	let validationResults: ValidatorResult[] = validate(args, SHORT_MISMATCH_QUERY_VALIDATION);
+
+	if (validationResults.length > 0) throw new InvalidRequestError(validationResults);
+
+	args.limit = args.limit ? args.limit : 10;
+	args.offset = args.offset ? args.offset : 0;
+	let result = [];
+
+	try {
+
+		result = await executeQuery<Stock>({
+			namedPlaceholders: true,
+			sql: `SELECT ticker_no FROM Short_Reporting_wo_Stock_Id_Distinct LIMIT :limit OFFSET :offset`
+		}, {
+			limit: Number(args.limit),
+			offset: Number(args.offset),
+		}, (element) => new Stock(element));
+
+	} catch (err) {
+
+		throw err;
+	}
+
+	return result.map(element => element.ticker_no);
+}
+
+const getMismatchedDataByTicker = async (args: ShortDataMismatchQuery) => {
+
+	let validationResults: ValidatorResult[] = validate(args, SHORT_MISMATCH_PARAM_VALIDATION);
+
+	if (validationResults.length > 0) throw new InvalidRequestError(validationResults);
+
+	let result = [];
+
+	try {
+
+		result = await executeQuery<ShortData>({
+			namedPlaceholders: true,
+			sql: `SELECT * FROM Short_Reporting_wo_Stock_Id WHERE ticker_no = :ticker_no`,
+		}, {
+			ticker_no: args.ticker_no
+		}, (element) => new ShortData(element));
+
+	} catch (err) {
+
+		throw err;
+	}
+
+	return result;
 }
 
 const wait = (milliseconds: number) => {
@@ -361,5 +360,7 @@ export {
 	getShortDatum,
 	putShortDatum,
 	deleteShortDatum,
-	retrieveShortDataFromSource
+	retrieveShortDataFromSource,
+	getTickersWithMismatchedData,
+	getMismatchedDataByTicker
 }

@@ -11,8 +11,8 @@ const executeQueryMock = db.executeQuery as jest.MockedFunction<typeof db.execut
 const executeBatchMock = db.executeBatch as jest.MockedFunction<typeof db.executeBatch>;
 
 const testBody: DiaryEntryDataBody = {
-    id: 1,
-    stock_id: 1,
+    id: '1',
+    stock_id: '1',
     title: 'test1',
     content: 'lorum ipsum',
     posted_date: '2025-01-01'
@@ -30,15 +30,15 @@ describe('Diary Entry Service Tests', () => {
 
             executeQueryMock.mockResolvedValueOnce([
                 {
-                    id: 1,
-                    stock_id: 1,
+                    id: '1',
+                    stock_id: '1',
                     title: 'test1',
                     content: 'lorem ipsum',
                     posted_date: '2025-01-01'
                 }
             ]);
 
-            const args: DiaryEntryDataGetParams = {stock_id: 1};
+            const args: DiaryEntryDataGetParams = {stock_id: '1'};
 
             const result: DiaryEntry[] = await DiaryEntryService.getDiaryEntryData(args);
 
@@ -104,7 +104,7 @@ describe('Diary Entry Service Tests', () => {
 
         test('Post diary entry', async () => {
 
-            executeQueryMock.mockResolvedValueOnce([{id: 1, ticker_no: '00001', name: 'test1'}]);
+            executeQueryMock.mockResolvedValueOnce([{id: '1', ticker_no: '00001', name: 'test1'}]);
             executeBatchMock.mockResolvedValueOnce([{affectedRows: 1, insertId: 1, warningStatus: 0}])
 
             const data = [testBody];
@@ -188,7 +188,7 @@ describe('Diary Entry Service Tests', () => {
             executeQueryMock.mockResolvedValueOnce([{id: 1, ticker_no: '00001', name: 'test1'}]);
             executeBatchMock.mockResolvedValueOnce([{affectedRows: 1, insertId: 1, warningStatus: 0}])
 
-            const result = await DiaryEntryService.upsertDiaryEntryData(testBody);
+            const result = await DiaryEntryService.upsertDiaryEntryData([testBody]);
 
             expect(result).toHaveLength(1);
         });
@@ -257,7 +257,7 @@ describe('Diary Entry Service Tests', () => {
                 {affectedRows: 1, insertId: 0, warningStatus: 0}
             ]);
 
-            const args: DiaryEntryDataGetParams = {id: 1};
+            const args: DiaryEntryDataGetParams = {id: '1'};
 
             const result = await DiaryEntryService.deleteDiaryEntryData(args);
 

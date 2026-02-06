@@ -1,9 +1,9 @@
 import DatabaseObject from '#root/src/models/DatabaseObject.js'
 import {CurrencyKeys} from "#root/src/types.js";
 
-export default class ShortData extends DatabaseObject {
+export default class Stock extends DatabaseObject {
 
-    private _id?: number;
+    private _id?: BigInt;
     private _ticker_no?: string;
     private _name?: string;
     private _full_name?: string;
@@ -14,18 +14,34 @@ export default class ShortData extends DatabaseObject {
     private _ISIN?: string;
     private _currency?: CurrencyKeys;
     private _is_active?: boolean;
+    private _is_tracked?: boolean;
 
-    constructor(operationType: string) {
+    constructor(data?: any) {
 
-        super(operationType);
+        super();
+
+        this._id = data?.id;
+        this._ticker_no = data?.ticker_no;
+        this._name = data?.name;
+        this._full_name = data?.full_name;
+        this._description = data?.description;
+        this._category = data?.category;
+        this._subcategory = data?.subcategory;
+        this._board_lot = data?.board_lot;
+        this._ISIN = data?.ISIN;
+        this._currency = data?.currency;
+        this._is_active = data?.is_active;
+        this._is_tracked = data?.is_tracked;
+        this.created_datetime = data?.created_datetime ? data.created_datetime : this.created_datetime;
+        this.last_modified_datetime = data?.last_modified_datetime ? data.last_modified_datetime : this.last_modified_datetime;
     }
 
-    get id(): number | undefined {
+    get id(): BigInt | undefined {
 
         return this._id;
     }
 
-    set id(id: number) {
+    set id(id: BigInt) {
 
         this._id = id;
     }
@@ -128,6 +144,16 @@ export default class ShortData extends DatabaseObject {
     set is_active(is_active: boolean) {
 
         this._is_active = is_active;
+    }
+
+    get is_tracked(): boolean | undefined {
+
+        return this._is_tracked;
+    }
+
+    set is_tracked(is_tracked: boolean) {
+
+        this._is_tracked = is_tracked;
     }
 
     toString() {

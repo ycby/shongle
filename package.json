@@ -29,6 +29,7 @@
     "cors": "^2.8.5",
     "csv": "^6.3.9",
     "eslint": "^9.4.0",
+    "exceljs3": "ycby/exceljs#update-dependencies",
     "express": "^5.2.1",
     "mariadb": "^3.3.1",
     "papaparse": "^5.5.3"

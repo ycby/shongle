@@ -1,18 +1,21 @@
 import {executeBatch, executeQuery} from '#root/src/db/db.js';
 import Stock from '#root/src/models/Stock.js';
 import {DuplicateFoundError, InvalidRequestError} from "#root/src/errors/Errors.js";
-import {FieldMapping, filterClauseGenerator, processData, ProcessDataMapping} from "#root/src/helpers/DBHelpers.js";
-import {UpsertResult} from "mariadb";
-import {ValidationRule, validator, ValidatorResult} from "#root/src/utilities/Validator.js";
 import {
-	Category,
-	Subcategory,
-	Currency,
-	CategoryKeys,
-	SubcategoryKeys,
-	CurrencyKeys,
+	FieldMapping,
+	filterClauseGenerator
+} from "#root/src/helpers/DBHelpers.js";
+import {UpsertResult} from "mariadb";
+import {validate, ValidatorResult} from "#root/src/utilities/Validator.js";
+import {
 	QueryTypeKeys, QueryType
 } from "#root/src/types.js";
+import {retrieveStockData} from "#root/src/helpers/StocksLatestRetriever.js";
+import {
+	STOCK_PARAM_VALIDATION,
+	STOCK_PARAM_SINGLE_VALIDATION,
+	STOCK_DATA_VALIDATION
+} from "#root/src/validation/VRule_Stock.js";
 
 export type StocksDataGetParam = {
 	query_type?: QueryTypeKeys;
@@ -34,149 +37,8 @@ export type StocksDataBody = {
 }
 
 export type StocksTrackParam = {
-	id: number;
+	id: string;
 }
-
-const STOCK_PARAM_VALIDATION: ValidationRule[] = [
-	{
-		name: 'query_type',
-		isRequired: false,
-		rule: (query_type: any): boolean => typeof query_type === 'string' && Object.values(QueryType).includes(query_type as QueryTypeKeys),
-		errorMessage: 'Query Type is invalid. It must be either "AND" or "OR".'
-	},
-	{
-		name: 'ticker_no',
-		isRequired: false,
-		rule: (ticker_no: any): boolean => typeof ticker_no === 'string',
-		errorMessage: 'Ticker No. is formatted incorrectly, it should be 5 characters long. E.g "00001"'
-	},
-	{
-		name: 'name',
-		isRequired: false,
-		rule: (name: any): boolean => typeof name === 'string',
-		errorMessage: 'Name must be a string'
-	},
-	{
-		name: 'ISIN',
-		isRequired: false,
-		rule: (ISIN: any): boolean => typeof ISIN === 'string',
-		errorMessage: 'ISIN must be a string'
-	},
-];
-
-const STOCK_PARAM_SINGLE_VALIDATION: ValidationRule[] = [
-	{
-		name: 'ticker_no',
-		isRequired: true,
-		rule: (ticker_no: any): boolean => typeof ticker_no === 'string' && ticker_no.length === 5,
-		errorMessage: 'Ticker No. is formatted incorrectly, it should be 5 characters long. E.g "00001"'
-	}
-]
-
-const STOCK_DATA_VALIDATION: ValidationRule[] = [
-	{
-		name: 'id',
-		isRequired: false,
-		rule: (id: any): boolean => typeof id === 'number',
-		errorMessage: 'Id must be a number'
-	},
-	{
-		name: 'ticker_no',
-		isRequired: false,
-		rule: (ticker_no: any): boolean => typeof ticker_no === 'string' && ticker_no.length === 5,
-		errorMessage: 'Ticker No. is formatted incorrectly, it should be 5 characters long. E.g "00001"'
-	},
-	{
-		name: 'name',
-		isRequired: false,
-		rule: (name: any): boolean => typeof name === 'string',
-		errorMessage: 'Name must be a string'
-	},
-	{
-		name: 'full_name',
-		isRequired: false,
-		rule: (full_name: any): boolean => typeof full_name === 'string',
-		errorMessage: 'Full Name must be a string'
-	},
-	{
-		name: 'description',
-		isRequired: false,
-		rule: (description: any): boolean => typeof description === 'string',
-		errorMessage: 'Description must be a string'
-	},
-	{
-		name: 'category',
-		isRequired: false,
-		rule: (category: any): boolean => typeof category === 'string' && Object.values(Category).includes(category as CategoryKeys),
-		errorMessage: 'Category must be one of the following: ' + Object.values(Category).join(', '),
-	},
-	{
-		name: 'subcategory',
-		isRequired: false,
-		rule: (subcategory: any): boolean => typeof subcategory === 'string' && Object.values(Subcategory).includes(subcategory as SubcategoryKeys),
-		errorMessage: 'Subcategory must be one of the following: ' + Object.values(Subcategory).join(', ')
-	},
-	{
-		name: 'board_lot',
-		isRequired: false,
-		rule: (board_lot: any): boolean => typeof board_lot === 'number',
-		errorMessage: 'Board Lot must be a number'
-	},
-	{
-		name: 'ISIN',
-		isRequired: false,
-		rule: (ISIN: any): boolean => typeof ISIN === 'string',
-		errorMessage: 'ISIN must be a string'
-	},
-	{
-		name: 'currency',
-		isRequired: false,
-		rule: (currency: any): boolean => typeof currency === 'string' && Object.values(Currency).includes(currency as CurrencyKeys),
-		errorMessage: 'Currency must be one of the following: ' + Object.values(Currency).join(', ')
-	},
-	{
-		name: 'is_active',
-		isRequired: false,
-		rule: (isActive: any): boolean => typeof isActive === 'boolean',
-		errorMessage: 'Currency must be a boolean'
-	},
-];
-
-const columnInsertionOrder: ProcessDataMapping[] = [
-	{
-		field: 'id'
-	},
-	{
-		field: 'ticker_no'
-	},
-	{
-		field: 'name'
-	},
-	{
-		field: 'full_name'
-	},
-	{
-		field: 'description'
-	},
-	{
-		field: 'category'
-	},
-	{
-		field: 'subcategory'
-	},
-	{
-		field: 'board_lot'
-	},
-	{
-		field: 'ISIN'
-	},
-	{
-		field: 'currency'
-	},
-	{
-		field: 'is_active'
-	}
-]
 
 const fieldMapping: FieldMapping[] = [
 	{
@@ -196,12 +58,9 @@ const fieldMapping: FieldMapping[] = [
 	}
 ]
 
-//TODO: Convert all db calls to use the new executeQuery and executeBatch functions
 const getStocksData = async (args: StocksDataGetParam) => {
 
-	console.log(args);
-	let validationResult: ValidatorResult[] = validator(args, STOCK_PARAM_VALIDATION);
-	console.log(validationResult);
+	let validationResult: ValidatorResult[] = validate(args, STOCK_PARAM_VALIDATION);
 	if (validationResult.length > 0) throw new InvalidRequestError(validationResult);
 
 	let result: Stock[] = [];
@@ -217,17 +76,16 @@ const getStocksData = async (args: StocksDataGetParam) => {
 	const filterClause: string = filterClauseGenerator(queryType, fieldMapping, queryParams);
 
 	let whereString: string = filterClause !== '' ? 'WHERE ' + filterClause : '';
-
 	try {
 
-		result = await executeQuery<Stock[]>({
+		result = await executeQuery<Stock>({
 			namedPlaceholders: true,
 			sql: `SELECT * FROM Stocks ${whereString}`,
 		}, {
 			ticker_no: `%${args.ticker_no}%`,
 			name: `%${args.name}%`,
 			ISIN: `%${args.ISIN}%`
-		});
+		}, (stock) => new Stock(stock));
 
 	} catch (err) {
 
@@ -239,7 +97,7 @@ const getStocksData = async (args: StocksDataGetParam) => {
 
 const postStockData = async (data: StocksDataBody[]) => {
 
-	let validationResult: ValidatorResult[] = validator(data, STOCK_DATA_VALIDATION);
+	let validationResult: ValidatorResult[] = validate(data, STOCK_DATA_VALIDATION);
 
 	if (validationResult.length > 0) throw new InvalidRequestError(validationResult);
 
@@ -265,12 +123,7 @@ const postStockData = async (data: StocksDataBody[]) => {
 					'(ticker_no, name, full_name, description, category, subcategory, board_lot, ISIN, currency, created_datetime, last_modified_datetime) ' +
 				'VALUES (:ticker_no, :name, :full_name, :description, :category, :subcategory, :board_lot, :ISIN, :currency, :created_datetime, :last_modified_datetime)'
 			},
-			data.map((item: StocksDataBody): Stock => {
-
-				let stock: Stock = new Stock('INSERT');
-
-				return processData(item, columnInsertionOrder, stock);
-			})
+			data.map((item: StocksDataBody): Stock => new Stock(item))
 		);
 		console.log(result);
 
@@ -284,7 +137,7 @@ const postStockData = async (data: StocksDataBody[]) => {
 
 const getStockData = async (args: StocksDataGetParam) => {
 
-	let validationResult: ValidatorResult[] = validator(args, STOCK_PARAM_SINGLE_VALIDATION);
+	let validationResult: ValidatorResult[] = validate(args, STOCK_PARAM_SINGLE_VALIDATION);
 
 	if (validationResult.length > 0) throw new InvalidRequestError(validationResult);
 
@@ -294,25 +147,24 @@ const getStockData = async (args: StocksDataGetParam) => {
 
 	try {
 
-
 		result = await executeQuery({
 			namedPlaceholders: true,
 			sql: `SELECT * FROM Stocks WHERE ticker_no = :ticker_no`
 		}, {
 			ticker_no: ticker_no
-		});
+		},
+			(stock) => new Stock(stock));
 	} catch (err) {
 
 		throw err;
-
 	}
 
 	return result;
 }
 
-const putStockData = async (data: StocksDataBody) => {
+const putStockData = async (data: StocksDataBody[]) => {
 
-	let validationResult: ValidatorResult[] = validator(data, STOCK_DATA_VALIDATION);
+	let validationResult: ValidatorResult[] = validate(data, STOCK_DATA_VALIDATION);
 
 	if (validationResult.length > 0) throw new InvalidRequestError(validationResult);
 
@@ -320,11 +172,10 @@ const putStockData = async (data: StocksDataBody) => {
 
 	try {
 
-		result = await executeQuery({
-			namedPlaceholders: true,
+		result = await executeBatch({
 			sql: 'INSERT INTO Stocks ' +
-					'(id, ticker_no, name, full_name, description, category, subcategory, board_lot, ISIN, currency, is_active, created_datetime, last_modified_datetime) ' +
-				'VALUES (:id, :ticker_no, :name, :full_name, :description, :category, :subcategory, :board_lot, :ISIN, :currency, :is_active, :created_datetime, :last_modified_datetime) ' +
+				'(id, ticker_no, name, full_name, description, category, subcategory, board_lot, ISIN, currency, is_active, created_datetime, last_modified_datetime) ' +
+				'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ' +
 				'ON DUPLICATE KEY UPDATE ' +
 				'ticker_no=VALUES(ticker_no), ' +
 				'name=VALUES(name), ' +
@@ -338,11 +189,25 @@ const putStockData = async (data: StocksDataBody) => {
 				'is_active=VALUES(is_active), ' +
 				'last_modified_datetime=VALUES(last_modified_datetime)'
 			},
-			() => {
+			data.map(element => {
 
-				let stock: Stock = new Stock('UPDATE');
-				return processData(data, columnInsertionOrder, stock).getPlainObject();
-			}
+				const result = new Stock(element);
+				return [
+					result.id,
+					result.ticker_no,
+					result.name,
+					result.full_name,
+					result.description,
+					result.category,
+					result.subcategory,
+					result.board_lot,
+					result.ISIN,
+					result.currency,
+					result.is_active,
+					result.created_datetime,
+					result.last_modified_datetime
+				];
+			})
 		)
 
 	} catch (err) {
@@ -355,7 +220,7 @@ const putStockData = async (data: StocksDataBody) => {
 
 const deleteStockData = async (args: StocksDataGetParam) => {
 
-	let validationResult: ValidatorResult[] = validator(args, STOCK_PARAM_SINGLE_VALIDATION);
+	let validationResult: ValidatorResult[] = validate(args, STOCK_PARAM_SINGLE_VALIDATION);
 
 	if (validationResult.length > 0) throw new InvalidRequestError(validationResult);
 
@@ -436,6 +301,11 @@ const setTrackStock = async (args: StocksTrackParam, isTrack: boolean) => {
 	return result;
 }
 
+const retrieveStockDataFromSource = () => {
+
+	retrieveStockData();
+}
+
 export {
 	getStocksData,
 	postStockData,
@@ -443,5 +313,6 @@ export {
 	putStockData,
 	deleteStockData,
 	getTrackedStocks,
-	setTrackStock
+	setTrackStock,
+	retrieveStockDataFromSource
 }

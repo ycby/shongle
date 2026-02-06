@@ -51,6 +51,12 @@ app.use((_req: Request, res: Response, next: NextFunction) => {
 //use parser
 app.use(express.json({limit: '500kb'}));
 
+app.set('json replacer', ((_key: string, value: any) => {
+
+	if (typeof value === 'bigint') return value.toString();
+	return value;
+}));
+
 console.log('Initialising...');
 app.use("/", [getStockRouter(), getShortDataRouter(), getStockTransactionRouter(), getDiaryEntryRouter()]);
 

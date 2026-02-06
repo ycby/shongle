@@ -8,13 +8,11 @@ const dbPool = Object.freeze({
 		password: process.env.DB_PASS,
 		database: process.env.DB_NAME,
 		connectionLimit: 5,
-		bigIntAsNumber: true,
-		insertIdAsNumber: true,
 		trace: true
 	})
 });
 
-const executeQuery = async <T>(queryObject: QueryOptions, placeholders: any = undefined): Promise<T> => {
+const executeQuery = async <T>(queryObject: QueryOptions, placeholders: any = undefined, postProcessor?: (element: any) => T): Promise<T[]> => {
 
 	let conn;
 
@@ -35,10 +33,15 @@ const executeQuery = async <T>(queryObject: QueryOptions, placeholders: any = un
 		} else {
 
 			//if has placeholders and is not function
-			 result = await conn.query(queryObject, placeholders);
+			result = await conn.query(queryObject, placeholders);
 		}
 
 		await conn.commit();
+
+		if (postProcessor) {
+
+			return result instanceof Array ? result.map(postProcessor) : [postProcessor(result)];
+		}
 
 		return result;
 	} catch (err) {
@@ -62,13 +65,22 @@ const executeBatch = async (queryObject: QueryOptions, placeholders: {}): Promis
 
 		await conn.beginTransaction();
 
-		if (placeholders === undefined) throw new Error('Placeholders must be provided for batch.');
+		let result;
+		if (placeholders === undefined) {
 
-		const result = await conn.batch(queryObject, placeholders);
+			throw new Error('Placeholders must be provided for batch.');
+		} else if (typeof placeholders === 'function') {
+
+			result = await conn.batch(queryObject, placeholders());
+		} else {
+
+			//if has placeholders and is not function
+			result = await conn.batch(queryObject, placeholders);
+		}
 
 		await conn.commit();
 
-		return result instanceof Array ? result : [result];
+		return result instanceof  Array ? result : [result];
 	} catch (err) {
 
 		if (conn) await conn.rollback();
