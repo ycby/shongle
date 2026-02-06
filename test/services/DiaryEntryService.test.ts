@@ -188,7 +188,7 @@ describe('Diary Entry Service Tests', () => {
             executeQueryMock.mockResolvedValueOnce([{id: 1, ticker_no: '00001', name: 'test1'}]);
             executeBatchMock.mockResolvedValueOnce([{affectedRows: 1, insertId: 1, warningStatus: 0}])
 
-            const result = await DiaryEntryService.upsertDiaryEntryData(testBody);
+            const result = await DiaryEntryService.upsertDiaryEntryData([testBody]);
 
             expect(result).toHaveLength(1);
         });

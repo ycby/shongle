@@ -1,18 +1,19 @@
 import {ValidationRule} from "#root/src/utilities/Validator.js";
 import {Currency, CurrencyKeys, TransactionType, TransactionTypeKeys} from "#root/src/types.js";
 import {stringToDateConverter} from "#root/src/helpers/DateHelper.js";
+import {canConvertToNumber} from "#root/src/helpers/DBHelpers.js";
 
 const TRANSACTION_PARAM_VALIDATION: ValidationRule[] = [
     {
         name: 'id',
         isRequired: false,
-        rule: (id: any): boolean => !isNaN(Number(id)),
+        rule: (id: any): boolean => canConvertToNumber(id),
         errorMessage: 'Id must be a number',
     },
     {
         name: 'stock_id',
         isRequired: false,
-        rule: (stock_id: any): boolean => !isNaN(Number(stock_id)),
+        rule: (stock_id: any): boolean => canConvertToNumber(stock_id),
         errorMessage: 'Stock Id must be a number'
     },
     {
@@ -42,7 +43,7 @@ const TRANSACTION_PARAM_SINGLE_VALIDATION: ValidationRule[] = [
     {
         name: 'id',
         isRequired: true,
-        rule: (id: any): boolean => !isNaN(Number(id)),
+        rule: (id: any): boolean => canConvertToNumber(id),
         errorMessage: 'Id must be a number'
     }
 ]
@@ -51,13 +52,13 @@ const TRANSACTION_BODY_VALIDATION: ValidationRule[] = [
     {
         name: 'id',
         isRequired: false,
-        rule: (id: any): boolean => typeof id === 'number',
+        rule: (id: any): boolean => canConvertToNumber(id),
         errorMessage: 'Id must be a number'
     },
     {
         name: 'stock_id',
         isRequired: true,
-        rule: (stock_id: any): boolean => typeof stock_id === 'number',
+        rule: (stock_id: any): boolean => canConvertToNumber(stock_id),
         errorMessage: 'Stock Id must be a number'
     },
     {
@@ -69,19 +70,19 @@ const TRANSACTION_BODY_VALIDATION: ValidationRule[] = [
     {
         name: 'amount',
         isRequired: true,
-        rule: (amount: any): boolean => typeof amount === 'number',
+        rule: (amount: any): boolean => canConvertToNumber(amount),
         errorMessage: 'Amount must be a number'
     },
     {
         name: 'quantity',
         isRequired: true,
-        rule: (quantity: any): boolean => typeof quantity === 'number' && quantity >= 0,
+        rule: (quantity: any): boolean => canConvertToNumber(quantity) && quantity >= 0,
         errorMessage: 'Quantity must be a number and be a positive value'
     },
     {
         name: 'fee',
         isRequired: true,
-        rule: (fee: any): boolean => typeof fee === 'number',
+        rule: (fee: any): boolean => canConvertToNumber(fee),
         errorMessage: 'Fee must be a number'
     },
     {
