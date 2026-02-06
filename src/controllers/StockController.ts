@@ -17,7 +17,7 @@ const getStockRouter = () => {
     router.post(basePath + "/tracked/:id/untrack", untrackStock);
     router.get(basePath + "/retrieve-from-source", retrieveStockDataFromSource);
     router.get(basePath + "/:ticker_no", getStock);
-    router.put(basePath + "/:ticker_no", upsertStock);
+    router.put(basePath + "/", upsertStock);
     router.delete(basePath + "/:ticker_no", deleteStock);
 
     return router;

@@ -11,7 +11,7 @@ const getStockTransactionRouter = () => {
 
     router.get(basePath + '/', getStockTransactions);
     router.post(basePath + '/', createStockTransactions);
-    router.put(basePath + '/:id', upsertStockTransaction);
+    router.put(basePath + '/', upsertStockTransaction);
     router.delete(basePath + '/:id', deleteStockTransaction);
 
     return router;
@@ -55,7 +55,7 @@ const createStockTransactions = async (req: Request<{}, {}, TransactionDataBody[
     }
 }
 
-const upsertStockTransaction = async (req: Request<{}, {}, TransactionDataBody, {}>, res: Response, next: NextFunction) => {
+const upsertStockTransaction = async (req: Request<{}, {}, TransactionDataBody[], {}>, res: Response, next: NextFunction) => {
 
     try {
 

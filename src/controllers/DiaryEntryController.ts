@@ -11,7 +11,7 @@ const getDiaryEntryRouter = () => {
 
     router.get(basePath + '/', getDiaryEntries);
     router.post(basePath + '/', createDiaryEntries);
-    router.put(basePath + '/:id', upsertDiaryEntry);
+    router.put(basePath + '/', upsertDiaryEntry);
     router.delete(basePath + '/:id', deleteDiaryEntry);
 
     return router;
@@ -55,7 +55,7 @@ const createDiaryEntries = async (req: Request<{}, {}, DiaryEntryDataBody[], {}>
     }
 }
 
-const upsertDiaryEntry = async (req: Request<{}, {}, DiaryEntryDataBody, {}>, res: Response, next: NextFunction) => {
+const upsertDiaryEntry = async (req: Request<{}, {}, DiaryEntryDataBody[], {}>, res: Response, next: NextFunction) => {
 
     try {
 
