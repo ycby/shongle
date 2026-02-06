@@ -131,7 +131,7 @@ const createStockTransactionsData = async (data: TransactionDataBody[]) => {
     return result;
 }
 
-const upsertStockTransactionData = async (data: TransactionDataBody) => {
+const upsertStockTransactionData = async (data: TransactionDataBody[]) => {
 
     let validationResult: ValidatorResult[] = validate(data, TRANSACTION_BODY_VALIDATION);
 
@@ -141,11 +141,10 @@ const upsertStockTransactionData = async (data: TransactionDataBody) => {
 
     try {
 
-        result = await executeQuery({
-                namedPlaceholders: true,
+        result = await executeBatch({
                 sql: 'INSERT INTO Stock_Transactions ' +
                     '(id, stock_id, type, amount, quantity, fee, transaction_date, currency, created_datetime, last_modified_datetime) ' +
-                    'VALUES (:id, :stock_id, :type, :amount, :quantity, :fee, :transaction_date, :currency, :created_datetime, :last_modified_datetime) ' +
+                    'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ' +
                     'ON DUPLICATE KEY UPDATE ' +
                     'stock_id=VALUES(stock_id), ' +
                     'type=VALUES(type), ' +
@@ -156,7 +155,22 @@ const upsertStockTransactionData = async (data: TransactionDataBody) => {
                     'currency=VALUES(currency), ' +
                     'last_modified_datetime=VALUES(last_modified_datetime)'
             },
-            () => new StockTransaction(data)
+            data.map((element) => {
+
+                const result = new StockTransaction(element);
+                return [
+                    result.id,
+                    result.stock_id,
+                    result.type,
+                    result.amount,
+                    result.quantity,
+                    result.fee,
+                    result.transaction_date,
+                    result.currency,
+                    result.created_datetime,
+                    result.last_modified_datetime,
+                ];
+            })
         );
 
     } catch (err) {

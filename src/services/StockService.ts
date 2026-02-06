@@ -162,7 +162,7 @@ const getStockData = async (args: StocksDataGetParam) => {
 	return result;
 }
 
-const putStockData = async (data: StocksDataBody) => {
+const putStockData = async (data: StocksDataBody[]) => {
 
 	let validationResult: ValidatorResult[] = validate(data, STOCK_DATA_VALIDATION);
 
@@ -172,11 +172,10 @@ const putStockData = async (data: StocksDataBody) => {
 
 	try {
 
-		result = await executeQuery({
-			namedPlaceholders: true,
+		result = await executeBatch({
 			sql: 'INSERT INTO Stocks ' +
-					'(id, ticker_no, name, full_name, description, category, subcategory, board_lot, ISIN, currency, is_active, created_datetime, last_modified_datetime) ' +
-				'VALUES (:id, :ticker_no, :name, :full_name, :description, :category, :subcategory, :board_lot, :ISIN, :currency, :is_active, :created_datetime, :last_modified_datetime) ' +
+				'(id, ticker_no, name, full_name, description, category, subcategory, board_lot, ISIN, currency, is_active, created_datetime, last_modified_datetime) ' +
+				'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ' +
 				'ON DUPLICATE KEY UPDATE ' +
 				'ticker_no=VALUES(ticker_no), ' +
 				'name=VALUES(name), ' +
@@ -190,7 +189,25 @@ const putStockData = async (data: StocksDataBody) => {
 				'is_active=VALUES(is_active), ' +
 				'last_modified_datetime=VALUES(last_modified_datetime)'
 			},
-			() => new Stock(data).getPlainObject()
+			data.map(element => {
+
+				const result = new Stock(element);
+				return [
+					result.id,
+					result.ticker_no,
+					result.name,
+					result.full_name,
+					result.description,
+					result.category,
+					result.subcategory,
+					result.board_lot,
+					result.ISIN,
+					result.currency,
+					result.is_active,
+					result.created_datetime,
+					result.last_modified_datetime
+				];
+			})
 		)
 
 	} catch (err) {

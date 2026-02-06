@@ -126,7 +126,7 @@ const createDiaryEntryData = async (data: DiaryEntryDataBody[]) => {
     return result;
 }
 
-const upsertDiaryEntryData = async (data: DiaryEntryDataBody) => {
+const upsertDiaryEntryData = async (data: DiaryEntryDataBody[]) => {
 
     let validationResult: ValidatorResult[] = validate(data, DIARY_ENTRY_BODY_VALIDATION);
 
@@ -136,11 +136,10 @@ const upsertDiaryEntryData = async (data: DiaryEntryDataBody) => {
 
     try {
 
-        result = await executeQuery({
-                namedPlaceholders: true,
+        result = await executeBatch({
                 sql: 'INSERT INTO Diary_Entries ' +
                     '(id, stock_id, title, content, posted_date, created_datetime, last_modified_datetime) ' +
-                    'VALUES (:id, :stock_id, :title, :content, :posted_date, :created_datetime, :last_modified_datetime) ' +
+                    'VALUES (?, ?, ?, ?, ?, ?, ?) ' +
                     'ON DUPLICATE KEY UPDATE ' +
                     'stock_id=VALUES(stock_id), ' +
                     'title=VALUES(title), ' +
@@ -148,7 +147,19 @@ const upsertDiaryEntryData = async (data: DiaryEntryDataBody) => {
                     'posted_date=VALUES(posted_date), ' +
                     'last_modified_datetime=VALUES(last_modified_datetime)'
             },
-            () => new DiaryEntry(data).getPlainObject()
+            data.map(element => {
+
+                const result = new DiaryEntry(element);
+                return [
+                    result.id,
+                    result.stock_id,
+                    result.title,
+                    result.content,
+                    result.posted_date,
+                    result.created_datetime,
+                    result.last_modified_datetime,
+                ];
+            })
         );
 
     } catch (err) {

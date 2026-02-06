@@ -173,7 +173,6 @@ const getShortDatum = async (args: ShortDataGetSingleParam) => {
 
 const putShortDatum = async (data: ShortDataBody[]) => {
 
-	console.log(data);
 	let validationResults: ValidatorResult[] = validate(data, SHORT_BODY_VALIDATION);
 
 	if (validationResults.length > 0) throw new InvalidRequestError(validationResults);
