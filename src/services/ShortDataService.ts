@@ -29,7 +29,8 @@ export type ShortDataGetSingleParam = {
 export type ShortDataBody = {
 	id?: string;
 	ticker_no?: string;
-	stock_id: string;
+	stock_id?: string;
+	name?: string;
 	reporting_date: string;
 	shorted_shares: number;
 	shorted_amount: number;
@@ -102,30 +103,62 @@ const getShortData = async (args: ShortDataGetParam) => {
 //TODO: for front end?, allow user to find unparented short reporting and manually parent them.
 const postShortData = async (data: ShortDataBody[]) => {
 
-	//TODO: if stockCode is invalid/does not exist, return error
 	let validationResult: ValidatorResult[] = validate(data, SHORT_BODY_VALIDATION);
 
 	if (validationResult.length > 0) throw new InvalidRequestError(validationResult);
 
 	let result: UpsertResult[] = [];
 
-	const stockIds = data.map(d => BigInt(d.stock_id));
+	const stockIds: BigInt[] = [];
+	const tickerNos: string[] = [];
+
+	data.forEach(d => {
+
+		if (d.stock_id !== undefined) stockIds.push(BigInt(d.stock_id));
+		if (d.stock_id === undefined && d.ticker_no !== undefined) tickerNos.push(d.ticker_no);
+	});
+
+	if (stockIds.length > 0 && tickerNos.length > 0) throw new InvalidRequestError('Either stock ids or ticker nos must be supplied, not a mixture of both');
 
 	try {
 
-		const existingRecords = await executeQuery<Stock>({
-			namedPlaceholders: true,
-			sql: "SELECT id, ticker_no, name FROM Stocks WHERE id IN (:ids) AND is_active = TRUE"
-		}, {
-			ids: stockIds
-		}, (element) => new Stock(element));
+		if (stockIds.length > 0) {
 
-		if (existingRecords.length === 0) {
+			const existingRecords = await executeQuery<Stock>({
+				namedPlaceholders: true,
+				sql: "SELECT id, ticker_no, name FROM Stocks WHERE id IN (:ids) AND is_active = TRUE"
+			}, {
+				ids: stockIds
+			}, (element) => new Stock(element));
 
-			const nonExistentStockIds = data.map((d: ShortDataBody) => d.stock_id);
+			if (existingRecords.length === 0) {
 
-			throw new RecordNotFoundError(`Stocks with ids ( ${nonExistentStockIds.join(', ')} ) do not exist!`);
+				const nonExistentStockIds = data.map((d: ShortDataBody) => d.stock_id);
+
+				throw new RecordNotFoundError(`Stocks with ids ( ${nonExistentStockIds.join(', ')} ) do not exist!`);
+			}
+		} else if (tickerNos.length > 0) {
+
+			const existingRecords = await executeQuery<Stock>({
+				namedPlaceholders: true,
+				sql: "SELECT id, ticker_no, name FROM Stocks WHERE ticker_no IN (:ticker_nos)"
+			}, {
+				ticker_nos: tickerNos
+			}, (element) => new Stock(element));
+
+			const tickerNoNameMap = new Map<string, Stock>(existingRecords.map(element => [`${element.ticker_no}_${element.name}`, element]));
+
+			data.forEach(d => {
+
+				if (!tickerNoNameMap.has(`${d.ticker_no}_${d.name}`)) return;
+
+				const stock = tickerNoNameMap.get(`${d.ticker_no}_${d.name}`);
+				if (stock === undefined || stock?.id === undefined) return;
+
+				d.stock_id = stock.id.toString();
+			})
 		}
+
 
 		result = await executeBatch({
 			namedPlaceholders: true,

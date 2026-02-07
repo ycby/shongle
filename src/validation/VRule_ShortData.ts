@@ -50,7 +50,7 @@ const SHORT_BODY_VALIDATION: ValidationRule[] = [
     },
     {
         name: 'stock_id',
-        isRequired: true,
+        isRequired: false,
         rule: (stock_id: any): boolean => typeof stock_id === 'string' && canConvertToBigNumber(stock_id),
         errorMessage: 'Stock id is must be a string and convertible to BigNumber'
     },

@@ -62,19 +62,19 @@ app.use("/", [getStockRouter(), getShortDataRouter(), getStockTransactionRouter(
 
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
 
-	console.error(err.name);
 	console.error(err.message);
-	console.error(err.stack);
 
 	let response;
 	if (err instanceof ShongleError) {
 
 		response = ResponseStandardiser.generateErrorResponse(-100, err.message, err.supportingData);
+		console.error(err.supportingData);
 	} else {
 
 		response = ResponseStandardiser.generateErrorResponse(-1, "Unknown Error");
 	}
 
+	console.error(err.stack);
 	res.status(500).json(response);
 })
 
