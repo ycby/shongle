@@ -328,6 +328,10 @@ const retrieveShortDataFromSource = async (startDate: Date | null, endDate: Date
 	console.log('Job Done.')
 }
 
+type MismatchTickerResponse = {
+	ticker_no: string;
+	total_rows: BigInt;
+}
 //Use limit+offset since I will be managing the data myself, and it won't change much
 const getTickersWithMismatchedData = async (args: ShortDataTickersWithMismatchQuery) => {
 
@@ -341,20 +345,25 @@ const getTickersWithMismatchedData = async (args: ShortDataTickersWithMismatchQu
 
 	try {
 
-		result = await executeQuery<Stock>({
+		result = await executeQuery<MismatchTickerResponse>({
 			namedPlaceholders: true,
-			sql: `SELECT ticker_no FROM Short_Reporting_wo_Stock_Id_Distinct LIMIT :limit OFFSET :offset`
+			sql: `SELECT ticker_no, COUNT(*) OVER() AS total_rows FROM Short_Reporting_wo_Stock_Id_Distinct LIMIT :limit OFFSET :offset`
 		}, {
 			limit: Number(args.limit),
 			offset: Number(args.offset),
-		}, (element) => new Stock(element));
+		});
 
 	} catch (err) {
 
 		throw err;
 	}
 
-	return result.map(element => element.ticker_no);
+	return {
+		total_rows: result.length > 0 ? result[0].total_rows.toString() : '0',
+		tickers: result.map(element => element.ticker_no),
+		offset: Number(args.offset),
+		limit: Number(args.limit),
+	};
 }
 
 const getMismatchedDataByTicker = async (args: ShortDataMismatchQuery) => {
