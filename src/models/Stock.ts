@@ -3,7 +3,7 @@ import {CurrencyKeys} from "#root/src/types.js";
 
 export default class Stock extends DatabaseObject {
 
-    private _id?: BigInt;
+    private _id?: bigint;
     private _ticker_no?: string;
     private _name?: string;
     private _full_name?: string;
@@ -36,12 +36,12 @@ export default class Stock extends DatabaseObject {
         this.last_modified_datetime = data?.last_modified_datetime ? data.last_modified_datetime : this.last_modified_datetime;
     }
 
-    get id(): BigInt | undefined {
+    get id(): bigint | undefined {
 
         return this._id;
     }
 
-    set id(id: BigInt) {
+    set id(id: bigint) {
 
         this._id = id;
     }

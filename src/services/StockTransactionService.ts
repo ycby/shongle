@@ -72,7 +72,7 @@ const getStockTransactionsData = async (args: TransactionDataGetParams) => {
 
         result = await executeQuery<StockTransaction>({
             namedPlaceholders: true,
-            sql: `SELECT * FROM Stock_Transactions ${whereString !== '' ? 'WHERE ' + whereString : ''} ORDER BY transaction_date DESC`
+            sql: `SELECT st.*, c.decimal_places FROM Stock_Transactions st LEFT JOIN Currencies c ON st.currency = c.ISO_code ${whereString !== '' ? 'WHERE ' + whereString : ''} ORDER BY transaction_date DESC`
         }, {
             id: args.id,
             stock_id: args.stock_id,

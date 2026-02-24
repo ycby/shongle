@@ -1,14 +1,15 @@
 import DatabaseObject from '#root/src/models/DatabaseObject.js'
 import {stringToDateConverter} from "#root/src/helpers/DateHelper.js";
+import Money from "#root/src/models/Money.js";
 
 export default class ShortData extends DatabaseObject {
 
-	private _id?: BigInt;
-	private _stock_id?: BigInt;
+	private _id?: bigint;
+	private _stock_id?: bigint;
 	private _ticker_no?: string;
 	private _reporting_date?: Date;
 	private _shorted_shares?: number;
-	private _shorted_amount?: number;
+	private _shorted_amount?: Money;
 
 	constructor(data?: any) {
 
@@ -33,27 +34,28 @@ export default class ShortData extends DatabaseObject {
 		}
 
 		this._shorted_shares = data?.shorted_shares;
-		this._shorted_amount = data?.shorted_amount;
 		this.created_datetime = data?.created_datetime ? data.created_datetime : this.created_datetime;
 		this.last_modified_datetime = data?.last_modified_datetime ? data.last_modified_datetime : this.last_modified_datetime;
+
+		this._shorted_amount = new Money(data?.shorted_amount, data.decimal_places, data.currency);
 	}
 
-	get id(): BigInt | undefined {
+	get id(): bigint | undefined {
 
 		return this._id;
 	}
 
-	set id(id: BigInt) {
+	set id(id: bigint) {
 
 		this._id = id;
 	}
 
-	get stock_id(): BigInt | undefined {
+	get stock_id(): bigint | undefined {
 
 		return this._stock_id;
 	}
 
-	set stock_id(stock_id: BigInt) {
+	set stock_id(stock_id: bigint) {
 
 		this._stock_id = stock_id;
 	}
@@ -88,12 +90,12 @@ export default class ShortData extends DatabaseObject {
 		this._shorted_shares = shorted_shares;
 	}
 
-	get shorted_amount(): number | undefined {
+	get shorted_amount(): Money | undefined {
 
 		return this._shorted_amount;
 	}
 
-	set shorted_amount(shorted_amount: number) {
+	set shorted_amount(shorted_amount: Money) {
 
 		this._shorted_amount = shorted_amount;
 	}

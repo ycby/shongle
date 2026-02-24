@@ -2,7 +2,7 @@ import DatabaseObject from "#root/src/models/DatabaseObject.js";
 
 export default class DiaryEntry extends DatabaseObject{
 
-    private _id?: BigInt;
+    private _id?: bigint;
     private _stock_id?: number;
     private _title?: string;
     private _content?: string;
@@ -19,12 +19,12 @@ export default class DiaryEntry extends DatabaseObject{
         this._posted_date = data?.posted_date;
     }
 
-    get id(): BigInt | undefined {
+    get id(): bigint | undefined {
 
         return this._id;
     }
 
-    set id(id: BigInt) {
+    set id(id: bigint) {
 
         this._id = id;
     }

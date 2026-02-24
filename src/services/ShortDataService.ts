@@ -83,7 +83,7 @@ const getShortData = async (args: ShortDataGetParam) => {
 
 		result = await executeQuery<ShortData>({
 			namedPlaceholders: true,
-			sql: `SELECT * FROM Short_Reporting WHERE ${whereString !== '' ? whereString : ''} ORDER BY reporting_date DESC`
+			sql: `SELECT sr.*, c.decimal_places FROM Short_Reporting sr LEFT JOIN Currencies c ON sr.currency = c.ISO_code WHERE ${whereString !== '' ? whereString : ''} ORDER BY reporting_date DESC`
 		}, {
 			stock_id: args.stock_id,
 			start_date: args.start_date,

@@ -1,14 +1,15 @@
 import DatabaseObject from "#root/src/models/DatabaseObject.js";
 import {CurrencyKeys} from "#root/src/types.js";
+import Money from "#root/src/models/Money.js";
 
 export default class StockTransaction extends DatabaseObject {
 
-    private _id?: BigInt;
+    private _id?: bigint;
     private _stock_id?: number;
     private _type?: string;
-    private _amount?: number;
+    private _amount?: Money;
     private _quantity?: number;
-    private _fee?: number
+    private _fee?: Money;
     private _amount_per_share?: number;
     private _transaction_date: Date;
     private _currency?: CurrencyKeys;
@@ -20,22 +21,23 @@ export default class StockTransaction extends DatabaseObject {
         this._id = data?.id;
         this._stock_id = data?.stock_id;
         this._type = data?.type;
-        this._amount = data?.amount;
         this._quantity = data?.quantity;
-        this._fee = data?.fee;
         this._amount_per_share = data?.amount_per_share;
         this._transaction_date = data?.transaction_date;
         this._currency = data?.currency;
         this.created_datetime = data?.created_datetime ? data.created_datetime : this.created_datetime;
         this.last_modified_datetime = data?.last_modified_datetime ? data.last_modified_datetime : this.last_modified_datetime;
+
+        this._amount = new Money(data?.amount, data.decimal_places, data.currency);
+        this._fee = new Money(data?.fee, data.decimal_places, data.currency);
     }
 
-    get id(): BigInt | undefined {
+    get id(): bigint | undefined {
 
         return this._id;
     }
 
-    set id(id: BigInt) {
+    set id(id: bigint) {
 
         this._id = id;
     }
@@ -60,12 +62,12 @@ export default class StockTransaction extends DatabaseObject {
         this._type = type;
     }
 
-    get amount(): number | undefined {
+    get amount(): Money | undefined {
 
         return this._amount;
     }
 
-    set amount(amount: number) {
+    set amount(amount: Money) {
 
         this._amount = amount;
     }
@@ -80,12 +82,12 @@ export default class StockTransaction extends DatabaseObject {
         this._quantity = quantity;
     }
 
-    get fee(): number | undefined {
+    get fee(): Money | undefined {
 
         return this._fee;
     }
 
-    set fee(fee: number) {
+    set fee(fee: Money) {
 
         this._fee = fee;
     }
