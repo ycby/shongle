@@ -32,7 +32,8 @@
     "exceljs3": "ycby/exceljs#update-dependencies",
     "express": "^5.2.1",
     "mariadb": "^3.3.1",
-    "papaparse": "^5.5.3"
+    "papaparse": "^5.5.3",
+    "money-type": "ycby/money-type"
   },
   "devDependencies": {
     "@babel/core": "^7.28.0",

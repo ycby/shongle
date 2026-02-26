@@ -1,6 +1,6 @@
 import DatabaseObject from "#root/src/models/DatabaseObject.js";
 import {CurrencyKeys} from "#root/src/types.js";
-import Money from "#root/src/models/Money.js";
+import Money from "money-type";
 
 export default class StockTransaction extends DatabaseObject {
 
