@@ -109,7 +109,7 @@ const postShortData = async (data: ShortDataBody[]) => {
 
 	let result: UpsertResult[] = [];
 
-	const stockIds: BigInt[] = [];
+	const stockIds: bigint[] = [];
 	const tickerNos: string[] = [];
 
 	data.forEach(d => {

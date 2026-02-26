@@ -9,8 +9,8 @@
     "#root/*.ts": "./*.ts"
   },
   "scripts": {
-    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
-    "coverage": "jest --coverage",
+    "test": "vitest",
+    "coverage": "vitest --coverage",
     "build": "npx tsc",
     "start:prod": "tsx --env-file=.env --import=tsx src/index.ts",
     "start:dev": "nodemon --exec tsx --env-file=.env.dev --import=tsx --ext 'ts,json,js,mjs,cjs' src/index.ts"
@@ -32,8 +32,8 @@
     "exceljs3": "ycby/exceljs#update-dependencies",
     "express": "^5.2.1",
     "mariadb": "^3.3.1",
-    "papaparse": "^5.5.3",
-    "money-type": "ycby/money-type"
+    "money-type": "ycby/money-type",
+    "papaparse": "^5.5.3"
   },
   "devDependencies": {
     "@babel/core": "^7.28.0",
@@ -45,7 +45,6 @@
     "@types/express": "^5.0.3",
     "@types/jest": "^30.0.0",
     "@types/papaparse": "^5.3.16",
-    "babel-jest": "^30.0.4",
     "globals": "^15.4.0",
     "jest": "^30.0.4",
     "nodemon": "^3.1.3",

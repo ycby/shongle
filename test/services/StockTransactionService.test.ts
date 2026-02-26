@@ -1,12 +1,12 @@
 import {afterEach, describe, expect, jest, test} from "@jest/globals";
-import * as StockTransactionService from "#root/src/services/StockTransactionService.ts";
 import {TransactionDataGetParams, TransactionDataBody} from "#root/src/services/StockTransactionService.ts";
-import * as db from "#root/src/db/db.ts";
 import {InvalidRequestError, RecordNotFoundError} from "#root/src/errors/Errors.ts";
+import Money from "money-type";
 
-jest.mock('#root/src/db/db.ts');
-const executeQueryMock = db.executeQuery as jest.MockedFunction<typeof db.executeQuery>;
-const executeBatchMock = db.executeBatch as jest.MockedFunction<typeof db.executeBatch>;
+let StockTransactionService: any;
+let db: any;
+let executeQueryMock: jest.MockedFunction<any>;
+let executeBatchMock: jest.MockedFunction<any>;
 
 const testStockTransactionDataBody = {
     id: '1',
@@ -21,6 +21,18 @@ const testStockTransactionDataBody = {
 
 describe('Stock Transaction Service Tests', () => {
 
+    beforeAll(async () => {
+        jest.unstable_mockModule('#root/src/db/db.ts', () => ({
+            executeQuery: jest.fn(),
+            executeBatch: jest.fn(),
+        }));
+
+        StockTransactionService = await import("#root/src/services/StockTransactionService.ts");
+        db = await import("#root/src/db/db.ts");
+
+        executeQueryMock = db.executeQuery;
+        executeBatchMock = db.executeBatch;
+    })
     afterEach(() => {
         jest.resetAllMocks();
     });
@@ -35,8 +47,8 @@ describe('Stock Transaction Service Tests', () => {
                     stock_id: 1,
                     type: 'buy',
                     quantity: 10,
-                    amount: 100,
-                    fee: 10,
+                    amount: new Money(100, 2, 'HKD'),
+                    fee: new Money(10, 2, 'HKD'),
                     amount_per_share: 10,
                     currency: 'HKD',
                 }

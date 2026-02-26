@@ -1,7 +1,7 @@
-import mariadb, {QueryOptions, UpsertResult} from 'mariadb'
+import {QueryOptions, UpsertResult, createPool} from 'mariadb';
 
 const dbPool = Object.freeze({
-	pool: mariadb.createPool({
+	pool: createPool({
 		host: process.env.DB_HOST,
 		port: Number(process.env.DB_PORT),
 		user: process.env.DB_USER,
@@ -92,7 +92,6 @@ const executeBatch = async (queryObject: QueryOptions, placeholders: {}): Promis
 	}
 }
 
-export default dbPool;
 export {
 	executeQuery,
 	executeBatch
