@@ -95,7 +95,7 @@ const createDiaryEntryData = async (data: DiaryEntryDataBody[]) => {
 
     let result: UpsertResult[] = [];
 
-    const stockIds: BigInt[] = data.map((d: DiaryEntryDataBody): BigInt => BigInt(d.stock_id));
+    const stockIds: bigint[] = data.map((d: DiaryEntryDataBody): bigint => BigInt(d.stock_id));
     try {
 
         const existingRecords: Stock[] = await executeQuery<Stock>({
