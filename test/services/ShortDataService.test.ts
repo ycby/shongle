@@ -1,6 +1,4 @@
 import {afterEach, describe, expect, jest, test} from "@jest/globals";
-import * as db from "#root/src/db/db.js";
-import * as ShortDataService from "#root/src/services/ShortDataService.js";
 import {
     ShortDataBody,
     ShortDataGetParam,
@@ -8,13 +6,12 @@ import {
     ShortDataTickersWithMismatchQuery
 } from "#root/src/services/ShortDataService.js";
 import {InvalidRequestError} from "#root/src/errors/Errors.js";
-import {SqlError} from "mariadb";
 import ShortData from "#root/src/models/ShortData.js";
 
-jest.mock('#root/src/db/db.js');
-
-const executeQueryMock = db.executeQuery as jest.MockedFunction<typeof db.executeQuery>;
-const executeBatchMock = db.executeBatch as jest.MockedFunction<typeof db.executeBatch>;
+let ShortDataService: any;
+let db: any;
+let executeQueryMock: jest.MockedFunction<any>;
+let executeBatchMock: jest.MockedFunction<any>;
 
 const testBody: ShortDataBody = {
     id: '1',
@@ -26,6 +23,19 @@ const testBody: ShortDataBody = {
 }
 
 describe('Short Data Service Tests', () => {
+
+    beforeAll(async () => {
+        jest.unstable_mockModule('#root/src/db/db.ts', () => ({
+            executeQuery: jest.fn(),
+            executeBatch: jest.fn(),
+        }));
+
+        ShortDataService = await import("#root/src/services/ShortDataService.ts");
+        db = await import("#root/src/db/db.ts");
+
+        executeQueryMock = db.executeQuery;
+        executeBatchMock = db.executeBatch;
+    });
 
     afterEach(() => {
         jest.resetAllMocks();
@@ -234,18 +244,20 @@ describe('Short Data Service Tests', () => {
             executeQueryMock.mockResolvedValueOnce([
                 {
                     ticker_no: '00001',
+                    total_rows: 2,
                 },
                 {
                     ticker_no: '00002',
+                    total_rows: 2,
                 }
             ]);
 
             const args: ShortDataTickersWithMismatchQuery = {
-                limit: 0,
+                limit: 10,
                 offset: 0
             }
 
-            expect(await ShortDataService.getTickersWithMismatchedData(args)).toEqual(['00001', '00002']);
+            expect((await ShortDataService.getTickersWithMismatchedData(args)).tickers).toEqual(['00001', '00002']);
         });
 
         test('Get shorts with mismatched tickers, missing limit', async () => {
@@ -253,9 +265,11 @@ describe('Short Data Service Tests', () => {
             executeQueryMock.mockResolvedValueOnce([
                 {
                     ticker_no: '00001',
+                    total_rows: 2,
                 },
                 {
                     ticker_no: '00002',
+                    total_rows: 2,
                 }
             ]);
 
@@ -263,7 +277,7 @@ describe('Short Data Service Tests', () => {
                 offset: 0
             }
 
-            expect(await ShortDataService.getTickersWithMismatchedData(args)).toEqual(['00001', '00002']);
+            expect((await ShortDataService.getTickersWithMismatchedData(args)).tickers).toEqual(['00001', '00002']);
         });
 
         test('Get shorts with mismatched tickers, missing offset', async () => {
@@ -271,29 +285,31 @@ describe('Short Data Service Tests', () => {
             executeQueryMock.mockResolvedValueOnce([
                 {
                     ticker_no: '00001',
+                    total_rows: 2,
                 },
                 {
                     ticker_no: '00002',
+                    total_rows: 2,
                 }
             ]);
 
             const args: ShortDataTickersWithMismatchQuery = {
-                limit: 0
+                limit: 10
             }
 
-            expect(await ShortDataService.getTickersWithMismatchedData(args)).toEqual(['00001', '00002']);
+            expect((await ShortDataService.getTickersWithMismatchedData(args)).tickers).toEqual(['00001', '00002']);
         });
 
         test('Get shorts with mismatched tickers, error with query', async () => {
 
-            executeQueryMock.mockRejectedValueOnce(new SqlError('Some error'));
+            executeQueryMock.mockRejectedValueOnce(new Error('Some error'));
 
             const args: ShortDataTickersWithMismatchQuery = {
-                limit: 0,
+                limit: 10,
                 offset: 0
             };
 
-            await expect(ShortDataService.getTickersWithMismatchedData(args)).rejects.toThrow(SqlError);
+            await expect(ShortDataService.getTickersWithMismatchedData(args)).rejects.toThrow(Error);
         });
     });
 

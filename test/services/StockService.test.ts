@@ -1,12 +1,11 @@
 import {afterEach, describe, expect, jest, test} from "@jest/globals";
-import * as StockService from "#root/src/services/StockService.ts";
 import {StocksDataBody, StocksDataGetParam} from "#root/src/services/StockService.ts";
-import * as db from "#root/src/db/db.ts";
 import {DuplicateFoundError, InvalidRequestError} from "#root/src/errors/Errors.ts";
 
-jest.mock('#root/src/db/db.ts');
-const executeQueryMock = db.executeQuery as jest.MockedFunction<typeof db.executeQuery>;
-const executeBatchMock = db.executeBatch as jest.MockedFunction<typeof db.executeBatch>;
+let StockService: any;
+let db: any;
+let executeQueryMock: jest.MockedFunction<any>;
+let executeBatchMock: jest.MockedFunction<any>;
 
 const testStockDataBody = {
     ticker_no: '00002',
@@ -20,8 +19,20 @@ const testStockDataBody = {
     currency: 'HKD',
 }
 
-//TODO: Complete testing
 describe('Stock Service Tests', () => {
+
+    beforeAll(async () => {
+        jest.unstable_mockModule('#root/src/db/db.ts', () => ({
+            executeQuery: jest.fn(),
+            executeBatch: jest.fn(),
+        }));
+
+        StockService = await import("#root/src/services/StockService.ts");
+        db = await import("#root/src/db/db.ts");
+
+        executeQueryMock = db.executeQuery;
+        executeBatchMock = db.executeBatch;
+    });
 
     afterEach(() => {
         jest.resetAllMocks();

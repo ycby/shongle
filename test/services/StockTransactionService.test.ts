@@ -32,7 +32,8 @@ describe('Stock Transaction Service Tests', () => {
 
         executeQueryMock = db.executeQuery;
         executeBatchMock = db.executeBatch;
-    })
+    });
+
     afterEach(() => {
         jest.resetAllMocks();
     });

@@ -1,14 +1,12 @@
 import {afterEach, describe, expect, jest, test} from "@jest/globals";
-import * as db from "#root/src/db/db.js";
-import * as DiaryEntryService from "#root/src/services/DiaryEntryService.js";
 import {InvalidRequestError, RecordNotFoundError} from "#root/src/errors/Errors.js";
 import {DiaryEntryDataBody, DiaryEntryDataGetParams} from "#root/src/services/DiaryEntryService.js";
 import DiaryEntry from "#root/src/models/DiaryEntry.js";
 
-jest.mock('#root/src/db/db.js');
-
-const executeQueryMock = db.executeQuery as jest.MockedFunction<typeof db.executeQuery>;
-const executeBatchMock = db.executeBatch as jest.MockedFunction<typeof db.executeBatch>;
+let DiaryEntryService: any;
+let db: any;
+let executeQueryMock: jest.MockedFunction<any>;
+let executeBatchMock: jest.MockedFunction<any>;
 
 const testBody: DiaryEntryDataBody = {
     id: '1',
@@ -19,6 +17,19 @@ const testBody: DiaryEntryDataBody = {
 }
 
 describe('Diary Entry Service Tests', () => {
+
+    beforeAll(async () => {
+        jest.unstable_mockModule('#root/src/db/db.ts', () => ({
+            executeQuery: jest.fn(),
+            executeBatch: jest.fn(),
+        }));
+
+        DiaryEntryService = await import("#root/src/services/DiaryEntryService.ts");
+        db = await import("#root/src/db/db.ts");
+
+        executeQueryMock = db.executeQuery;
+        executeBatchMock = db.executeBatch;
+    });
 
     afterEach(() => {
         jest.resetAllMocks();
