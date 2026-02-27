@@ -9,7 +9,7 @@
     "#root/*.ts": "./*.ts"
   },
   "scripts": {
-    "test": "node --experimental-vm-modules /node_modules/jest/bin/jest.js",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "coverage": "jest --coverage",
     "build": "npx tsc",
     "start:prod": "tsx --env-file=.env --import=tsx src/index.ts",
