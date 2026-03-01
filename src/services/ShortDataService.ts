@@ -317,7 +317,7 @@ const retrieveShortDataFromSource = async (startDate: Date | null, endDate: Date
 						'(stock_id, ticker_no, reporting_date, shorted_shares, shorted_amount, created_datetime, last_modified_datetime) ' +
 						'VALUES (:stock_id, :ticker_no, :reporting_date, :shorted_shares, :shorted_amount, :created_datetime, :last_modified_datetime)'
 				},
-				shortData.map(element => element.getPlainObject())
+				shortData.map(element => element.toDB())
 			);
 		});
 
@@ -380,7 +380,7 @@ const getMismatchedDataByTicker = async (args: ShortDataMismatchQuery) => {
 			sql: `SELECT * FROM Short_Reporting_wo_Stock_Id WHERE ticker_no = :ticker_no`,
 		}, {
 			ticker_no: args.ticker_no
-		}, (element) => new ShortData(element));
+		}, (element) => ShortData.fromDB(element));
 
 	} catch (err) {
 

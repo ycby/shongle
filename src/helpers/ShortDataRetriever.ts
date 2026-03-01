@@ -3,6 +3,8 @@ import {dateToStringConverter} from "#root/src/helpers/DateHelper.js";
 import Stock from "#root/src/models/Stock.js";
 import {executeQuery} from "#root/src/db/db.js";
 import ShortData from "#root/src/models/ShortData.js";
+import Money from "money-type";
+import {CurrencyCache} from "#root/src/utilities/DataCache.js";
 
 type UploadDataMapping = { [p: string]: UploadDataMappingElement };
 type UploadDataMappingElement = { label: string; value: string };
@@ -86,11 +88,11 @@ const retrieveShortData = async (targetDate: Date, callbackHandler: (data: Short
 
                 existingStocks.forEach((existingStock: Stock) => existingStockMap.set(`${existingStock.ticker_no}_${existingStock.name}`, existingStock));
 
-                callbackHandler(results.data.map((element: SFCData): ShortData => new ShortData({
+                callbackHandler(results.data.map((element: SFCData): ShortData => ShortData.fromAPI({
                     ticker_no: element.ticker_no,
                     reporting_date: element.reporting_date,
                     shorted_shares: element.shorted_shares,
-                    shorted_amount: element.shorted_amount,
+                    shorted_amount: Money.fromNominalValue(element.shorted_amount, CurrencyCache.get().get('HKD')?.decimal_places ?? 2, 'HKD'),
                     stock_id: existingStockMap.get(`${element.ticker_no}_${element.name}`)?.id
                 })));
             },
