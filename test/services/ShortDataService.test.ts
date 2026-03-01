@@ -7,6 +7,7 @@ import {
 } from "#root/src/services/ShortDataService.js";
 import {InvalidRequestError} from "#root/src/errors/Errors.js";
 import ShortData from "#root/src/models/ShortData.js";
+import Money from "money-type";
 
 let ShortDataService: any;
 let db: any;
@@ -17,7 +18,12 @@ const testBody: ShortDataBody = {
     id: '1',
     stock_id: '1',
     ticker_no: '00001',
-    shorted_amount: 100,
+    shorted_amount: {
+        "whole": 1000,
+        "fractional": 0,
+        "decimal_places": 2,
+        "iso_code": 'HKD'
+    } as Money,
     shorted_shares: 10,
     reporting_date: '2025-01-01'
 }
@@ -49,7 +55,7 @@ describe('Short Data Service Tests', () => {
                 {
                     id: '1',
                     stock_id: '1',
-                    shorted_amount: 100,
+                    shorted_amount: new Money(1000, 0, 2, 'HKD'),
                     shorted_shares: 10,
                     reporting_date: '2025-01-01'
                 }
@@ -68,7 +74,7 @@ describe('Short Data Service Tests', () => {
                 {
                     id: 1,
                     stock_id: 1,
-                    shorted_amount: 100,
+                    shorted_amount: new Money(1000, 0, 2, 'HKD'),
                     shorted_shares: 10,
                     reporting_date: '2025-01-01'
                 }
@@ -86,7 +92,7 @@ describe('Short Data Service Tests', () => {
                 {
                     id: 1,
                     stock_id: 1,
-                    shorted_amount: 100,
+                    shorted_amount: new Money(1000, 0, 2, 'HKD'),
                     shorted_shares: 10,
                     reporting_date: '2025-01-01'
                 }
@@ -104,7 +110,7 @@ describe('Short Data Service Tests', () => {
                 {
                     id: '1',
                     stock_id: '1',
-                    shorted_amount: 100,
+                    shorted_amount: new Money(1000, 0, 2, 'HKD'),
                     shorted_shares: 10,
                     reporting_date: '2025-01-01'
                 }
@@ -153,7 +159,7 @@ describe('Short Data Service Tests', () => {
                 {
                     id: 1,
                     stock_id: 1,
-                    shorted_amount: 100,
+                    shorted_amount: new Money(1000, 0, 2, 'HKD'),
                     shorted_shares: 10,
                     reporting_date: '2025-01-01'
                 }
@@ -172,7 +178,7 @@ describe('Short Data Service Tests', () => {
                 {
                     id: 1,
                     stock_id: 1,
-                    shorted_amount: 100,
+                    shorted_amount: new Money(1000, 0, 2, 'HKD'),
                     shorted_shares: 10,
                     reporting_date: '2025-01-01'
                 }
@@ -318,23 +324,27 @@ describe('Short Data Service Tests', () => {
         test('Get shorts with mismatched tickers', async () => {
 
             executeQueryMock.mockResolvedValueOnce([
-                new ShortData({
+                ShortData.fromDB({
                     id: '1',
                     stock_id: null,
                     reporting_date: new Date(2025, 0, 1),
                     shorted_shares: 100,
-                    shorted_amount: 1000,
+                    shorted_amount: new Money(1000, 0, 2, 'HKD'),
                     ticker_no: '00001',
+                    decimal_places: 2,
+                    currency: 'HKD',
                     created_datetime: new Date(2025, 0, 1),
                     last_modified_datetime: new Date(2025, 0, 1)
                 }),
-                new ShortData({
+                ShortData.fromDB({
                     id: '2',
                     stock_id: null,
                     reporting_date: new Date(2025, 0, 1),
                     shorted_shares: 200,
-                    shorted_amount: 2000,
+                    shorted_amount: new Money(2000, 0, 2, 'HKD'),
                     ticker_no: '00001',
+                    decimal_places: 2,
+                    currency: 'HKD',
                     created_datetime: new Date(2025, 0, 1),
                     last_modified_datetime: new Date(2025, 0, 1)
                 })
