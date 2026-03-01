@@ -150,12 +150,12 @@ export default class StockTransaction extends DatabaseObject {
         this._currency = currency;
     }
 
-    getPlainObject(this: any): any {
+    toDB(): any {
 
         const result = super.getPlainObject();
 
-        result.amount = this._amount.getValueInSmallestDenomination();
-        result.fee = this._fee.getValueInSmallestDenomination()
+        if (this._amount !== undefined) result.amount = this._amount.getValueInSmallestDenomination();
+        if (this._fee !== undefined) result.fee = this._fee.getValueInSmallestDenomination()
 
         return result;
     }

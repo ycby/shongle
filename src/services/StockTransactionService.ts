@@ -121,7 +121,7 @@ const createStockTransactionsData = async (data: TransactionDataBody[]) => {
                     '(stock_id, type, amount, quantity, fee, transaction_date, currency, created_datetime, last_modified_datetime) ' +
                     'VALUES (:stock_id, :type, :amount, :quantity, :fee, :transaction_date, :currency, :created_datetime, :last_modified_datetime)'
             },
-            data.map((item: TransactionDataBody): StockTransaction => StockTransaction.fromAPI(item).getPlainObject())
+            data.map((item: TransactionDataBody): StockTransaction => StockTransaction.fromAPI(item).toDB())
         );
 
     } catch (err) {
@@ -158,7 +158,7 @@ const upsertStockTransactionData = async (data: TransactionDataBody[]) => {
             },
             data.map((element) => {
 
-                const result = StockTransaction.fromAPI(element).getPlainObject();
+                const result = StockTransaction.fromAPI(element).toDB();
                 return [
                     result.id,
                     result.stock_id,
