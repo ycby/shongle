@@ -11,6 +11,7 @@ import {
     TRANSACTION_PARAM_SINGLE_VALIDATION,
     TRANSACTION_BODY_VALIDATION,
 } from "#root/src/validation/VRule_StockTransaction.js";
+import Money from "money-type";
 
 export type TransactionDataGetParams = {
     id?: string,
@@ -24,9 +25,9 @@ export type TransactionDataBody = {
     id?: string;
     stock_id: string;
     type: string;
-    amount: number;
+    amount: Money;
     quantity: number;
-    fee: number;
+    fee: Money;
     transaction_date: string;
     currency: string;
 }

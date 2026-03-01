@@ -17,14 +17,14 @@ const testStockTransactionDataBody = {
         "fractional": 45,
         "decimal_places": 2,
         "iso_code": "HKD"
-    },
+    } as Money,
     quantity: 100,
     fee: {
         "whole": 43,
         "fractional": 21,
         "decimal_places": 2,
         "iso_code": "HKD"
-    },
+    } as Money,
     transaction_date: '2025-01-01',
     currency: 'HKD',
 }
