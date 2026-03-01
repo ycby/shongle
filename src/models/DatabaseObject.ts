@@ -28,7 +28,7 @@ export default class DatabaseObject {
 		this._last_modified_datetime = value;
 	}
 
-	getPlainObject(this: any) {
+	getPlainObject(this: any): any {
 
 		let result: any = {};
 		Object.getOwnPropertyNames(this).forEach((key: string) => {

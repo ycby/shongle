@@ -79,7 +79,7 @@ const getStockTransactionsData = async (args: TransactionDataGetParams) => {
             type: args.type,
             start_date: args.start_date,
             end_date: args.end_date,
-        }, (element) => new StockTransaction(element));
+        }, (element) => StockTransaction.fromDB(element));
 
     } catch (err) {
 
@@ -97,7 +97,7 @@ const createStockTransactionsData = async (data: TransactionDataBody[]) => {
 
     let result: UpsertResult[] = [];
 
-    const stockIds: BigInt[] = data.map((d: TransactionDataBody): BigInt => BigInt(d.stock_id));
+    const stockIds: bigint[] = data.map((d: TransactionDataBody): bigint => BigInt(d.stock_id));
     try {
 
         const existingRecords: Stock[] = await executeQuery<Stock>({
@@ -120,7 +120,7 @@ const createStockTransactionsData = async (data: TransactionDataBody[]) => {
                     '(stock_id, type, amount, quantity, fee, transaction_date, currency, created_datetime, last_modified_datetime) ' +
                     'VALUES (:stock_id, :type, :amount, :quantity, :fee, :transaction_date, :currency, :created_datetime, :last_modified_datetime)'
             },
-            data.map((item: TransactionDataBody): StockTransaction => new StockTransaction(item))
+            data.map((item: TransactionDataBody): StockTransaction => StockTransaction.fromAPI(item).getPlainObject())
         );
 
     } catch (err) {
@@ -157,7 +157,7 @@ const upsertStockTransactionData = async (data: TransactionDataBody[]) => {
             },
             data.map((element) => {
 
-                const result = new StockTransaction(element);
+                const result = StockTransaction.fromAPI(element).getPlainObject();
                 return [
                     result.id,
                     result.stock_id,

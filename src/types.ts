@@ -13,7 +13,7 @@ const Subcategory = {
     TRADING_ONLY: 'trading_only_securities',
     OTHERS: 'others'
 } as const;
-const Currency = {
+const CurrencyCode = {
     HKD: 'HKD',
     RMB: 'RMB',
     USD: 'USD',
@@ -33,16 +33,22 @@ const QueryType = {
     OR: 'OR'
 } as const;
 
+//Dump Currency here first
+export type Currency = {
+    ISO_code: string,
+    decimal_places: number,
+}
+
 export type CategoryKeys = typeof Category[keyof typeof Category];
 export type SubcategoryKeys = typeof Subcategory[keyof typeof Subcategory];
-export type CurrencyKeys = typeof Currency[keyof typeof Currency];
+export type CurrencyKeys = typeof CurrencyCode[keyof typeof CurrencyCode];
 export type TransactionTypeKeys = typeof TransactionType[keyof typeof TransactionType];
 export type QueryTypeKeys = typeof QueryType[keyof typeof QueryType];
 
 export {
     Category,
     Subcategory,
-    Currency,
+    CurrencyCode,
     TransactionType,
     QueryType
 }

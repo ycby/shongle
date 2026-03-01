@@ -12,9 +12,19 @@ const testStockTransactionDataBody = {
     id: '1',
     stock_id: '1',
     type: 'buy',
-    amount: 123.45,
+    amount: {
+        "whole": 123,
+        "fractional": 45,
+        "decimal_places": 2,
+        "iso_code": "HKD"
+    },
     quantity: 100,
-    fee: 43.21,
+    fee: {
+        "whole": 43,
+        "fractional": 21,
+        "decimal_places": 2,
+        "iso_code": "HKD"
+    },
     transaction_date: '2025-01-01',
     currency: 'HKD',
 }
@@ -48,8 +58,8 @@ describe('Stock Transaction Service Tests', () => {
                     stock_id: 1,
                     type: 'buy',
                     quantity: 10,
-                    amount: new Money(100, 2, 'HKD'),
-                    fee: new Money(10, 2, 'HKD'),
+                    amount: new Money(100, 2, 2,'HKD'),
+                    fee: new Money(10, 2, 2, 'HKD'),
                     amount_per_share: 10,
                     currency: 'HKD',
                 }
@@ -70,8 +80,8 @@ describe('Stock Transaction Service Tests', () => {
                     stock_id: 1,
                     type: 'buy',
                     quantity: 10,
-                    amount: 100,
-                    fee: 10,
+                    amount: new Money(100, 2, 2, 'HKD'),
+                    fee: new Money(10, 2, 2, 'HKD'),
                     amount_per_share: 10,
                     currency: 'HKD',
                 }
@@ -97,8 +107,8 @@ describe('Stock Transaction Service Tests', () => {
                     stock_id: 1,
                     type: 'buy',
                     quantity: 10,
-                    amount: 100,
-                    fee: 10,
+                    amount: new Money(100, 2, 2, 'HKD'),
+                    fee: new Money(10, 2, 2, 'HKD'),
                     amount_per_share: 10,
                     currency: 'HKD',
                 }
@@ -121,8 +131,8 @@ describe('Stock Transaction Service Tests', () => {
                     stock_id: 1,
                     type: 'buy',
                     quantity: 10,
-                    amount: 100,
-                    fee: 10,
+                    amount: new Money(100, 2, 2, 'HKD'),
+                    fee: new Money(10, 2, 2, 'HKD'),
                     amount_per_share: 10,
                     currency: 'HKD',
                 }
@@ -145,8 +155,8 @@ describe('Stock Transaction Service Tests', () => {
                     stock_id: 1,
                     type: 'buy',
                     quantity: 10,
-                    amount: 100,
-                    fee: 10,
+                    amount: new Money(100, 2, 2, 'HKD'),
+                    fee: new Money(10, 2, 2, 'HKD'),
                     amount_per_share: 10,
                     currency: 'HKD',
                 }
@@ -168,8 +178,8 @@ describe('Stock Transaction Service Tests', () => {
                     stock_id: 1,
                     type: 'buy',
                     quantity: 10,
-                    amount: 100,
-                    fee: 10,
+                    amount: new Money(100, 2, 2, 'HKD'),
+                    fee: new Money(10, 2, 2, 'HKD'),
                     amount_per_share: 10,
                     currency: 'HKD',
                 }

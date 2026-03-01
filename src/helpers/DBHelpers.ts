@@ -42,8 +42,17 @@ const canConvertToNumber = (value: any): boolean => {
 
     return !isNaN(Number(value));
 }
+
+const canConvertToMoney = (value: any): boolean => {
+
+    if (value === undefined || value === null) return false;
+
+    return value.whole && value.fractional && value.decimal_places && value.iso_code;
+}
+
 export {
     filterClauseGenerator,
     canConvertToBigNumber,
-    canConvertToNumber
+    canConvertToNumber,
+    canConvertToMoney
 }

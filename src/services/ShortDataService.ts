@@ -330,7 +330,7 @@ const retrieveShortDataFromSource = async (startDate: Date | null, endDate: Date
 
 type MismatchTickerResponse = {
 	ticker_no: string;
-	total_rows: BigInt;
+	total_rows: bigint;
 }
 //Use limit+offset since I will be managing the data myself, and it won't change much
 const getTickersWithMismatchedData = async (args: ShortDataTickersWithMismatchQuery) => {

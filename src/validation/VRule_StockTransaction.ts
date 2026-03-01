@@ -1,7 +1,7 @@
 import {ValidationRule} from "#root/src/utilities/Validator.js";
-import {Currency, CurrencyKeys, TransactionType, TransactionTypeKeys} from "#root/src/types.js";
+import {CurrencyCode, CurrencyKeys, TransactionType, TransactionTypeKeys} from "#root/src/types.js";
 import {stringToDateConverter} from "#root/src/helpers/DateHelper.js";
-import {canConvertToNumber} from "#root/src/helpers/DBHelpers.js";
+import {canConvertToMoney, canConvertToNumber} from "#root/src/helpers/DBHelpers.js";
 
 const TRANSACTION_PARAM_VALIDATION: ValidationRule[] = [
     {
@@ -70,8 +70,8 @@ const TRANSACTION_BODY_VALIDATION: ValidationRule[] = [
     {
         name: 'amount',
         isRequired: true,
-        rule: (amount: any): boolean => canConvertToNumber(amount),
-        errorMessage: 'Amount must be a number'
+        rule: (amount: any): boolean => canConvertToMoney(amount),
+        errorMessage: 'Amount must be a Money type'
     },
     {
         name: 'quantity',
@@ -82,8 +82,8 @@ const TRANSACTION_BODY_VALIDATION: ValidationRule[] = [
     {
         name: 'fee',
         isRequired: true,
-        rule: (fee: any): boolean => canConvertToNumber(fee),
-        errorMessage: 'Fee must be a number'
+        rule: (fee: any): boolean => canConvertToMoney(fee),
+        errorMessage: 'Fee must be a Money type'
     },
     {
         name: 'transaction_date',
@@ -94,8 +94,8 @@ const TRANSACTION_BODY_VALIDATION: ValidationRule[] = [
     {
         name: 'currency',
         isRequired: true,
-        rule: (currency: any): boolean => typeof currency === 'string' && Object.values(Currency).includes(currency as CurrencyKeys),
-        errorMessage: 'Currency must be one of the following: ' + Object.values(Currency).join(', ')
+        rule: (currency: any): boolean => typeof currency === 'string' && Object.values(CurrencyCode).includes(currency as CurrencyKeys),
+        errorMessage: 'Currency must be one of the following: ' + Object.values(CurrencyCode).join(', ')
     },
 ];
 

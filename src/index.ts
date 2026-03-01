@@ -8,6 +8,9 @@ import {ShongleError} from "#root/src/errors/Errors.js";
 import * as ResponseStandardiser from "#root/src/utilities/ResponseStandardiser.js";
 import {getStockTransactionRouter} from "#root/src/controllers/StockTransactionController.js";
 import {getDiaryEntryRouter} from "#root/src/controllers/DiaryEntryController.js";
+import {CurrencyCache} from "#root/src/utilities/DataCache.js";
+import {executeQuery} from "#root/src/db/db.js";
+import {Currency} from "#root/src/types.js";
 
 const app = express()
 
@@ -77,6 +80,15 @@ app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
 	console.error(err.stack);
 	res.status(500).json(response);
 })
+
+
+//init static caches
+await CurrencyCache.init(async () => {
+
+	return await executeQuery<Currency>({
+		sql: `SELECT ISO_code, decimal_places FROM Currencies`
+	});
+}, (element) => element.ISO_code);
 
 const httpsServer = https.createServer(credentials, app);
 

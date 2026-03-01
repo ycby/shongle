@@ -6,7 +6,7 @@ import {ValidationRule} from "#root/src/utilities/Validator.js";
 import {
     Category,
     CategoryKeys,
-    Currency, CurrencyKeys,
+    CurrencyCode, CurrencyKeys,
     QueryType,
     QueryTypeKeys,
     Subcategory,
@@ -107,8 +107,8 @@ const STOCK_DATA_VALIDATION: ValidationRule[] = [
     {
         name: 'currency',
         isRequired: false,
-        rule: (currency: any): boolean => typeof currency === 'string' && Object.values(Currency).includes(currency as CurrencyKeys),
-        errorMessage: 'Currency must be one of the following: ' + Object.values(Currency).join(', ')
+        rule: (currency: any): boolean => typeof currency === 'string' && Object.values(CurrencyCode).includes(currency as CurrencyKeys),
+        errorMessage: 'Currency must be one of the following: ' + Object.values(CurrencyCode).join(', ')
     },
     {
         name: 'is_active',
