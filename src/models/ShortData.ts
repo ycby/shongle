@@ -15,29 +15,66 @@ export default class ShortData extends DatabaseObject {
 
 		super();
 
-		if (data?.id) this._id = BigInt(data?.id);
-		if (data?.stock_id) this._stock_id = BigInt(data?.stock_id);
-		this._ticker_no = data?.ticker_no;
+		this.created_datetime = data?.created_datetime ? data.created_datetime : this.created_datetime;
+		this.last_modified_datetime = data?.last_modified_datetime ? data.last_modified_datetime : this.last_modified_datetime;
+	}
+
+	static fromDB(data: any): ShortData {
+
+		const shortData = new ShortData();
+
+		if (data?.id) shortData.id = BigInt(data?.id);
+		if (data?.stock_id) shortData.stock_id = BigInt(data?.stock_id);
+		shortData.ticker_no = data?.ticker_no;
 
 		if (data?.reporting_date === undefined) {
 
-			this._reporting_date = data?.reporting_date;
+			shortData.reporting_date = data?.reporting_date;
 		} else if (data.reporting_date instanceof Date) {
 
-			this._reporting_date = data.reporting_date;
+			shortData.reporting_date = data.reporting_date;
 		} else if (typeof data.reporting_date === 'string') {
 
 			const convertedDate = stringToDateConverter(data.reporting_date);
 			if (!convertedDate) throw new TypeError(`${data.reporting_date} cannot be cast to a date`);
 
-			this._reporting_date = convertedDate;
+			shortData.reporting_date = convertedDate;
 		}
 
-		this._shorted_shares = data?.shorted_shares;
-		this.created_datetime = data?.created_datetime ? data.created_datetime : this.created_datetime;
-		this.last_modified_datetime = data?.last_modified_datetime ? data.last_modified_datetime : this.last_modified_datetime;
+		shortData.shorted_shares = Number(data?.shorted_shares);
 
-		this._shorted_amount = new Money(data?.shorted_amount, data.decimal_places, data.currency);
+		shortData.shorted_amount = Money.fromSmallestDenomination(data?.shorted_amount, data.decimal_places, data.currency);
+
+		return shortData;
+	}
+
+	static fromAPI(data: any): ShortData {
+
+		const shortData = new ShortData();
+
+		if (data?.id) shortData.id = BigInt(data?.id);
+		if (data?.stock_id) shortData.stock_id = BigInt(data?.stock_id);
+		shortData.ticker_no = data?.ticker_no;
+
+		if (data?.reporting_date === undefined) {
+
+			shortData.reporting_date = data?.reporting_date;
+		} else if (data.reporting_date instanceof Date) {
+
+			shortData.reporting_date = data.reporting_date;
+		} else if (typeof data.reporting_date === 'string') {
+
+			const convertedDate = stringToDateConverter(data.reporting_date);
+			if (!convertedDate) throw new TypeError(`${data.reporting_date} cannot be cast to a date`);
+
+			shortData.reporting_date = convertedDate;
+		}
+
+		shortData.shorted_shares = data?.shorted_shares;
+
+		shortData.shorted_amount = new Money(data?.shorted_amount.whole, data?.shorted_amount.fractional, data?.shorted_amount.decimal_places, data?.shorted_amount.iso_code);
+
+		return shortData;
 	}
 
 	get id(): bigint | undefined {
@@ -98,6 +135,15 @@ export default class ShortData extends DatabaseObject {
 	set shorted_amount(shorted_amount: Money) {
 
 		this._shorted_amount = shorted_amount;
+	}
+
+	toDB(): any {
+
+		const result = super.getPlainObject();
+
+		result.shorted_amount = this._shorted_amount?.getValueInSmallestDenomination();
+
+		return result;
 	}
 
 	toString() {

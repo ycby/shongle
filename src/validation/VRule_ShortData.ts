@@ -1,5 +1,5 @@
 import {
-    canConvertToBigNumber,
+    canConvertToBigNumber, canConvertToMoney,
     canConvertToNumber,
 } from "#root/src/helpers/DBHelpers.js";
 import {ValidationRule} from "#root/src/utilities/Validator.js";
@@ -69,8 +69,8 @@ const SHORT_BODY_VALIDATION: ValidationRule[] = [
     {
         name: 'shorted_amount',
         isRequired: false,
-        rule: (shorted_amount: any): boolean => canConvertToNumber(shorted_amount),
-        errorMessage: 'Shorted Amount must be a number'
+        rule: (shorted_amount: any): boolean => canConvertToMoney(shorted_amount),
+        errorMessage: 'Shorted Amount must be a Money type'
     },
 ];
 

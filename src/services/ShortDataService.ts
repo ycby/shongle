@@ -14,6 +14,7 @@ import {
 	SHORT_MISMATCH_PARAM_VALIDATION,
 	SHORT_MISMATCH_QUERY_VALIDATION
 } from "#root/src/validation/VRule_ShortData.js";
+import Money from "money-type";
 
 export type ShortDataGetParam = {
 	id?: string,
@@ -33,7 +34,7 @@ export type ShortDataBody = {
 	name?: string;
 	reporting_date: string;
 	shorted_shares: number;
-	shorted_amount: number;
+	shorted_amount: Money;
 }
 
 export type ShortDataRetrieveQuery = {
@@ -88,12 +89,11 @@ const getShortData = async (args: ShortDataGetParam) => {
 			stock_id: args.stock_id,
 			start_date: args.start_date,
 			end_date: args.end_date,
-		}, (element) => new ShortData(element));
+		}, (element) => ShortData.fromDB(element));
 
 	} catch (err) {
 
 		throw err;
-
 	}
 
 	return result;
@@ -159,14 +159,13 @@ const postShortData = async (data: ShortDataBody[]) => {
 			})
 		}
 
-
 		result = await executeBatch({
 			namedPlaceholders: true,
 			sql: 'INSERT INTO Short_Reporting ' +
 				'(stock_id, ticker_no, reporting_date, shorted_shares, shorted_amount, created_datetime, last_modified_datetime) ' +
 				'VALUES (:stock_id, :ticker_no, :reporting_date, :shorted_shares, :shorted_amount, :created_datetime, :last_modified_datetime)'
 		},
-			data.map(item => new ShortData(item))
+			data.map(item => ShortData.fromAPI(item).toDB())
 		);
 
 	} catch (err) {
@@ -194,7 +193,7 @@ const getShortDatum = async (args: ShortDataGetSingleParam) => {
 			sql: `SELECT * FROM Short_Reporting_w_Stocks WHERE id = :id`
 		}, {
 			id: bigIntId
-		}, (element) => new ShortData(element));
+		}, (element) => ShortData.fromDB(element));
 
 	} catch (err) {
 
@@ -229,7 +228,7 @@ const putShortDatum = async (data: ShortDataBody[]) => {
 				'last_modified_datetime=VALUES(last_modified_datetime)'
 			},
 			data.map(element => {
-				const result = new ShortData(element);
+				const result = ShortData.fromAPI(element).toDB();
 				return [
 					result.id,
 					result.stock_id,

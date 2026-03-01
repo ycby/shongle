@@ -47,7 +47,10 @@ const canConvertToMoney = (value: any): boolean => {
 
     if (value === undefined || value === null) return false;
 
-    return value.whole && value.fractional && value.decimal_places && value.iso_code;
+    return (canConvertToNumber(value.whole) || canConvertToBigNumber(value.whole)) &&
+        canConvertToNumber(value.fractional) &&
+        canConvertToNumber(value.decimal_places) &&
+        value.iso_code;
 }
 
 export {
