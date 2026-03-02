@@ -34,8 +34,8 @@ export default class StockTransaction extends DatabaseObject {
         stockTransaction.transaction_date = data?.transaction_date;
         stockTransaction.currency = data?.currency;
 
-        stockTransaction.amount = Money.fromSmallestDenomination(data?.amount, data.decimal_places, data.currency);
-        stockTransaction.fee = Money.fromSmallestDenomination(data?.fee, data.decimal_places, data.currency);
+        if (data.amount !== undefined) stockTransaction.amount = Money.fromSmallestDenomination(data?.amount, data.decimal_places, data.currency);
+        if (data.fee !== undefined) stockTransaction.fee = Money.fromSmallestDenomination(data?.fee, data.decimal_places, data.currency);
 
         return stockTransaction;
     }
