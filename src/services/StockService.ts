@@ -13,8 +13,7 @@ import {
 import {retrieveStockData} from "#root/src/helpers/StocksLatestRetriever.js";
 import {
 	STOCK_PARAM_VALIDATION,
-	STOCK_PARAM_SINGLE_VALIDATION,
-	STOCK_DATA_VALIDATION
+	STOCK_DATA_VALIDATION, STOCK_PARAM_GET_VALIDATION, STOCK_PARAM_DELETE_VALIDATION
 } from "#root/src/validation/VRule_Stock.js";
 
 export type StocksDataGetParam = {
@@ -85,7 +84,7 @@ const getStocksData = async (args: StocksDataGetParam) => {
 			ticker_no: `%${args.ticker_no}%`,
 			name: `%${args.name}%`,
 			ISIN: `%${args.ISIN}%`
-		}, (stock) => new Stock(stock));
+		}, (stock) => Stock.fromDB(stock));
 
 	} catch (err) {
 
@@ -123,9 +122,8 @@ const postStockData = async (data: StocksDataBody[]) => {
 					'(ticker_no, name, full_name, description, category, subcategory, board_lot, ISIN, currency, created_datetime, last_modified_datetime) ' +
 				'VALUES (:ticker_no, :name, :full_name, :description, :category, :subcategory, :board_lot, :ISIN, :currency, :created_datetime, :last_modified_datetime)'
 			},
-			data.map((item: StocksDataBody): Stock => new Stock(item))
+			data.map((item: StocksDataBody): Stock => Stock.fromAPI(item).toDB())
 		);
-		console.log(result);
 
 	} catch (err) {
 
@@ -137,7 +135,7 @@ const postStockData = async (data: StocksDataBody[]) => {
 
 const getStockData = async (args: StocksDataGetParam) => {
 
-	let validationResult: ValidatorResult[] = validate(args, STOCK_PARAM_SINGLE_VALIDATION);
+	let validationResult: ValidatorResult[] = validate(args, STOCK_PARAM_GET_VALIDATION);
 
 	if (validationResult.length > 0) throw new InvalidRequestError(validationResult);
 
@@ -153,7 +151,7 @@ const getStockData = async (args: StocksDataGetParam) => {
 		}, {
 			ticker_no: ticker_no
 		},
-			(stock) => new Stock(stock));
+			(stock) => Stock.fromDB(stock));
 	} catch (err) {
 
 		throw err;
@@ -191,7 +189,7 @@ const putStockData = async (data: StocksDataBody[]) => {
 			},
 			data.map(element => {
 
-				const result = new Stock(element);
+				const result = Stock.fromAPI(element);
 				return [
 					result.id,
 					result.ticker_no,
@@ -218,21 +216,21 @@ const putStockData = async (data: StocksDataBody[]) => {
 	return result;
 }
 
-const deleteStockData = async (args: StocksDataGetParam) => {
+const deleteStockData = async (args: StocksTrackParam) => {
 
-	let validationResult: ValidatorResult[] = validate(args, STOCK_PARAM_SINGLE_VALIDATION);
+	let validationResult: ValidatorResult[] = validate(args, STOCK_PARAM_DELETE_VALIDATION);
 
 	if (validationResult.length > 0) throw new InvalidRequestError(validationResult);
 
-	const ticker_no = args.ticker_no;
+	const id = args.id;
 
 	try {
 
 		await executeQuery({
 			namedPlaceholders: true,
-			sql: `DELETE FROM Stocks WHERE ticker_no = :ticker_no`
+			sql: `DELETE FROM Stocks WHERE id = :id`
 		}, {
-			ticker_no: ticker_no
+			id: id
 		});
 
 	} catch (err) {
@@ -242,7 +240,7 @@ const deleteStockData = async (args: StocksDataGetParam) => {
 
 	//assume no error or else will throw error
 	return {
-		ticker_no: ticker_no,
+		ticker_no: id,
 		status: 'success'
 	};
 }

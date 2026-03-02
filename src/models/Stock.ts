@@ -36,6 +36,16 @@ export default class Stock extends DatabaseObject {
         this.last_modified_datetime = data?.last_modified_datetime ? data.last_modified_datetime : this.last_modified_datetime;
     }
 
+    static fromDB(data: any): Stock {
+
+        return new Stock(data);
+    }
+
+    static fromAPI(data: any): Stock {
+
+        return new Stock(data);
+    }
+
     get id(): bigint | undefined {
 
         return this._id;
@@ -154,6 +164,11 @@ export default class Stock extends DatabaseObject {
     set is_tracked(is_tracked: boolean) {
 
         this._is_tracked = is_tracked;
+    }
+
+    toDB() {
+
+        return super.getPlainObject();
     }
 
     toString() {

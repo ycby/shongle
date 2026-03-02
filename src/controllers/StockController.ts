@@ -18,7 +18,7 @@ const getStockRouter = () => {
     router.get(basePath + "/retrieve-from-source", retrieveStockDataFromSource);
     router.get(basePath + "/:ticker_no", getStock);
     router.put(basePath + "/", upsertStock);
-    router.delete(basePath + "/:ticker_no", deleteStock);
+    router.delete(basePath + "/:id", deleteStock);
 
     return router;
 }
@@ -98,7 +98,7 @@ const upsertStock = async (req: Request, res: Response, next: NextFunction) => {
     }
 }
 
-const deleteStock = async (req: Request<StocksDataGetParam, {}, {}, {}>, res: Response, next: NextFunction) => {
+const deleteStock = async (req: Request<StocksTrackParam, {}, {}, {}>, res: Response, next: NextFunction) => {
 
     try {
 

@@ -1,5 +1,5 @@
 import {afterEach, describe, expect, jest, test} from "@jest/globals";
-import {StocksDataBody, StocksDataGetParam} from "#root/src/services/StockService.ts";
+import {StocksDataBody, StocksDataGetParam, StocksTrackParam} from "#root/src/services/StockService.ts";
 import {DuplicateFoundError, InvalidRequestError} from "#root/src/errors/Errors.ts";
 
 let StockService: any;
@@ -298,7 +298,7 @@ describe('Stock Service Tests', () => {
         });
     });
 
-    describe('GET by ticker_no', () => {
+    describe('GET by ticker', () => {
 
         test('Get single stock', async () => {
 
@@ -432,7 +432,7 @@ describe('Stock Service Tests', () => {
 
             executeQueryMock.mockResolvedValueOnce([{affectedRows: 1, insertId: 0, warningStatus: 0}]);
 
-            const args:StocksDataGetParam = {ticker_no: '00001'};
+            const args:StocksTrackParam = {id: '1'};
 
             const result = await StockService.deleteStockData(args);
 

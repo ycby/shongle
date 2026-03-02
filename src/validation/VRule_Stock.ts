@@ -40,20 +40,29 @@ const STOCK_PARAM_VALIDATION: ValidationRule[] = [
     },
 ];
 
-const STOCK_PARAM_SINGLE_VALIDATION: ValidationRule[] = [
+const STOCK_PARAM_GET_VALIDATION: ValidationRule[] = [
     {
         name: 'ticker_no',
         isRequired: true,
         rule: (ticker_no: any): boolean => typeof ticker_no === 'string' && ticker_no.length === 5,
         errorMessage: 'Ticker No. is formatted incorrectly, it should be 5 characters long. E.g "00001"'
     }
-]
+];
+
+const STOCK_PARAM_DELETE_VALIDATION: ValidationRule[] = [
+    {
+        name: 'id',
+        isRequired: true,
+        rule: (id: any): boolean => canConvertToBigNumber(id),
+        errorMessage: 'Id cannot be converted to a BigNumber'
+    }
+];
 
 const STOCK_DATA_VALIDATION: ValidationRule[] = [
     {
         name: 'id',
         isRequired: false,
-        rule: (id: any): boolean => typeof id === 'string' && canConvertToBigNumber(id),
+        rule: (id: any): boolean => canConvertToBigNumber(id),
         errorMessage: 'Id must be a string which can be converted into a BigNumber'
     },
     {
@@ -120,6 +129,7 @@ const STOCK_DATA_VALIDATION: ValidationRule[] = [
 
 export {
     STOCK_PARAM_VALIDATION,
-    STOCK_PARAM_SINGLE_VALIDATION,
+    STOCK_PARAM_GET_VALIDATION,
+    STOCK_PARAM_DELETE_VALIDATION,
     STOCK_DATA_VALIDATION,
 }
