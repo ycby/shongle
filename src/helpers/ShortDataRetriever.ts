@@ -83,7 +83,7 @@ const retrieveShortData = async (targetDate: Date, callbackHandler: (data: Short
                         sql: 'SELECT id, ticker_no, name FROM Stocks WHERE ticker_no IN (?)'
                     },
                     [results.data.map((element) => element.ticker_no)],
-                    (element) => new Stock(element)
+                    (element) => Stock.fromDB(element)
                 );
 
                 existingStocks.forEach((existingStock: Stock) => existingStockMap.set(`${existingStock.ticker_no}_${existingStock.name}`, existingStock));

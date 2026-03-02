@@ -96,7 +96,7 @@ const retrieveStockData = async () => {
             if (rowNumber < 4) return;
             if (!['Equity', 'Exchange Traded Products', 'Real Estate Investment Trusts'].includes(row.getCell(3).value as string)) return;
 
-            const stock: Stock = new Stock('INSERT');
+            const stock: Stock = new Stock();
             stock.ticker_no = (row.getCell(hkexStockMapping.ticker_no.hkex).value as string).padStart(5, '0');
             stock.name = row.getCell(hkexStockMapping.name.hkex).value as string;
             stock.category = categoryMapping[row.getCell(hkexStockMapping.category.hkex).value as keyof typeof categoryMapping];
@@ -115,14 +115,14 @@ const retrieveStockData = async () => {
                 sql: `SELECT * FROM Stocks WHERE ticker_no IN (?) AND is_active = TRUE`,
             },
             [[...newStocksMap.keys()]],
-            (element: any): Stock => new Stock(element)
+            (element: any): Stock => Stock.fromDB(element)
         );
 
         const nonActiveStocks: Stock[] = await executeQuery<Stock>({
                 sql: `SELECT * FROM Stocks WHERE ticker_no NOT IN (?) AND is_active = TRUE`,
             },
             [[...newStocksMap.keys()]],
-            (element: any): Stock => new Stock(element)
+            (element: any): Stock => Stock.fromDB(element)
         );
 
         const stocksToUpdate: Stock[] = [];
@@ -199,7 +199,7 @@ const retrieveStockData = async () => {
                     'is_active=VALUES(is_active), ' +
                     'last_modified_datetime=VALUES(last_modified_datetime)'
             },
-            stocksToUpdate.map(stock => stock.getPlainObject())
+            stocksToUpdate.map(stock => stock.toDB())
         );
     } catch (e) {
 

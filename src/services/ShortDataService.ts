@@ -129,7 +129,7 @@ const postShortData = async (data: ShortDataBody[]) => {
 				sql: "SELECT id, ticker_no, name FROM Stocks WHERE id IN (:ids) AND is_active = TRUE"
 			}, {
 				ids: stockIds
-			}, (element) => new Stock(element));
+			}, (element) => Stock.fromDB(element));
 
 			if (existingRecords.length === 0) {
 
@@ -144,7 +144,7 @@ const postShortData = async (data: ShortDataBody[]) => {
 				sql: "SELECT id, ticker_no, name FROM Stocks WHERE ticker_no IN (:ticker_nos)"
 			}, {
 				ticker_nos: tickerNos
-			}, (element) => new Stock(element));
+			}, (element) => Stock.fromDB(element));
 
 			const tickerNoNameMap = new Map<string, Stock>(existingRecords.map(element => [`${element.ticker_no}_${element.name}`, element]));
 
@@ -290,7 +290,7 @@ const retrieveShortDataFromSource = async (startDate: Date | null, endDate: Date
 			sql: `SELECT id, reporting_date FROM Short_Reporting ORDER BY reporting_date DESC LIMIT 1`
 		},
 			undefined,
-			(element) => new ShortData(element));
+			(element) => ShortData.fromDB(element));
 	} catch (err) {
 
 		throw err;
