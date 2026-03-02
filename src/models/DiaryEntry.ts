@@ -19,6 +19,16 @@ export default class DiaryEntry extends DatabaseObject{
         this._posted_date = data?.posted_date;
     }
 
+    static fromAPI(data: any) {
+
+        return new DiaryEntry(data);
+    }
+
+    static fromDB(data: any) {
+
+        return new DiaryEntry(data);
+    }
+
     get id(): bigint | undefined {
 
         return this._id;
@@ -67,5 +77,10 @@ export default class DiaryEntry extends DatabaseObject{
     set posted_date(date: Date) {
 
         this._posted_date = date;
+    }
+
+    toDB() {
+
+        return super.getPlainObject();
     }
 }

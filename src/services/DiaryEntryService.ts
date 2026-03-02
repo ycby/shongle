@@ -77,7 +77,7 @@ const getDiaryEntryData = async (args: DiaryEntryDataGetParams) => {
             title: args.title,
             start_date: args.start_date,
             end_date: args.end_date,
-        }, (element) => new DiaryEntry(element));
+        }, (element) => DiaryEntry.fromDB(element));
 
     } catch (err) {
 
@@ -103,7 +103,7 @@ const createDiaryEntryData = async (data: DiaryEntryDataBody[]) => {
             sql: "SELECT id, ticker_no, name FROM Stocks WHERE id IN (:ids)"
         }, {
             ids: stockIds
-        }, (element) => new Stock(element));
+        }, (element) => Stock.fromDB(element));
 
         if (existingRecords.length === 0) {
 
@@ -116,7 +116,7 @@ const createDiaryEntryData = async (data: DiaryEntryDataBody[]) => {
                     '(stock_id, title, content, posted_date, created_datetime, last_modified_datetime) ' +
                     'VALUES (:stock_id, :title, :content, :posted_date, :created_datetime, :last_modified_datetime)'
             },
-            data.map((item: DiaryEntryDataBody): DiaryEntry => new DiaryEntry(item).getPlainObject())
+            data.map((item: DiaryEntryDataBody): DiaryEntry => DiaryEntry.fromDB(item).toDB())
         );
     } catch (err) {
 
@@ -149,7 +149,7 @@ const upsertDiaryEntryData = async (data: DiaryEntryDataBody[]) => {
             },
             data.map(element => {
 
-                const result = new DiaryEntry(element);
+                const result = DiaryEntry.fromAPI(element);
                 return [
                     result.id,
                     result.stock_id,
