@@ -43,7 +43,7 @@ export default class ShortData extends DatabaseObject {
 
 		shortData.shorted_shares = Number(data?.shorted_shares);
 
-		shortData.shorted_amount = Money.fromSmallestDenomination(data?.shorted_amount, data.decimal_places, data.currency);
+		if (data.shorted_amount !== undefined) shortData.shorted_amount = Money.fromSmallestDenomination(data?.shorted_amount, data.decimal_places, data.currency);
 
 		return shortData;
 	}
