@@ -1,10 +1,9 @@
-import {executeBatch, executeQuery} from '#root/src/db/db.js'
+import {executeBatch, executeQuery, UpsertResult} from '#root/src/db/db.js'
 import {FieldMapping, filterClauseGenerator} from "#root/src/helpers/DBHelpers.js";
 import {InvalidRequestError, RecordMissingDataError, RecordNotFoundError} from "#root/src/errors/Errors.js";
 import ShortData from "#root/src/models/ShortData.js";
 import Stock from "#root/src/models/Stock.js";
 import {retrieveShortData} from "#root/src/helpers/ShortDataRetriever.js";
-import {UpsertResult} from "mariadb";
 import {validate, ValidatorResult} from "#root/src/utilities/Validator.js";
 import {QueryType} from "#root/src/types.js";
 import {

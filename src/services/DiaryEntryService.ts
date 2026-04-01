@@ -1,8 +1,7 @@
 import {validate, ValidatorResult} from "#root/src/utilities/Validator.js";
 import {InvalidRequestError, RecordNotFoundError} from "#root/src/errors/Errors.js";
 import {FieldMapping, filterClauseGenerator} from "#root/src/helpers/DBHelpers.js";
-import {executeBatch, executeQuery} from "#root/src/db/db.js";
-import {UpsertResult} from "mariadb";
+import {executeBatch, executeQuery, UpsertResult} from "#root/src/db/db.js";
 import Stock from "#root/src/models/Stock.js";
 import DiaryEntry from "#root/src/models/DiaryEntry.js";
 import {QueryType} from "#root/src/types.js";

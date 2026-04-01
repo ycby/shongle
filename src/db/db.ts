@@ -1,4 +1,8 @@
-import {QueryOptions, UpsertResult, createPool} from 'mariadb';
+import {createPool, Connection} from 'mariadb';
+
+export type UpsertResult = Awaited<ReturnType<Connection['query']>>;
+type QueryParams = Parameters<Connection['query']>;
+export type QueryOptions = Extract<QueryParams[0], object>;
 
 const dbPool = Object.freeze({
 	pool: createPool({

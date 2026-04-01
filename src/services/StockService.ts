@@ -1,11 +1,10 @@
-import {executeBatch, executeQuery} from '#root/src/db/db.js';
+import {executeBatch, executeQuery, UpsertResult} from '#root/src/db/db.js';
 import Stock from '#root/src/models/Stock.js';
 import {DuplicateFoundError, InvalidRequestError} from "#root/src/errors/Errors.js";
 import {
 	FieldMapping,
 	filterClauseGenerator
 } from "#root/src/helpers/DBHelpers.js";
-import {UpsertResult} from "mariadb";
 import {validate, ValidatorResult} from "#root/src/utilities/Validator.js";
 import {
 	QueryTypeKeys, QueryType
