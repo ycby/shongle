@@ -72,7 +72,7 @@ export default class ShortData extends DatabaseObject {
 
 		shortData.shorted_shares = data?.shorted_shares;
 
-		shortData.shorted_amount = new Money(data?.shorted_amount.whole, data?.shorted_amount.fractional, data?.shorted_amount.decimal_places, data?.shorted_amount.iso_code);
+		shortData.shorted_amount = new Money(data?.shorted_amount.whole, data?.shorted_amount.decimal_places, data?.shorted_amount.iso_code);
 
 		return shortData;
 	}

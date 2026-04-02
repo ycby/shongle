@@ -19,10 +19,9 @@ const testBody: ShortDataBody = {
     stock_id: '1',
     ticker_no: '00001',
     shorted_amount: {
-        "whole": 1000,
-        "fractional": 0,
-        "decimal_places": 2,
-        "iso_code": 'HKD'
+        whole: 1000n,
+        decimal_places: 2,
+        iso_code: 'HKD'
     } as Money,
     shorted_shares: 10,
     reporting_date: '2025-01-01'
@@ -55,7 +54,7 @@ describe('Short Data Service Tests', () => {
                 {
                     id: '1',
                     stock_id: '1',
-                    shorted_amount: new Money(1000, 0, 2, 'HKD'),
+                    shorted_amount: new Money(1000n, 2, 'HKD'),
                     shorted_shares: 10,
                     reporting_date: '2025-01-01'
                 }
@@ -74,7 +73,7 @@ describe('Short Data Service Tests', () => {
                 {
                     id: 1,
                     stock_id: 1,
-                    shorted_amount: new Money(1000, 0, 2, 'HKD'),
+                    shorted_amount: new Money(1000n, 2, 'HKD'),
                     shorted_shares: 10,
                     reporting_date: '2025-01-01'
                 }
@@ -92,7 +91,7 @@ describe('Short Data Service Tests', () => {
                 {
                     id: 1,
                     stock_id: 1,
-                    shorted_amount: new Money(1000, 0, 2, 'HKD'),
+                    shorted_amount: new Money(1000n, 2, 'HKD'),
                     shorted_shares: 10,
                     reporting_date: '2025-01-01'
                 }
@@ -110,7 +109,7 @@ describe('Short Data Service Tests', () => {
                 {
                     id: '1',
                     stock_id: '1',
-                    shorted_amount: new Money(1000, 0, 2, 'HKD'),
+                    shorted_amount: new Money(1000n, 2, 'HKD'),
                     shorted_shares: 10,
                     reporting_date: '2025-01-01'
                 }
@@ -159,7 +158,7 @@ describe('Short Data Service Tests', () => {
                 {
                     id: 1,
                     stock_id: 1,
-                    shorted_amount: new Money(1000, 0, 2, 'HKD'),
+                    shorted_amount: new Money(1000n, 2, 'HKD'),
                     shorted_shares: 10,
                     reporting_date: '2025-01-01'
                 }
@@ -178,7 +177,7 @@ describe('Short Data Service Tests', () => {
                 {
                     id: 1,
                     stock_id: 1,
-                    shorted_amount: new Money(1000, 0, 2, 'HKD'),
+                    shorted_amount: new Money(1000n, 2, 'HKD'),
                     shorted_shares: 10,
                     reporting_date: '2025-01-01'
                 }
@@ -329,7 +328,7 @@ describe('Short Data Service Tests', () => {
                     stock_id: null,
                     reporting_date: new Date(2025, 0, 1),
                     shorted_shares: 100,
-                    shorted_amount: new Money(1000, 0, 2, 'HKD'),
+                    shorted_amount: 1000n,
                     ticker_no: '00001',
                     decimal_places: 2,
                     currency: 'HKD',
@@ -341,7 +340,7 @@ describe('Short Data Service Tests', () => {
                     stock_id: null,
                     reporting_date: new Date(2025, 0, 1),
                     shorted_shares: 200,
-                    shorted_amount: new Money(2000, 0, 2, 'HKD'),
+                    shorted_amount: 2000n,
                     ticker_no: '00001',
                     decimal_places: 2,
                     currency: 'HKD',

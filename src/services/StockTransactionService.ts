@@ -96,6 +96,7 @@ const createStockTransactionsData = async (data: TransactionDataBody[]) => {
     if (validationResult.length > 0) throw new InvalidRequestError(validationResult);
 
     let result: UpsertResult[] = [];
+    console.log(data);
 
     const stockIds: bigint[] = data.map((d: TransactionDataBody): bigint => BigInt(d.stock_id));
     try {

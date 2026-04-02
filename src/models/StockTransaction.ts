@@ -54,8 +54,8 @@ export default class StockTransaction extends DatabaseObject {
         stockTransaction.created_datetime = data?.created_datetime ? data.created_datetime : stockTransaction.created_datetime;
         stockTransaction.last_modified_datetime = data?.last_modified_datetime ? data.last_modified_datetime : stockTransaction.last_modified_datetime;
 
-        stockTransaction.amount = new Money(data?.amount.whole, data?.amount.fractional, data?.amount.decimal_places, data?.amount.iso_code);
-        stockTransaction.fee = new Money(data?.fee.whole, data?.fee.fractional, data?.fee.decimal_places, data?.fee.iso_code);
+        stockTransaction.amount = new Money(data?.amount.whole, data?.amount.decimal_places, data?.amount.iso_code);
+        stockTransaction.fee = new Money(data?.fee.whole, data?.fee.decimal_places, data?.fee.iso_code);
 
         return stockTransaction;
     }
