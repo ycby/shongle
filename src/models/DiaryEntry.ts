@@ -16,7 +16,7 @@ export default class DiaryEntry extends DatabaseObject{
         this._stock_id = data?.stock_id;
         this._title = data?.title;
         this._content = data?.content;
-        this._posted_date = data?.posted_date;
+        this._posted_date = new Date(data?.posted_date);
     }
 
     static fromAPI(data: any) {

@@ -52,9 +52,24 @@ const canConvertToMoney = (value: any): boolean => {
         value.iso_code;
 }
 
+const canConvertToDate = (value: any): boolean => {
+
+    if (value === undefined || value === null) return false;
+
+    try {
+
+        new Date(value);
+        return true;
+    } catch (e) {
+
+        return false;
+    }
+}
+
 export {
     filterClauseGenerator,
     canConvertToBigNumber,
     canConvertToNumber,
-    canConvertToMoney
+    canConvertToMoney,
+    canConvertToDate
 }

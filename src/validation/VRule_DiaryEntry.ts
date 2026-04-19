@@ -1,6 +1,6 @@
 import {ValidationRule} from "#root/src/utilities/Validator.js";
 import {stringToDateConverter} from "#root/src/helpers/DateHelper.js";
-import {canConvertToBigNumber} from "#root/src/helpers/DBHelpers.js";
+import {canConvertToBigNumber, canConvertToDate} from "#root/src/helpers/DBHelpers.js";
 
 const DIARY_ENTRY_PARAM_VALIDATION: ValidationRule[] = [
     {
@@ -72,8 +72,8 @@ const DIARY_ENTRY_BODY_VALIDATION: ValidationRule[] = [
     {
         name: 'posted_date',
         isRequired: true,
-        rule: (postedDate: any): boolean => typeof postedDate === 'string' && stringToDateConverter(postedDate) !== null,
-        errorMessage: 'Posted Date must be formatted like so: yyyy-MM-dd'
+        rule: (postedDate: any): boolean => typeof postedDate === 'string' && canConvertToDate(postedDate),
+        errorMessage: 'Posted Date must be a valid date'
     }
 ];
 

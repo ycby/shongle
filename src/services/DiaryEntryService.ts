@@ -115,7 +115,7 @@ const createDiaryEntryData = async (data: DiaryEntryDataBody[]) => {
                     '(stock_id, title, content, posted_date, created_datetime, last_modified_datetime) ' +
                     'VALUES (:stock_id, :title, :content, :posted_date, :created_datetime, :last_modified_datetime)'
             },
-            data.map((item: DiaryEntryDataBody): DiaryEntry => DiaryEntry.fromDB(item).toDB())
+            data.map((item: DiaryEntryDataBody): DiaryEntry => DiaryEntry.fromAPI(item).toDB())
         );
     } catch (err) {
 
