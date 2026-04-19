@@ -1,5 +1,5 @@
 import {
-    canConvertToBigNumber, canConvertToMoney,
+    canConvertToBigNumber, canConvertToDate, canConvertToMoney,
     canConvertToNumber,
 } from "#root/src/helpers/DBHelpers.js";
 import {ValidationRule} from "#root/src/utilities/Validator.js";
@@ -57,8 +57,8 @@ const SHORT_BODY_VALIDATION: ValidationRule[] = [
     {
         name: 'reporting_date',
         isRequired: false,
-        rule: (reporting_date: any): boolean => stringToDateConverter(reporting_date) !== null,
-        errorMessage: 'Reporting Date must be formatted like so: yyyy-MM-dd'
+        rule: (reporting_date: any): boolean => canConvertToDate(reporting_date),
+        errorMessage: 'Reporting Date must be a valid date!'
     },
     {
         name: 'shorted_shares',

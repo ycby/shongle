@@ -1,5 +1,4 @@
 import DatabaseObject from '#root/src/models/DatabaseObject.js'
-import {stringToDateConverter} from "#root/src/helpers/DateHelper.js";
 import Money from "money-type";
 
 export default class ShortData extends DatabaseObject {
@@ -35,10 +34,7 @@ export default class ShortData extends DatabaseObject {
 			shortData.reporting_date = data.reporting_date;
 		} else if (typeof data.reporting_date === 'string') {
 
-			const convertedDate = stringToDateConverter(data.reporting_date);
-			if (!convertedDate) throw new TypeError(`${data.reporting_date} cannot be cast to a date`);
-
-			shortData.reporting_date = convertedDate;
+			shortData.reporting_date = new Date(data.reporting_date);
 		}
 
 		shortData.shorted_shares = Number(data?.shorted_shares);
@@ -55,20 +51,7 @@ export default class ShortData extends DatabaseObject {
 		if (data?.id) shortData.id = BigInt(data?.id);
 		if (data?.stock_id) shortData.stock_id = BigInt(data?.stock_id);
 		shortData.ticker_no = data?.ticker_no;
-
-		if (data?.reporting_date === undefined) {
-
-			shortData.reporting_date = data?.reporting_date;
-		} else if (data.reporting_date instanceof Date) {
-
-			shortData.reporting_date = data.reporting_date;
-		} else if (typeof data.reporting_date === 'string') {
-
-			const convertedDate = stringToDateConverter(data.reporting_date);
-			if (!convertedDate) throw new TypeError(`${data.reporting_date} cannot be cast to a date`);
-
-			shortData.reporting_date = convertedDate;
-		}
+		shortData.reporting_date = new Date(data?.reporting_date);
 
 		shortData.shorted_shares = data?.shorted_shares;
 
