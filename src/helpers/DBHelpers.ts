@@ -58,8 +58,9 @@ const canConvertToDate = (value: any): boolean => {
 
     try {
 
-        new Date(value);
-        return true;
+        const valueDate = new Date(value);
+
+        return !isNaN(valueDate.getTime());
     } catch (e) {
 
         return false;
