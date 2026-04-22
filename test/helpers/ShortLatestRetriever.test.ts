@@ -101,11 +101,13 @@ describe('StocksLatestRetriever Tests', () => {
                 result = data;
             });
 
+            // @ts-ignore
             expect(result).toContainEqual(expect.objectContaining({
                 stock_id: 1n,
                 ticker_no: '00001',
             }));
 
+            // @ts-ignore
             expect(result).toContainEqual(expect.objectContaining({
                 stock_id: 2n,
                 ticker_no: '00002',
@@ -153,6 +155,7 @@ describe('StocksLatestRetriever Tests', () => {
                 result = data;
             });
 
+            // @ts-ignore
             expect(result).toContainEqual(expect.objectContaining({
                 ticker_no: '00002',
                 reporting_date: new Date(2026, 0, 1),
