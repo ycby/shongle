@@ -9,7 +9,7 @@ import {validate, ValidatorResult} from "#root/src/utilities/Validator.js";
 import {
 	QueryTypeKeys, QueryType
 } from "#root/src/types.js";
-import {retrieveStockData} from "#root/src/helpers/StocksLatestRetriever/StocksLatestRetriever.ts.js";
+import {retrieveStockData} from "#root/src/helpers/StocksLatestRetriever/StocksLatestRetriever.ts";
 import {
 	STOCK_PARAM_VALIDATION,
 	STOCK_DATA_VALIDATION, STOCK_PARAM_GET_VALIDATION, STOCK_PARAM_DELETE_VALIDATION
