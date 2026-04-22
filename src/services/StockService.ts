@@ -9,7 +9,7 @@ import {validate, ValidatorResult} from "#root/src/utilities/Validator.js";
 import {
 	QueryTypeKeys, QueryType
 } from "#root/src/types.js";
-import {retrieveStockData} from "#root/src/helpers/StocksLatestRetriever.js";
+import {retrieveStockData} from "#root/src/helpers/StocksLatestRetriever/StocksLatestRetriever.ts";
 import {
 	STOCK_PARAM_VALIDATION,
 	STOCK_DATA_VALIDATION, STOCK_PARAM_GET_VALIDATION, STOCK_PARAM_DELETE_VALIDATION
@@ -300,7 +300,10 @@ const setTrackStock = async (args: StocksTrackParam, isTrack: boolean) => {
 
 const retrieveStockDataFromSource = () => {
 
-	retrieveStockData();
+	// const url = '/home/pikachu/Documents/Data/Exchange Data/2026ListOfSecurities.xlsx';
+	const url = process.env.STOCK_DATA_RETRIEVAL_URL ?? '';
+
+	retrieveStockData(url);
 }
 
 export {

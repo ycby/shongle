@@ -3,7 +3,7 @@ import {FieldMapping, filterClauseGenerator} from "#root/src/helpers/DBHelpers.j
 import {InvalidRequestError, RecordMissingDataError, RecordNotFoundError} from "#root/src/errors/Errors.js";
 import ShortData from "#root/src/models/ShortData.js";
 import Stock from "#root/src/models/Stock.js";
-import {retrieveShortData} from "#root/src/helpers/ShortDataRetriever.js";
+import {retrieveShortData} from "#root/src/helpers/ShortDataRetriever/ShortDataRetriever.js";
 import {validate, ValidatorResult} from "#root/src/utilities/Validator.js";
 import {QueryType} from "#root/src/types.js";
 import {
