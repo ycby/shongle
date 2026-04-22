@@ -50,6 +50,7 @@ const getShortDataFromWeb = async (targetDate: Date): Promise<string> => {
 
     let fileName = `Short_Position_Reporting_Aggregated_Data_${targetDate.getFullYear()}${(targetDate.getMonth() + 1).toString().padStart(2, '0')}${targetDate.getDate().toString().padStart(2, '0')}.csv`;
 
+    console.log(`${root}/${targetDate.getFullYear()}/${(targetDate.getMonth() + 1).toString().padStart(2, '0')}/${targetDate.getDate().toString().padStart(2, '0')}/${fileName}`);
     const response = await fetch(
         `${root}/${targetDate.getFullYear()}/${(targetDate.getMonth() + 1).toString().padStart(2, '0')}/${targetDate.getDate().toString().padStart(2, '0')}/${fileName}`,
         {
@@ -59,6 +60,7 @@ const getShortDataFromWeb = async (targetDate: Date): Promise<string> => {
 
     //for some reason, error is also 200
     if (!response.ok) throw new Error('Failed to fetch Short Data');
+    console.log(response.ok);
 
     //this is the expected error if path is invalid
     const responseHeaders = response.headers.get('content-type');
@@ -88,7 +90,7 @@ const shortDataRetrieverComplete = async (results: Papa.ParseResult<SFCData>, ca
         ticker_no: element.ticker_no,
         reporting_date: element.reporting_date,
         shorted_shares: element.shorted_shares,
-        shorted_amount: Money.fromNominalValue(element.shorted_amount, CurrencyCache.get().get('HKD')?.decimal_places ?? 2, 'HKD'),
+        shorted_amount: Money.fromNominalValue(Number(element.shorted_amount), CurrencyCache.get().get('HKD')?.decimal_places ?? 2, 'HKD'),
         stock_id: existingStockMap.get(`${element.ticker_no}_${element.name}`)?.id
     })));
 }

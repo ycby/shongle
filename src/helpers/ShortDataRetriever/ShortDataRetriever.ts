@@ -10,9 +10,18 @@ import {
 const retrieveShortData = async (targetDate: Date, callbackHandler: (data: ShortData[]) => void) => {
 
     // const fileStream = fs.createReadStream('/home/pikachu/Documents/Data/Short Data/test.csv')
+    let csvResult: string;
 
-    const csvResult = await getShortDataFromWeb(targetDate);
+    try {
 
+        csvResult = await getShortDataFromWeb(targetDate);
+    } catch (err) {
+
+        console.error(err);
+        return;
+    }
+
+    // @ts-ignore
     Papa.parse(csvResult, {
         complete: async (results: Papa.ParseResult<SFCData>): Promise<void> => {
 
