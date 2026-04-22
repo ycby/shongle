@@ -1,10 +1,10 @@
-import Stock from "#root/src/models/Stock.ts";
-import {executeBatch} from "#root/src/db/db.ts";
+import Stock from "#root/src/models/Stock.js";
+import {executeBatch} from "#root/src/db/db.js";
 import {
     getStockDataAsWorksheet,
     getNewStockMap,
     getStocksToUpdate
-} from "#root/src/helpers/StocksLatestRetriever/StocksLatestRetrieverHelper.ts";
+} from "#root/src/helpers/StocksLatestRetriever/StocksLatestRetrieverHelper.js";
 
 //For getting the latest stock list from HKEX: https://www.hkex.com.hk/eng/services/trading/securities/securitieslists/ListOfSecurities.xlsx
 //Worksheet Cols seems to change arbitrarily (thanks hkex) so need to parameterise it somehow

@@ -1,8 +1,8 @@
 import ExcelJS from "exceljs3";
 import stream from "node:stream";
-import {CurrencyKeys} from "#root/src/types.ts";
-import {executeQuery} from "#root/src/db/db.ts";
-import Stock from "#root/src/models/Stock.ts";
+import {CurrencyKeys} from "#root/src/types.js";
+import {executeQuery} from "#root/src/db/db.js";
+import Stock from "#root/src/models/Stock.js";
 
 const hkexStockMapping = {
     "ticker_no": {
