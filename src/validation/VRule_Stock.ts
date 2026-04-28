@@ -12,6 +12,7 @@ import {
     Subcategory,
     SubcategoryKeys
 } from "#root/src/types.js";
+import {PAGINATION_VALIDATION} from "#root/src/validation/SharedRules.js";
 
 const STOCK_PARAM_VALIDATION: ValidationRule[] = [
     {
@@ -127,9 +128,12 @@ const STOCK_DATA_VALIDATION: ValidationRule[] = [
     },
 ];
 
+const POTENTIAL_DUPLICATE_QUERY_VALIDATION = [...PAGINATION_VALIDATION];
+
 export {
     STOCK_PARAM_VALIDATION,
     STOCK_PARAM_GET_VALIDATION,
     STOCK_PARAM_DELETE_VALIDATION,
     STOCK_DATA_VALIDATION,
+    POTENTIAL_DUPLICATE_QUERY_VALIDATION
 }
