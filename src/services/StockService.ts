@@ -1,4 +1,4 @@
-import {executeBatch, executeQuery, UpsertResult} from '#root/src/db/db.js';
+import {DBCallType, executeBatch, executeOrchestration, executeQuery, UpsertResult} from '#root/src/db/db.js';
 import Stock from '#root/src/models/Stock.js';
 import {DuplicateFoundError, InvalidRequestError} from "#root/src/errors/Errors.js";
 import {
@@ -370,21 +370,106 @@ const getPotentialDuplicates = async (args: PaginationParams): Promise<Paginatio
 	return response;
 }
 
-const mergeStockDuplicates = async (args: MergeStockBody): Promise<PaginationResponse> => {
+const mergeStockDuplicates = async (args: MergeStockBody) => {
 
 	let validationResults: ValidatorResult[] = validate(args, MERGE_DUPLICATE_VALIDATION);
 
 	if (validationResults.length > 0) throw new InvalidRequestError(validationResults);
 
+	const survivingStock = Stock.fromAPI(args.survivor);
+	const rejectedStocks = args.rejects.map(element => Stock.fromAPI(element));
+
+	const rejectedStockIds = rejectedStocks.map(s => s.id);
+
+	let result = false;
 	try {
 
-
+		 result = await executeOrchestration([
+			{
+				type: DBCallType.BATCH,
+				queryOptions: {
+					namedPlaceholders: true,
+					sql: `
+						UPDATE Stock_Transactions st
+						SET stock_id = :survivingStockId
+						WHERE stock_id IN (:rejectedStockIds)
+					`,
+				},
+				data: {
+					survivingStockId: survivingStock.id,
+					rejectedStocksIds: rejectedStocks.map(s => s.id)
+				}
+			},
+			{
+				type: DBCallType.BATCH,
+				queryOptions: {
+					namedPlaceholders: true,
+					sql: `
+						UPDATE Short_Reporting sr
+						SET stock_id = :survivingStockId
+						WHERE stock_id IN (:rejectedStockIds)
+					`
+				},
+				data: {
+					survivingStockId: survivingStock.id,
+					rejectedStocksIds: rejectedStockIds
+				}
+			},
+			{
+				type: DBCallType.BATCH,
+				queryOptions: {
+					namedPlaceholders: true,
+					sql: `
+						UPDATE Stocks s
+						SET merged_id = :survivingStockId
+						WHERE id IN (:rejectedStockIds)
+					`
+				},
+				data: {
+					mergedId: survivingStock.id,
+					rejectedStocksIds: rejectedStockIds
+				}
+			},
+			{
+				type: DBCallType.QUERY,
+				queryOptions: {
+					namedPlaceholders: true,
+					sql: `
+						UPDATE Stocks s
+						SET name = :name,
+						    full_name = :full_name,
+						    description = :description,
+						    category = :category,
+						    subcategory = :subcategory,
+						    board_lot = :board_lot,
+						    currency = :currency,
+						    is_active = :is_active,
+						    is_tracked = :is_tracked
+						WHERE id = :id
+					`
+				},
+				data: {
+					id: survivingStock.id,
+					name: survivingStock.name,
+					full_name: survivingStock.full_name,
+					description: survivingStock.description,
+					category: survivingStock.category,
+					subcategory: survivingStock.subcategory,
+					board_lot: survivingStock.board_lot,
+					currency: survivingStock.currency,
+					is_active: survivingStock.is_active,
+					is_tracked: survivingStock.is_tracked,
+				}
+			}
+		]);
 	} catch (err) {
 
 		throw err;
 	}
 
-	return response;
+	return {
+		status: result ? 'success' : 'failed'
+	};
 }
 
 export {

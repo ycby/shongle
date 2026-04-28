@@ -4,6 +4,18 @@ export type UpsertResult = Awaited<ReturnType<Connection['query']>>;
 type QueryParams = Parameters<Connection['query']>;
 export type QueryOptions = Extract<QueryParams[0], object>;
 
+const DBCallType = {
+	QUERY: 'query',
+	BATCH: 'batch',
+} as const;
+export type DBCallTypeKey = typeof DBCallType[keyof typeof DBCallType];
+
+export type Orchestration = {
+	type: DBCallTypeKey;
+	queryOptions: QueryOptions;
+	data?: any
+}
+
 const dbPool = Object.freeze({
 	pool: createPool({
 		host: process.env.DB_HOST,
@@ -96,7 +108,44 @@ const executeBatch = async (queryObject: QueryOptions, placeholders: {}): Promis
 	}
 }
 
+const executeOrchestration = async (orchestrationItems: Orchestration[]): Promise<boolean> => {
+
+	let conn;
+
+	try {
+
+		conn = await dbPool.pool.getConnection();
+
+		await conn.beginTransaction();
+
+		for (const element of orchestrationItems) {
+
+			if (element.type === DBCallType.QUERY) {
+
+				await conn.query(element.queryOptions, element.data);
+			} else if (element.type === DBCallType.BATCH) {
+
+				await conn.batch(element.queryOptions, element.data);
+			}
+		}
+
+		await conn.commit();
+
+		return true;
+	} catch (err) {
+
+		if (conn) await conn.rollback();
+
+		throw err;
+	} finally {
+
+		if (conn) await conn.end();
+	}
+}
+
 export {
 	executeQuery,
-	executeBatch
+	executeBatch,
+	executeOrchestration,
+	DBCallType
 };
