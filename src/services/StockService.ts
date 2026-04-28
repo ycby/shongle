@@ -15,7 +15,7 @@ import {
 	STOCK_DATA_VALIDATION,
 	STOCK_PARAM_GET_VALIDATION,
 	STOCK_PARAM_DELETE_VALIDATION,
-	POTENTIAL_DUPLICATE_QUERY_VALIDATION
+	POTENTIAL_DUPLICATE_QUERY_VALIDATION, MERGE_DUPLICATE_VALIDATION
 } from "#root/src/validation/VRule_Stock.js";
 import {RecordsWithRowCount} from "#root/src/services/types.js";
 
@@ -40,6 +40,11 @@ export type StocksDataBody = {
 
 export type StocksTrackParam = {
 	id: string;
+}
+
+export type MergeStockBody = {
+	survivor: Stock;
+	rejects: Stock[];
 }
 
 const fieldMapping: FieldMapping[] = [
@@ -365,6 +370,23 @@ const getPotentialDuplicates = async (args: PaginationParams): Promise<Paginatio
 	return response;
 }
 
+const mergeStockDuplicates = async (args: MergeStockBody): Promise<PaginationResponse> => {
+
+	let validationResults: ValidatorResult[] = validate(args, MERGE_DUPLICATE_VALIDATION);
+
+	if (validationResults.length > 0) throw new InvalidRequestError(validationResults);
+
+	try {
+
+
+	} catch (err) {
+
+		throw err;
+	}
+
+	return response;
+}
+
 export {
 	getStocksData,
 	postStockData,
@@ -374,5 +396,6 @@ export {
 	getTrackedStocks,
 	setTrackStock,
 	retrieveStockDataFromSource,
-	getPotentialDuplicates
+	getPotentialDuplicates,
+	mergeStockDuplicates
 }

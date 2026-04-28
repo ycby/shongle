@@ -10,7 +10,7 @@ export type ValidatorResult = {
     errorMessages: string[],
 }
 
-const validate: <T>(data: T | T[], validationRules: ValidationRule[]) => ValidatorResult[] = <T>(data: T | T[], validationRules: ValidationRule[]): ValidatorResult[] => {
+const validate = <T>(data: T | T[], validationRules: ValidationRule[]): ValidatorResult[] => {
 
     let errors: ValidatorResult[] = [];
 
@@ -28,7 +28,7 @@ const validate: <T>(data: T | T[], validationRules: ValidationRule[]) => Validat
     return errors;
 }
 
-const performValidation: <T>(data: T, index: number, validationRules: ValidationRule[]) => ValidatorResult | null = <T>(data: T, index: number, validationRules: ValidationRule[]) => {
+const performValidation = <T>(data: T, index: number, validationRules: ValidationRule[]) => {
 
     let errorMessages: string[] = [];
 

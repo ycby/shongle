@@ -217,10 +217,9 @@ const getPotentialDuplicates = async (req: Request, res: Response, next: NextFun
 //TODO: implement
 const mergeStockDuplicates = async (req: Request, res: Response, next: NextFunction) => {
 
-    return res.status(404);
     try {
         // console.log(req.body);
-        const stocks = await StockService.postStockData(req.body);
+        const stocks = await StockService.mergeStockDuplicates(req.body);
 
         return res.status(Constants.HTTP_STATUS_CODES.SUCCESS).json(
             ResponseStandardiser.generateStandardResponse(

@@ -2,7 +2,7 @@ import {
     canConvertToBigNumber,
     canConvertToNumber
 } from "#root/src/helpers/DBHelpers.js";
-import {ValidationRule} from "#root/src/utilities/Validator.js";
+import {validate, ValidationRule} from "#root/src/utilities/Validator.js";
 import {
     Category,
     CategoryKeys,
@@ -130,10 +130,38 @@ const STOCK_DATA_VALIDATION: ValidationRule[] = [
 
 const POTENTIAL_DUPLICATE_QUERY_VALIDATION = [...PAGINATION_VALIDATION];
 
+const MERGE_DUPLICATE_VALIDATION: ValidationRule[] = [
+    {
+        name: 'survivor',
+        isRequired: true,
+        rule: (survivor: any): boolean => {
+
+            //TODO: find a way to allow nesting of defined rules
+            return validate(survivor, STOCK_DATA_VALIDATION).length === 0;
+        },
+        errorMessage: 'survivor is mandatory and must be Stock like'
+    },
+    {
+        name: 'rejects',
+        isRequired: true,
+        rule: (rejects: any): boolean => {
+
+            if (!Array.isArray(rejects)) return false;
+
+            return rejects.reduce((errorAccumulator, reject) => {
+
+                return errorAccumulator.push(...validate(reject, STOCK_DATA_VALIDATION))
+            }, []).length === 0;
+        },
+        errorMessage: 'rejects is mandatory and must be a list of Stock likes'
+    }
+]
+
 export {
     STOCK_PARAM_VALIDATION,
     STOCK_PARAM_GET_VALIDATION,
     STOCK_PARAM_DELETE_VALIDATION,
     STOCK_DATA_VALIDATION,
-    POTENTIAL_DUPLICATE_QUERY_VALIDATION
+    POTENTIAL_DUPLICATE_QUERY_VALIDATION,
+    MERGE_DUPLICATE_VALIDATION
 }
