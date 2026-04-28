@@ -4,6 +4,7 @@ import {
 } from "#root/src/helpers/DBHelpers.js";
 import {ValidationRule} from "#root/src/utilities/Validator.js";
 import {stringToDateConverter} from "#root/src/helpers/DateHelper.js";
+import {PAGINATION_VALIDATION} from "#root/src/validation/SharedRules.js";
 
 const SHORT_PARAM_VALIDATION: ValidationRule[] = [
     {
@@ -74,20 +75,7 @@ const SHORT_BODY_VALIDATION: ValidationRule[] = [
     },
 ];
 
-const SHORT_MISMATCH_QUERY_VALIDATION = [
-    {
-        name: 'limit',
-        isRequired: false,
-        rule: (limit: any): boolean => canConvertToNumber(limit) && Number(limit) >= 0,
-        errorMessage: 'Limit must be a positive number',
-    },
-    {
-        name: 'offset',
-        isRequired: false,
-        rule: (offset: any): boolean => canConvertToNumber(offset) && Number(offset) >= 0,
-        errorMessage: 'Offset must be a positive number',
-    }
-]
+const SHORT_MISMATCH_QUERY_VALIDATION = [...PAGINATION_VALIDATION]
 
 const SHORT_MISMATCH_PARAM_VALIDATION: ValidationRule[] = [
     {

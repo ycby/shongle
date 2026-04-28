@@ -44,6 +44,10 @@ export type SubcategoryKeys = typeof Subcategory[keyof typeof Subcategory];
 export type CurrencyKeys = typeof CurrencyCode[keyof typeof CurrencyCode];
 export type TransactionTypeKeys = typeof TransactionType[keyof typeof TransactionType];
 export type QueryTypeKeys = typeof QueryType[keyof typeof QueryType];
+export type PaginationParams = {
+    limit?: number;
+    offset?: number;
+}
 
 export {
     Category,
