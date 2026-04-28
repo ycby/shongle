@@ -5,7 +5,7 @@ import ShortData from "#root/src/models/ShortData.js";
 import Stock from "#root/src/models/Stock.js";
 import {retrieveShortData} from "#root/src/helpers/ShortDataRetriever/ShortDataRetriever.js";
 import {validate, ValidatorResult} from "#root/src/utilities/Validator.js";
-import {QueryType} from "#root/src/types.js";
+import {PaginationParams, QueryType} from "#root/src/types.js";
 import {
 	SHORT_PARAM_SINGLE_VALIDATION,
 	SHORT_PARAM_VALIDATION,
@@ -14,6 +14,7 @@ import {
 	SHORT_MISMATCH_QUERY_VALIDATION
 } from "#root/src/validation/VRule_ShortData.js";
 import Money from "money-type";
+import {RecordsWithRowCount} from "#root/src/services/types.js";
 
 export type ShortDataGetParam = {
 	id?: string,
@@ -39,11 +40,6 @@ export type ShortDataBody = {
 export type ShortDataRetrieveQuery = {
 	start_date?: string;
 	end_date?: string;
-}
-
-export type ShortDataTickersWithMismatchQuery = {
-	limit?: number;
-	offset?: number;
 }
 
 export type ShortDataMismatchQuery = {
@@ -326,12 +322,8 @@ const retrieveShortDataFromSource = async (startDate: Date | null, endDate: Date
 	console.log('Job Done.')
 }
 
-type MismatchTickerResponse = {
-	ticker_no: string;
-	total_rows: bigint;
-}
 //Use limit+offset since I will be managing the data myself, and it won't change much
-const getTickersWithMismatchedData = async (args: ShortDataTickersWithMismatchQuery) => {
+const getTickersWithMismatchedData = async (args: PaginationParams) => {
 
 	let validationResults: ValidatorResult[] = validate(args, SHORT_MISMATCH_QUERY_VALIDATION);
 
@@ -343,7 +335,7 @@ const getTickersWithMismatchedData = async (args: ShortDataTickersWithMismatchQu
 
 	try {
 
-		result = await executeQuery<MismatchTickerResponse>({
+		result = await executeQuery<RecordsWithRowCount & {ticker_no: string}>({
 			namedPlaceholders: true,
 			sql: `SELECT ticker_no, COUNT(*) OVER() AS total_rows FROM Short_Reporting_wo_Stock_Id_Distinct LIMIT :limit OFFSET :offset`
 		}, {

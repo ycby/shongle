@@ -7,13 +7,17 @@ import {
 } from "#root/src/helpers/DBHelpers.js";
 import {validate, ValidatorResult} from "#root/src/utilities/Validator.js";
 import {
-	QueryTypeKeys, QueryType
+	QueryTypeKeys, QueryType, PaginationParams
 } from "#root/src/types.js";
 import {retrieveStockData} from "#root/src/helpers/StocksLatestRetriever/StocksLatestRetriever.js";
 import {
 	STOCK_PARAM_VALIDATION,
-	STOCK_DATA_VALIDATION, STOCK_PARAM_GET_VALIDATION, STOCK_PARAM_DELETE_VALIDATION
+	STOCK_DATA_VALIDATION,
+	STOCK_PARAM_GET_VALIDATION,
+	STOCK_PARAM_DELETE_VALIDATION,
+	POTENTIAL_DUPLICATE_QUERY_VALIDATION
 } from "#root/src/validation/VRule_Stock.js";
+import {RecordsWithRowCount} from "#root/src/services/types.js";
 
 export type StocksDataGetParam = {
 	query_type?: QueryTypeKeys;
@@ -306,6 +310,60 @@ const retrieveStockDataFromSource = () => {
 	retrieveStockData(url);
 }
 
+//identify the potential duplicates and then in the same transaction, grab the children too
+const getPotentialDuplicates = async (args: PaginationParams) => {
+
+	let validationResults: ValidatorResult[] = validate(args, POTENTIAL_DUPLICATE_QUERY_VALIDATION);
+
+	if (validationResults.length > 0) throw new InvalidRequestError(validationResults);
+
+	args.limit = args.limit ? args.limit : 10;
+	args.offset = args.offset ? args.offset : 0;
+
+	const response = {
+		total_rows: 0n,
+		data: new Map(),
+		offset: Number(args.offset),
+		limit: Number(args.limit),
+	}
+	try {
+
+		const duplicatedISINs = await executeQuery<RecordsWithRowCount & {ISIN: string}>({
+			namedPlaceholders: true,
+			sql: `SELECT ISIN, COUNT(*) OVER() AS total_rows FROM Stocks_w_Same_ISIN LIMIT :limit OFFSET :offset`
+		}, {
+			limit: Number(args.limit),
+			offset: Number(args.offset),
+		});
+
+		response.total_rows = duplicatedISINs.length > 0 ? duplicatedISINs[0].total_rows : 0n;
+
+		const duplicatedStocks = await executeQuery<Stock>({
+			namedPlaceholders: true,
+			sql: `SELECT id, name, full_name, description, category, subcategory, board_lot, ISIN, currency, created_datetime, last_modified_datetime FROM Stocks WHERE ISIN IN (:isins) ORDER BY created_datetime DESC`
+		}, {
+			isins: duplicatedISINs.map((element) => element.ISIN)
+		}, (element) => Stock.fromDB(element));
+
+		response.data = duplicatedStocks.reduce((map, element) => {
+
+			if (!map.has(element.ISIN)) {
+
+				map.set(element.ISIN, []);
+			}
+
+			map.get(element.ISIN).push(element);
+			return map;
+		}, response.data);
+
+	} catch (err) {
+
+		throw err;
+	}
+
+	return response;
+}
+
 export {
 	getStocksData,
 	postStockData,
@@ -314,5 +372,6 @@ export {
 	deleteStockData,
 	getTrackedStocks,
 	setTrackStock,
-	retrieveStockDataFromSource
+	retrieveStockDataFromSource,
+	getPotentialDuplicates
 }
