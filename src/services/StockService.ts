@@ -7,7 +7,7 @@ import {
 } from "#root/src/helpers/DBHelpers.js";
 import {validate, ValidatorResult} from "#root/src/utilities/Validator.js";
 import {
-	QueryTypeKeys, QueryType, PaginationParams
+	QueryTypeKeys, QueryType, PaginationParams, PaginationResponse
 } from "#root/src/types.js";
 import {retrieveStockData} from "#root/src/helpers/StocksLatestRetriever/StocksLatestRetriever.js";
 import {
@@ -311,7 +311,7 @@ const retrieveStockDataFromSource = () => {
 }
 
 //identify the potential duplicates and then in the same transaction, grab the children too
-const getPotentialDuplicates = async (args: PaginationParams) => {
+const getPotentialDuplicates = async (args: PaginationParams): Promise<PaginationResponse> => {
 
 	let validationResults: ValidatorResult[] = validate(args, POTENTIAL_DUPLICATE_QUERY_VALIDATION);
 
@@ -320,12 +320,13 @@ const getPotentialDuplicates = async (args: PaginationParams) => {
 	args.limit = args.limit ? args.limit : 10;
 	args.offset = args.offset ? args.offset : 0;
 
-	const response = {
+	const response: PaginationResponse = {
 		total_rows: 0n,
 		data: new Map(),
 		offset: Number(args.offset),
 		limit: Number(args.limit),
 	}
+
 	try {
 
 		const duplicatedISINs = await executeQuery<RecordsWithRowCount & {ISIN: string}>({
@@ -345,7 +346,7 @@ const getPotentialDuplicates = async (args: PaginationParams) => {
 			isins: duplicatedISINs.map((element) => element.ISIN)
 		}, (element) => Stock.fromDB(element));
 
-		response.data = duplicatedStocks.reduce((map, element) => {
+		response.data = Object.fromEntries(duplicatedStocks.reduce((map, element) => {
 
 			if (!map.has(element.ISIN)) {
 
@@ -354,7 +355,7 @@ const getPotentialDuplicates = async (args: PaginationParams) => {
 
 			map.get(element.ISIN).push(element);
 			return map;
-		}, response.data);
+		}, response.data));
 
 	} catch (err) {
 

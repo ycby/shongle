@@ -49,6 +49,13 @@ export type PaginationParams = {
     offset?: number;
 }
 
+export type PaginationResponse = {
+    total_rows: bigint;
+    data: any;
+    offset: number;
+    limit: number;
+}
+
 export {
     Category,
     Subcategory,

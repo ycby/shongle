@@ -195,18 +195,17 @@ const retrieveStockDataFromSource = async (_req: Request, res: Response, next: N
     }
 }
 
-//TODO: Implement
 const getPotentialDuplicates = async (req: Request, res: Response, next: NextFunction) => {
 
     try {
 
-        const stock = await StockService.getPotentialDuplicates(req.params);
+        const response = await StockService.getPotentialDuplicates(req.params);
 
         return res.status(Constants.HTTP_STATUS_CODES.SUCCESS).json(
             ResponseStandardiser.generateStandardResponse(
                 Constants.APP_STATUS_CODES.SUCCESS,
                 Constants.APP_STATUS_DESCRIPTORS.RESULT_FOUND,
-                stock
+                response
             )
         );
     } catch (err) {
