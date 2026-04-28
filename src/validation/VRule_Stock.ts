@@ -81,13 +81,13 @@ const STOCK_DATA_VALIDATION: ValidationRule[] = [
     {
         name: 'full_name',
         isRequired: false,
-        rule: (full_name: any): boolean => typeof full_name === 'string',
+        rule: (full_name: any): boolean => full_name === null || typeof full_name === 'string',
         errorMessage: 'Full Name must be a string'
     },
     {
         name: 'description',
         isRequired: false,
-        rule: (description: any): boolean => typeof description === 'string',
+        rule: (description: any): boolean => description === null || typeof description === 'string',
         errorMessage: 'Description must be a string'
     },
     {
@@ -150,7 +150,8 @@ const MERGE_DUPLICATE_VALIDATION: ValidationRule[] = [
 
             return rejects.reduce((errorAccumulator, reject) => {
 
-                return errorAccumulator.push(...validate(reject, STOCK_DATA_VALIDATION))
+                errorAccumulator.push(...validate(reject, STOCK_DATA_VALIDATION));
+                return errorAccumulator;
             }, []).length === 0;
         },
         errorMessage: 'rejects is mandatory and must be a list of Stock likes'

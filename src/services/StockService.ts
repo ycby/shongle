@@ -346,7 +346,7 @@ const getPotentialDuplicates = async (args: PaginationParams): Promise<Paginatio
 
 		const duplicatedStocks = await executeQuery<Stock>({
 			namedPlaceholders: true,
-			sql: `SELECT id, name, full_name, description, category, subcategory, board_lot, ISIN, currency, created_datetime, last_modified_datetime FROM Stocks WHERE ISIN IN (:isins) ORDER BY created_datetime DESC`
+			sql: `SELECT id, name, full_name, description, category, subcategory, board_lot, ISIN, currency, is_active, is_tracked, created_datetime, last_modified_datetime FROM Stocks WHERE ISIN IN (:isins) ORDER BY created_datetime DESC`
 		}, {
 			isins: duplicatedISINs.map((element) => element.ISIN)
 		}, (element) => Stock.fromDB(element));
@@ -384,51 +384,49 @@ const mergeStockDuplicates = async (args: MergeStockBody) => {
 	let result = false;
 	try {
 
-		 result = await executeOrchestration([
+		//TODO: raise an issue with mariadb connector?
+		result = await executeOrchestration([
 			{
 				type: DBCallType.BATCH,
 				queryOptions: {
-					namedPlaceholders: true,
 					sql: `
 						UPDATE Stock_Transactions st
-						SET stock_id = :survivingStockId
-						WHERE stock_id IN (:rejectedStockIds)
+						SET stock_id = ?
+						WHERE stock_id IN (${rejectedStockIds.map(() => '?').join(',')})
 					`,
 				},
-				data: {
-					survivingStockId: survivingStock.id,
-					rejectedStocksIds: rejectedStocks.map(s => s.id)
-				}
+				data: [
+					survivingStock.id,
+					...rejectedStockIds
+				]
 			},
 			{
 				type: DBCallType.BATCH,
 				queryOptions: {
-					namedPlaceholders: true,
 					sql: `
 						UPDATE Short_Reporting sr
-						SET stock_id = :survivingStockId
-						WHERE stock_id IN (:rejectedStockIds)
+						SET stock_id = ?
+						WHERE stock_id IN (${rejectedStockIds.map(() => '?').join(',')})
 					`
 				},
-				data: {
-					survivingStockId: survivingStock.id,
-					rejectedStocksIds: rejectedStockIds
-				}
+				data: [
+					survivingStock.id,
+					...rejectedStockIds
+				]
 			},
 			{
 				type: DBCallType.BATCH,
 				queryOptions: {
-					namedPlaceholders: true,
 					sql: `
-						UPDATE Stocks s
-						SET merged_id = :survivingStockId
-						WHERE id IN (:rejectedStockIds)
+						UPDATE Stocks 
+						SET merged_id = ?
+						WHERE id IN (${rejectedStockIds.map(() => '?').join(',')})
 					`
 				},
-				data: {
-					mergedId: survivingStock.id,
-					rejectedStocksIds: rejectedStockIds
-				}
+				data: [
+					survivingStock.id,
+					...rejectedStockIds
+				]
 			},
 			{
 				type: DBCallType.QUERY,

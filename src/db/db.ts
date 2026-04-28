@@ -120,12 +120,16 @@ const executeOrchestration = async (orchestrationItems: Orchestration[]): Promis
 
 		for (const element of orchestrationItems) {
 
+			console.log(element.queryOptions);
+			console.log(element.data);
 			if (element.type === DBCallType.QUERY) {
 
-				await conn.query(element.queryOptions, element.data);
+				const result = await conn.query(element.queryOptions, element.data);
+				console.log(result);
 			} else if (element.type === DBCallType.BATCH) {
 
-				await conn.batch(element.queryOptions, element.data);
+				const result = await conn.batch(element.queryOptions, element.data);
+				console.log(result);
 			}
 		}
 
