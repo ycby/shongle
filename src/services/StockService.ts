@@ -351,16 +351,19 @@ const getPotentialDuplicates = async (args: PaginationParams): Promise<Paginatio
 			isins: duplicatedISINs.map((element) => element.ISIN)
 		}, (element) => Stock.fromDB(element));
 
-		response.data = Object.fromEntries(duplicatedStocks.reduce((map, element) => {
+		response.data = Array.from(duplicatedStocks.reduce((map, element) => {
 
 			if (!map.has(element.ISIN)) {
 
-				map.set(element.ISIN, []);
+				map.set(element.ISIN, {
+					ISIN: element.ISIN,
+					duplicates: []
+				});
 			}
 
-			map.get(element.ISIN).push(element);
+			map.get(element.ISIN).duplicates.push(element);
 			return map;
-		}, response.data));
+		}, response.data).values());
 
 	} catch (err) {
 
