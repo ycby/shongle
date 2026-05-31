@@ -82,12 +82,12 @@ const getStocksData = async (args: StocksDataGetParam) => {
 
 	const filterClause: string = filterClauseGenerator(queryType, fieldMapping, queryParams);
 
-	let whereString: string = filterClause !== '' ? 'WHERE ' + filterClause : '';
+	let whereString: string = filterClause !== '' ? 'AND ' + filterClause : '';
 	try {
 
 		result = await executeQuery<Stock>({
 			namedPlaceholders: true,
-			sql: `SELECT * FROM Stocks ${whereString}`,
+			sql: `SELECT * FROM Stocks WHERE is_active = TRUE ${whereString}`,
 		}, {
 			ticker_no: `%${args.ticker_no}%`,
 			name: `%${args.name}%`,
@@ -346,7 +346,7 @@ const getPotentialDuplicates = async (args: PaginationParams): Promise<Paginatio
 
 		const duplicatedStocks = await executeQuery<Stock>({
 			namedPlaceholders: true,
-			sql: `SELECT id, name, full_name, description, category, subcategory, board_lot, ISIN, currency, is_active, is_tracked, created_datetime, last_modified_datetime FROM Stocks WHERE ISIN IN (:isins) ORDER BY created_datetime DESC`
+			sql: `SELECT id, name, ticker_no, full_name, description, category, subcategory, board_lot, ISIN, currency, is_active, is_tracked, created_datetime, last_modified_datetime FROM Stocks WHERE ISIN IN (:isins) ORDER BY created_datetime DESC`
 		}, {
 			isins: duplicatedISINs.map((element) => element.ISIN)
 		}, (element) => Stock.fromDB(element));

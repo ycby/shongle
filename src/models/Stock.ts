@@ -30,8 +30,8 @@ export default class Stock extends DatabaseObject {
         this._board_lot = data?.board_lot;
         this._ISIN = data?.ISIN;
         this._currency = data?.currency;
-        this._is_active = data?.is_active;
-        this._is_tracked = data?.is_tracked;
+        this._is_active = !!data?.is_active;
+        this._is_tracked = !!data?.is_tracked;
         this.created_datetime = data?.created_datetime ? data.created_datetime : this.created_datetime;
         this.last_modified_datetime = data?.last_modified_datetime ? data.last_modified_datetime : this.last_modified_datetime;
     }

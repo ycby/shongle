@@ -137,7 +137,8 @@ const MERGE_DUPLICATE_VALIDATION: ValidationRule[] = [
         rule: (survivor: any): boolean => {
 
             //TODO: find a way to allow nesting of defined rules
-            return validate(survivor, STOCK_DATA_VALIDATION).length === 0;
+            const res = validate(survivor, STOCK_DATA_VALIDATION);
+            return res.length === 0;
         },
         errorMessage: 'survivor is mandatory and must be Stock like'
     },
