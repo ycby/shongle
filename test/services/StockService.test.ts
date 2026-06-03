@@ -25,6 +25,11 @@ describe('Stock Service Tests', () => {
         jest.unstable_mockModule('#root/src/db/db.ts', () => ({
             executeQuery: jest.fn(),
             executeBatch: jest.fn(),
+            executeOrchestration: jest.fn(),
+            DBCallType: {
+                QUERY: 'query',
+                BATCH: 'batch',
+            }
         }));
 
         StockService = await import("#root/src/services/StockService.ts");

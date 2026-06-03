@@ -8,6 +8,7 @@ const DBCallType = {
 	QUERY: 'query',
 	BATCH: 'batch',
 } as const;
+
 export type DBCallTypeKey = typeof DBCallType[keyof typeof DBCallType];
 
 export type Orchestration = {
