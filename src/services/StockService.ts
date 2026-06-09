@@ -1,4 +1,4 @@
-import {executeBatch, executeQuery, UpsertResult} from '#root/src/db/db.js';
+import {DBCallType, executeBatch, executeOrchestration, executeQuery, UpsertResult} from '#root/src/db/db.js';
 import Stock from '#root/src/models/Stock.js';
 import {DuplicateFoundError, InvalidRequestError} from "#root/src/errors/Errors.js";
 import {
@@ -7,13 +7,17 @@ import {
 } from "#root/src/helpers/DBHelpers.js";
 import {validate, ValidatorResult} from "#root/src/utilities/Validator.js";
 import {
-	QueryTypeKeys, QueryType
+	QueryTypeKeys, QueryType, PaginationParams, PaginationResponse
 } from "#root/src/types.js";
 import {retrieveStockData} from "#root/src/helpers/StocksLatestRetriever/StocksLatestRetriever.js";
 import {
 	STOCK_PARAM_VALIDATION,
-	STOCK_DATA_VALIDATION, STOCK_PARAM_GET_VALIDATION, STOCK_PARAM_DELETE_VALIDATION
+	STOCK_DATA_VALIDATION,
+	STOCK_PARAM_GET_VALIDATION,
+	STOCK_PARAM_DELETE_VALIDATION,
+	POTENTIAL_DUPLICATE_QUERY_VALIDATION, MERGE_DUPLICATE_VALIDATION
 } from "#root/src/validation/VRule_Stock.js";
+import {RecordsWithRowCount} from "#root/src/services/types.js";
 
 export type StocksDataGetParam = {
 	query_type?: QueryTypeKeys;
@@ -36,6 +40,11 @@ export type StocksDataBody = {
 
 export type StocksTrackParam = {
 	id: string;
+}
+
+export type MergeStockBody = {
+	survivor: Stock;
+	rejects: Stock[];
 }
 
 const fieldMapping: FieldMapping[] = [
@@ -73,12 +82,12 @@ const getStocksData = async (args: StocksDataGetParam) => {
 
 	const filterClause: string = filterClauseGenerator(queryType, fieldMapping, queryParams);
 
-	let whereString: string = filterClause !== '' ? 'WHERE ' + filterClause : '';
+	let whereString: string = filterClause !== '' ? 'AND ' + filterClause : '';
 	try {
 
 		result = await executeQuery<Stock>({
 			namedPlaceholders: true,
-			sql: `SELECT * FROM Stocks ${whereString}`,
+			sql: `SELECT * FROM Stocks WHERE is_active = TRUE ${whereString}`,
 		}, {
 			ticker_no: `%${args.ticker_no}%`,
 			name: `%${args.name}%`,
@@ -306,6 +315,187 @@ const retrieveStockDataFromSource = () => {
 	retrieveStockData(url);
 }
 
+//identify the potential duplicates and then in the same transaction, grab the children too
+const getPotentialDuplicates = async (args: PaginationParams): Promise<PaginationResponse> => {
+
+	let validationResults: ValidatorResult[] = validate(args, POTENTIAL_DUPLICATE_QUERY_VALIDATION);
+
+	if (validationResults.length > 0) throw new InvalidRequestError(validationResults);
+
+	args.limit = args.limit ? args.limit : 10;
+	args.offset = args.offset ? args.offset : 0;
+
+	const response: PaginationResponse = {
+		total_rows: 0n,
+		data: new Map(),
+		offset: Number(args.offset),
+		limit: Number(args.limit),
+	}
+
+	try {
+
+		const duplicatedISINs = await executeQuery<RecordsWithRowCount & {ISIN: string, currency: string}>({
+			namedPlaceholders: true,
+			sql: `SELECT ISIN, currency, COUNT(*) OVER() AS total_rows FROM Stocks_w_Same_ISIN LIMIT :limit OFFSET :offset`
+		}, {
+			limit: Number(args.limit),
+			offset: Number(args.offset),
+		});
+
+		response.total_rows = duplicatedISINs.length > 0 ? duplicatedISINs[0].total_rows : 0n;
+
+		const duplicatedStocks = await executeQuery<Stock>({
+			namedPlaceholders: false,
+			sql: `SELECT id, name, ticker_no, full_name, description, category, subcategory, board_lot, ISIN, currency, is_active, is_tracked, created_datetime, last_modified_datetime
+					FROM Stocks
+					WHERE (ISIN, currency) IN (${duplicatedISINs.map((element) => `('${element.ISIN}', '${element.currency}')`).join(',')})
+					ORDER BY created_datetime DESC`
+		},
+			{},
+			(element) => Stock.fromDB(element));
+
+		response.data = Array.from(duplicatedStocks.reduce((map, element) => {
+
+			if (!map.has(element.ISIN)) {
+
+				map.set(element.ISIN, {
+					ISIN: element.ISIN,
+					duplicates: []
+				});
+			}
+
+			map.get(element.ISIN).duplicates.push(element);
+			return map;
+		}, response.data).values());
+
+	} catch (err) {
+
+		throw err;
+	}
+
+	return response;
+}
+
+const mergeStockDuplicates = async (args: MergeStockBody) => {
+
+	let validationResults: ValidatorResult[] = validate(args, MERGE_DUPLICATE_VALIDATION);
+
+	if (validationResults.length > 0) throw new InvalidRequestError(validationResults);
+
+	const survivingStock = Stock.fromAPI(args.survivor);
+	const rejectedStocks = args.rejects.map(element => Stock.fromAPI(element));
+
+	const wasRejectedTracked = rejectedStocks.reduce((accum, currentStock) => {
+
+		return accum || (currentStock.is_tracked ?? false);
+	}, false);
+	console.log(`wasRejectedTrack: ${wasRejectedTracked}`);
+
+	const rejectedStockIds = rejectedStocks.map(s => s.id);
+
+	let result = false;
+	try {
+
+		//TODO: raise an issue with mariadb connector?
+		result = await executeOrchestration([
+			{
+				type: DBCallType.BATCH,
+				queryOptions: {
+					sql: `
+						UPDATE Stock_Transactions st
+						SET stock_id = ?
+						WHERE stock_id IN (${rejectedStockIds.map(() => '?').join(',')})
+					`,
+				},
+				data: [
+					survivingStock.id,
+					...rejectedStockIds
+				]
+			},
+			{
+				type: DBCallType.BATCH,
+				queryOptions: {
+					sql: `
+						UPDATE Short_Reporting sr
+						SET stock_id = ?
+						WHERE stock_id IN (${rejectedStockIds.map(() => '?').join(',')})
+					`
+				},
+				data: [
+					survivingStock.id,
+					...rejectedStockIds
+				]
+			},
+			{
+				type: DBCallType.BATCH,
+				queryOptions: {
+					sql: `
+						UPDATE Diary_Entries de
+						SET stock_id = ?
+						WHERE stock_id IN (${rejectedStockIds.map(() => '?').join(',')})
+					`
+				},
+				data: [
+					survivingStock.id,
+					...rejectedStockIds
+				]
+			},
+			{
+				type: DBCallType.BATCH,
+				queryOptions: {
+					sql: `
+						UPDATE Stocks 
+						SET merged_id = ?, is_tracked = false
+						WHERE id IN (${rejectedStockIds.map(() => '?').join(',')})
+					`
+				},
+				data: [
+					survivingStock.id,
+					...rejectedStockIds
+				]
+			},
+			{
+				type: DBCallType.QUERY,
+				queryOptions: {
+					namedPlaceholders: true,
+					sql: `
+						UPDATE Stocks s
+						SET name = :name,
+						    full_name = :full_name,
+						    description = :description,
+						    category = :category,
+						    subcategory = :subcategory,
+						    board_lot = :board_lot,
+						    currency = :currency,
+						    is_active = :is_active,
+						    is_tracked = :is_tracked
+						WHERE id = :id
+					`
+				},
+				data: {
+					id: survivingStock.id,
+					name: survivingStock.name,
+					full_name: survivingStock.full_name,
+					description: survivingStock.description,
+					category: survivingStock.category,
+					subcategory: survivingStock.subcategory,
+					board_lot: survivingStock.board_lot,
+					currency: survivingStock.currency,
+					is_active: survivingStock.is_active,
+					is_tracked: wasRejectedTracked || survivingStock.is_tracked,
+				}
+			}
+		]);
+	} catch (err) {
+
+		throw err;
+	}
+
+	return {
+		status: result ? 'success' : 'failed'
+	};
+}
+
 export {
 	getStocksData,
 	postStockData,
@@ -314,5 +504,7 @@ export {
 	deleteStockData,
 	getTrackedStocks,
 	setTrackStock,
-	retrieveStockDataFromSource
+	retrieveStockDataFromSource,
+	getPotentialDuplicates,
+	mergeStockDuplicates
 }

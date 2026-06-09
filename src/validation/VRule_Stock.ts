@@ -2,7 +2,7 @@ import {
     canConvertToBigNumber,
     canConvertToNumber
 } from "#root/src/helpers/DBHelpers.js";
-import {ValidationRule} from "#root/src/utilities/Validator.js";
+import {validate, ValidationRule} from "#root/src/utilities/Validator.js";
 import {
     Category,
     CategoryKeys,
@@ -12,6 +12,7 @@ import {
     Subcategory,
     SubcategoryKeys
 } from "#root/src/types.js";
+import {PAGINATION_VALIDATION} from "#root/src/validation/SharedRules.js";
 
 const STOCK_PARAM_VALIDATION: ValidationRule[] = [
     {
@@ -80,13 +81,13 @@ const STOCK_DATA_VALIDATION: ValidationRule[] = [
     {
         name: 'full_name',
         isRequired: false,
-        rule: (full_name: any): boolean => typeof full_name === 'string',
+        rule: (full_name: any): boolean => full_name === null || typeof full_name === 'string',
         errorMessage: 'Full Name must be a string'
     },
     {
         name: 'description',
         isRequired: false,
-        rule: (description: any): boolean => typeof description === 'string',
+        rule: (description: any): boolean => description === null || typeof description === 'string',
         errorMessage: 'Description must be a string'
     },
     {
@@ -127,9 +128,42 @@ const STOCK_DATA_VALIDATION: ValidationRule[] = [
     },
 ];
 
+const POTENTIAL_DUPLICATE_QUERY_VALIDATION = [...PAGINATION_VALIDATION];
+
+const MERGE_DUPLICATE_VALIDATION: ValidationRule[] = [
+    {
+        name: 'survivor',
+        isRequired: true,
+        rule: (survivor: any): boolean => {
+
+            //TODO: find a way to allow nesting of defined rules
+            const res = validate(survivor, STOCK_DATA_VALIDATION);
+            return res.length === 0;
+        },
+        errorMessage: 'survivor is mandatory and must be Stock like'
+    },
+    {
+        name: 'rejects',
+        isRequired: true,
+        rule: (rejects: any): boolean => {
+
+            if (!Array.isArray(rejects)) return false;
+
+            return rejects.reduce((errorAccumulator, reject) => {
+
+                errorAccumulator.push(...validate(reject, STOCK_DATA_VALIDATION));
+                return errorAccumulator;
+            }, []).length === 0;
+        },
+        errorMessage: 'rejects is mandatory and must be a list of Stock likes'
+    }
+]
+
 export {
     STOCK_PARAM_VALIDATION,
     STOCK_PARAM_GET_VALIDATION,
     STOCK_PARAM_DELETE_VALIDATION,
     STOCK_DATA_VALIDATION,
+    POTENTIAL_DUPLICATE_QUERY_VALIDATION,
+    MERGE_DUPLICATE_VALIDATION
 }

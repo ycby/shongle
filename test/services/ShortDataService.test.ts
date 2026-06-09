@@ -2,12 +2,12 @@ import {afterEach, describe, expect, jest, test} from "@jest/globals";
 import {
     ShortDataBody,
     ShortDataGetParam,
-    ShortDataGetSingleParam, ShortDataMismatchQuery,
-    ShortDataTickersWithMismatchQuery
+    ShortDataGetSingleParam, ShortDataMismatchQuery
 } from "#root/src/services/ShortDataService.js";
 import {InvalidRequestError} from "#root/src/errors/Errors.js";
 import ShortData from "#root/src/models/ShortData.js";
 import Money from "money-type";
+import {PaginationParams} from "#root/src/types.js";
 
 let ShortDataService: any;
 let db: any;
@@ -257,7 +257,7 @@ describe('Short Data Service Tests', () => {
                 }
             ]);
 
-            const args: ShortDataTickersWithMismatchQuery = {
+            const args: PaginationParams = {
                 limit: 10,
                 offset: 0
             }
@@ -278,7 +278,7 @@ describe('Short Data Service Tests', () => {
                 }
             ]);
 
-            const args: ShortDataTickersWithMismatchQuery = {
+            const args: PaginationParams = {
                 offset: 0
             }
 
@@ -298,7 +298,7 @@ describe('Short Data Service Tests', () => {
                 }
             ]);
 
-            const args: ShortDataTickersWithMismatchQuery = {
+            const args: PaginationParams = {
                 limit: 10
             }
 
@@ -309,7 +309,7 @@ describe('Short Data Service Tests', () => {
 
             executeQueryMock.mockRejectedValueOnce(new Error('Some error'));
 
-            const args: ShortDataTickersWithMismatchQuery = {
+            const args: PaginationParams = {
                 limit: 10,
                 offset: 0
             };

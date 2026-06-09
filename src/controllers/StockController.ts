@@ -16,6 +16,8 @@ const getStockRouter = () => {
     router.post(basePath + "/tracked/:id/track", trackStock);
     router.post(basePath + "/tracked/:id/untrack", untrackStock);
     router.get(basePath + "/retrieve-from-source", retrieveStockDataFromSource);
+    router.get(basePath + "/duplicates", getPotentialDuplicates);
+    router.post(basePath + "/duplicates", mergeStockDuplicates);
     router.get(basePath + "/:ticker_no", getStock);
     router.put(basePath + "/", upsertStock);
     router.delete(basePath + "/:id", deleteStock);
@@ -185,6 +187,44 @@ const retrieveStockDataFromSource = async (_req: Request, res: Response, next: N
                 Constants.APP_STATUS_CODES.SUCCESS,
                 Constants.APP_STATUS_DESCRIPTORS.RESULT_FOUND,
                 "done!"
+            )
+        );
+    } catch (err) {
+
+        next(err);
+    }
+}
+
+const getPotentialDuplicates = async (req: Request, res: Response, next: NextFunction) => {
+
+    try {
+
+        const response = await StockService.getPotentialDuplicates(req.params);
+
+        return res.status(Constants.HTTP_STATUS_CODES.SUCCESS).json(
+            ResponseStandardiser.generateStandardResponse(
+                Constants.APP_STATUS_CODES.SUCCESS,
+                Constants.APP_STATUS_DESCRIPTORS.RESULT_FOUND,
+                response
+            )
+        );
+    } catch (err) {
+
+        next(err);
+    }
+}
+
+const mergeStockDuplicates = async (req: Request, res: Response, next: NextFunction) => {
+
+    try {
+
+        const result = await StockService.mergeStockDuplicates(req.body);
+
+        return res.status(Constants.HTTP_STATUS_CODES.SUCCESS).json(
+            ResponseStandardiser.generateStandardResponse(
+                Constants.APP_STATUS_CODES.SUCCESS,
+                Constants.APP_STATUS_DESCRIPTORS.RESULT_FOUND,
+                result
             )
         );
     } catch (err) {
