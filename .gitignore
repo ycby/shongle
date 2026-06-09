@@ -137,3 +137,4 @@ storage/
 .idea/shelf/
 .idea/dataSources.xml
 .idea/sqldialects.xml
+.idea/data_source_mapping.xml

@@ -334,9 +334,9 @@ const getPotentialDuplicates = async (args: PaginationParams): Promise<Paginatio
 
 	try {
 
-		const duplicatedISINs = await executeQuery<RecordsWithRowCount & {ISIN: string}>({
+		const duplicatedISINs = await executeQuery<RecordsWithRowCount & {ISIN: string, currency: string}>({
 			namedPlaceholders: true,
-			sql: `SELECT ISIN, COUNT(*) OVER() AS total_rows FROM Stocks_w_Same_ISIN LIMIT :limit OFFSET :offset`
+			sql: `SELECT ISIN, currency, COUNT(*) OVER() AS total_rows FROM Stocks_w_Same_ISIN LIMIT :limit OFFSET :offset`
 		}, {
 			limit: Number(args.limit),
 			offset: Number(args.offset),
@@ -345,11 +345,14 @@ const getPotentialDuplicates = async (args: PaginationParams): Promise<Paginatio
 		response.total_rows = duplicatedISINs.length > 0 ? duplicatedISINs[0].total_rows : 0n;
 
 		const duplicatedStocks = await executeQuery<Stock>({
-			namedPlaceholders: true,
-			sql: `SELECT id, name, ticker_no, full_name, description, category, subcategory, board_lot, ISIN, currency, is_active, is_tracked, created_datetime, last_modified_datetime FROM Stocks WHERE ISIN IN (:isins) ORDER BY created_datetime DESC`
-		}, {
-			isins: duplicatedISINs.map((element) => element.ISIN)
-		}, (element) => Stock.fromDB(element));
+			namedPlaceholders: false,
+			sql: `SELECT id, name, ticker_no, full_name, description, category, subcategory, board_lot, ISIN, currency, is_active, is_tracked, created_datetime, last_modified_datetime
+					FROM Stocks
+					WHERE (ISIN, currency) IN (${duplicatedISINs.map((element) => `('${element.ISIN}', '${element.currency}')`).join(',')})
+					ORDER BY created_datetime DESC`
+		},
+			{},
+			(element) => Stock.fromDB(element));
 
 		response.data = Array.from(duplicatedStocks.reduce((map, element) => {
 
@@ -381,6 +384,12 @@ const mergeStockDuplicates = async (args: MergeStockBody) => {
 
 	const survivingStock = Stock.fromAPI(args.survivor);
 	const rejectedStocks = args.rejects.map(element => Stock.fromAPI(element));
+
+	const wasRejectedTracked = rejectedStocks.reduce((accum, currentStock) => {
+
+		return accum || (currentStock.is_tracked ?? false);
+	}, false);
+	console.log(`wasRejectedTrack: ${wasRejectedTracked}`);
 
 	const rejectedStockIds = rejectedStocks.map(s => s.id);
 
@@ -421,8 +430,22 @@ const mergeStockDuplicates = async (args: MergeStockBody) => {
 				type: DBCallType.BATCH,
 				queryOptions: {
 					sql: `
+						UPDATE Diary_Entries de
+						SET stock_id = ?
+						WHERE stock_id IN (${rejectedStockIds.map(() => '?').join(',')})
+					`
+				},
+				data: [
+					survivingStock.id,
+					...rejectedStockIds
+				]
+			},
+			{
+				type: DBCallType.BATCH,
+				queryOptions: {
+					sql: `
 						UPDATE Stocks 
-						SET merged_id = ?
+						SET merged_id = ?, is_tracked = false
 						WHERE id IN (${rejectedStockIds.map(() => '?').join(',')})
 					`
 				},
@@ -459,7 +482,7 @@ const mergeStockDuplicates = async (args: MergeStockBody) => {
 					board_lot: survivingStock.board_lot,
 					currency: survivingStock.currency,
 					is_active: survivingStock.is_active,
-					is_tracked: survivingStock.is_tracked,
+					is_tracked: wasRejectedTracked || survivingStock.is_tracked,
 				}
 			}
 		]);
